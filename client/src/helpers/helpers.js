@@ -10,3 +10,12 @@ export function totalPrice(array) {
     });
     return ans;
 }
+
+export function getImageUrl(imageName) {
+    try {
+        return require(`@/assets/images/data/${imageName}`);
+    } 
+    catch (error) {
+        return require('@/assets/images/error.jpg');
+    }
+}

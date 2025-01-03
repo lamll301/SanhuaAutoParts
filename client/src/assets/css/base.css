@@ -183,10 +183,10 @@ html {
 }
 .tabs-item:hover {
     cursor: pointer;
-    border-bottom: 4px solid #00754a;
+    border-bottom: 4px solid var(--primary-color);
 }
 .tabs-item-avtive {
-    border-bottom: 4px solid #00754a;
+    border-bottom: 4px solid var(--primary-color);
 }
 .tabs-item-text {
     font-size: 1.3rem;
