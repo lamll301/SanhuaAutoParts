@@ -71,7 +71,7 @@
                             <div v-else class="header__cart-list ">
                                 <!-- have cart -->
                                 <ul class="header__cart-list-item">
-                                    <li v-for="(cartDetail, index) in cartDetails" :key="index" class="header__cart-item">
+                                    <li v-for="cartDetail in cartDetails" :key="cartDetail" class="header__cart-item">
                                         <img :src="cartDetail.image" alt="">
                                         <div class="header__cart-item-content">
                                             <div class="header__cart-item-title">
@@ -117,33 +117,33 @@
         <div class="grid header-function-bar">
             <ul class="header-function-bar-list">
                 <li class="header-function-bar-item">
-                    <a href="" class="header-function-bar-name">
+                    <router-link to="/" class="header-function-bar-name">
                         Trang chủ
-                    </a>
+                    </router-link>
                 </li>
                 <li class="header-function-bar-item">
-                    <a href="" class="header-function-bar-name">
+                    <router-link to="/ve-chung-toi" class="header-function-bar-name">
                         Về chúng tôi
-                    </a>
+                    </router-link>
                 </li>
                 <li class="header-function-bar-item header-function-bar-menu-block">
-                    <a href="" class="header-function-bar-name">
+                    <router-link to="/danh-muc" class="header-function-bar-name">
                        Danh mục phụ tùng
-                    </a>
+                    </router-link>
                     <div class="header-function-bar-menu">
                         <div class="header-function-bar-menu-content">
                             <div class="header-function-bar-menu-left">
                                 <div class="header-function-bar-menu-section">
                                     <ul class="header-function-bar-menu-list">
-                                        <li v-for="(category, index) in categories.slice(0, 9)" :key="index" class="header-function-bar-menu-item">
-                                            <a href="">{{ category.name }}</a>
+                                        <li v-for="category in categories.slice(0, 9)" :key="category" class="header-function-bar-menu-item">
+                                            <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
                                         </li>
                                     </ul>
                                 </div>
                                 <div class="header-function-bar-menu-section">
                                     <ul class="header-function-bar-menu-list">
-                                        <li v-for="(category, index) in categories.slice(9, 18)" :key="index" class="header-function-bar-menu-item">
-                                            <a href="">{{ category.name }}</a>
+                                        <li v-for="category in categories.slice(9, 18)" :key="category" class="header-function-bar-menu-item">
+                                            <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
                                         </li>
                                     </ul>
                                 </div>
@@ -157,23 +157,23 @@
                     </div>
                 </li>
                 <li class="header-function-bar-item header-function-bar-menu-block">
-                    <a href="" class="header-function-bar-name">
+                    <router-link to="/danh-muc" class="header-function-bar-name">
                         Phụ tùng theo hãng
-                    </a>
+                    </router-link>
                     <div class="header-function-bar-menu">
                         <div class="header-function-bar-menu-content">
                             <div class="header-function-bar-menu-left">
                                 <div class="header-function-bar-menu-section">
                                     <ul class="header-function-bar-menu-list">
-                                        <li v-for="(category, index) in categoriesByBrand.slice(0, 9)" :key="index" class="header-function-bar-menu-item">
-                                            <a href="">{{ category.name }}</a>
+                                        <li v-for="category in categoriesByBrand.slice(0, 9)" :key="category" class="header-function-bar-menu-item">
+                                            <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
                                         </li>
                                     </ul>
                                 </div>
                                 <div class="header-function-bar-menu-section">
                                     <ul class="header-function-bar-menu-list">
-                                        <li v-for="(category, index) in categoriesByBrand.slice(9, 18)" :key="index" class="header-function-bar-menu-item">
-                                            <a href="">{{ category.name }}</a>
+                                        <li v-for="category in categoriesByBrand.slice(9, 18)" :key="category" class="header-function-bar-menu-item">
+                                            <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
                                         </li>
                                     </ul>
                                 </div>
@@ -187,19 +187,19 @@
                     </div>
                 </li>
                 <li class="header-function-bar-item">
-                    <a href="" class="header-function-bar-name">
+                    <router-link to="" class="header-function-bar-name">
                         Dịch vụ
-                    </a>
+                    </router-link>
                 </li>
                 <li class="header-function-bar-item">
-                    <a href="" class="header-function-bar-name">
+                    <router-link to="" class="header-function-bar-name">
                         Tin tức và sự kiện
-                    </a>
+                    </router-link>
                 </li>
                 <li class="header-function-bar-item">
-                    <a href="" class="header-function-bar-name">
+                    <router-link to="/lien-he" class="header-function-bar-name">
                         Liên hệ
-                    </a>
+                    </router-link>
                 </li>
             </ul>
         </div>
@@ -344,27 +344,27 @@ export default {
                 },
             ],
             categoriesByBrand: [
-                { name: 'Toyota' }, { name: 'Honda' }, { name: 'Ford' }, { name: 'Chevrolet' }, { name: 'Nissan' }, { name: 'BMW' }, { name: 'Mercedes-Benz' }, { name: 'Volkswagen' }, { name: 'Audi' }, { name: 'Lexus' }, { name: 'Hyundai' }, { name: 'Kia' }, { name: 'Mazda' }, { name: 'Mitsubishi' }, { name: 'Subaru' }, { name: 'Suzuki' }, { name: 'Porsche' }, { name: 'Jaguar' }, { name: 'Land Rover' }, { name: 'Volvo' }
+                { name: 'Toyota', slug: 'toyota' }, { name: 'Honda', slug: 'honda' }, { name: 'Ford', slug: 'ford' }, { name: 'Chevrolet', slug: 'chevrolet' }, { name: 'Nissan', slug: 'nissan' }, { name: 'BMW', slug: 'bmw' }, { name: 'Mercedes-Benz', slug: 'mercedes-benz' }, { name: 'Volkswagen', slug: 'volkswagen' }, { name: 'Audi', slug: 'audi' }, { name: 'Lexus', slug: 'lexus' }, { name: 'Hyundai', slug: 'hyundai' }, { name: 'Kia', slug: 'kia' }, { name: 'Mazda', slug: 'mazda' }, { name: 'Mitsubishi', slug: 'mitsubishi' }, { name: 'Subaru', slug: 'subaru' }, { name: 'Suzuki', slug: 'suzuki' }, { name: 'Porsche', slug: 'porsche' }, { name: 'Jaguar', slug: 'jaguar' }, { name: 'Land Rover', slug: 'land-rover' }, { name: 'Volvo', slug: 'volvo' }
             ],
             categories: [
-                { "name": "Phụ tùng động cơ" },
-                { "name": "Phụ tùng gầm xe" },
-                { "name": "Phụ tùng thân & vỏ" },
-                { "name": "Phụ tùng điện" },
-                { "name": "Phụ tùng điều hòa" },
-                { "name": "Hệ thống phanh" },
-                { "name": "Hệ thống treo" },
-                { "name": "Hệ thống làm mát" },
-                { "name": "Hệ thống nhiên liệu" },
-                { "name": "Hệ thống chiếu sáng" },
-                { "name": "Phụ tùng lốp xe" },
-                { "name": "Gương và kính xe" },
-                { "name": "Bộ ly hợp và hộp số" },
-                { "name": "Hệ thống lái" },
-                { "name": "Hệ thống xả" },
-                { "name": "Phụ kiện trang trí nội thất" },
-                { "name": "Phụ kiện trang trí ngoại thất" },
-                { "name": "Phụ kiện công nghệ và tiện ích" }
+                { id: 1, name: "Phụ tùng động cơ", slug: "phu-tung-dong-co" },
+                { id: 2, name: "Phụ tùng gầm xe", slug: "phu-tung-gam-xe" },
+                { id: 3, name: "Phụ tùng thân & vỏ", slug: "phu-tung-than-vo" },
+                { id: 4, name: "Phụ tùng điện", slug: "phu-tung-dien" },
+                { id: 5, name: "Phụ tùng điều hòa", slug: "phu-tung-dieu-hoa" },
+                { id: 6, name: "Hệ thống phanh", slug: "he-thong-phanh" },
+                { id: 7, name: "Hệ thống treo", slug: "he-thong-treo" },
+                { id: 8, name: "Hệ thống làm mát", slug: "he-thong-lam-mat" },
+                { id: 9, name: "Hệ thống nhiên liệu", slug: "he-thong-nhien-lieu" },
+                { id: 10, name: "Hệ thống chiếu sáng", slug: "he-thong-chieu-sang" },
+                { id: 11, name: "Phụ tùng lốp xe", slug: "phu-tung-lop-xe" },
+                { id: 12, name: "Gương và kính xe", slug: "guong-va-kinh-xe" },
+                { id: 13, name: "Bộ ly hợp và hộp số", slug: "bo-ly-hop-va-hop-so" },
+                { id: 14, name: "Hệ thống lái", slug: "he-thong-lai" },
+                { id: 15, name: "Hệ thống xả", slug: "he-thong-xa" },
+                { id: 16, name: "Phụ kiện trang trí nội thất", slug: "phu-kien-trang-tri-noi-that" },
+                { id: 17, name: "Phụ kiện trang trí ngoại thất", slug: "phu-kien-trang-tri-ngoai-that" },
+                { id: 18, name: "Phụ kiện công nghệ và tiện ích", slug: "phu-kien-cong-nghe-va-tien-ich" }
             ]
         }
     },
