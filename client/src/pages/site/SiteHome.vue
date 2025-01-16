@@ -281,9 +281,9 @@
 </style>
 
 <script>
-import { onMounted } from 'vue';
-import Swiper from 'swiper/bundle';
 import { formatPrice, getImageUrl } from '@/helpers/helpers.js'
+import useSwiper from '@/composables/useSwiper';
+import useTab from '@/composables/useTab';
 
 export default {
     name: 'SiteHome',
@@ -812,65 +812,8 @@ export default {
         formatPrice, getImageUrl,
     },
     setup() {
-        const initTab = (tabsClass, tabContentsClass) => {
-            const tabs = document.querySelectorAll(tabsClass);
-            const tabContents = document.querySelectorAll(tabContentsClass);
-            if (tabs.length > 0) { tabs[0].classList.add('tabs-item-active'); }
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    tabs.forEach(t => t.classList.remove('tabs-item-active'));
-                    this.classList.add('tabs-item-active');
-                    tabContents.forEach(tabContent => {
-                        if (tabContent.id === this.id) {
-                            tabContent.classList.remove('hidden');
-                        } else {
-                            tabContent.classList.add('hidden');
-                        }
-                    });
-                });
-            });
-        };
-        const initSwiper = (slidesPerView, containerClass, nextBtnClass, prevBtnClass, autoplayConfig = null) => {
-            const swiperConfig = {
-                slidesPerView: slidesPerView,
-                navigation: {
-                    nextEl: nextBtnClass,
-                    prevEl: prevBtnClass,
-                },
-            };
-            if (autoplayConfig) {
-                swiperConfig.autoplay = autoplayConfig;
-            }
-            const swiper = new Swiper(containerClass, swiperConfig);
-            swiper.on('slideChange', function () {
-                const curr = swiper.activeIndex;
-                const prev = swiper.navigation.prevEl;
-                const next = swiper.navigation.nextEl;
-                if (curr === 0) {
-                    prev.classList.add('hidden');
-                } else {
-                    prev.classList.remove('hidden');
-                }
-                if (curr + swiper.params.slidesPerView >= swiper.slides.length) {
-                    next.classList.add('hidden');
-                } else {
-                    next.classList.remove('hidden');
-                }
-            })
-        };
-        onMounted(() => {
-            initSwiper(1, '.swiper__slider', '.swiper__slider-btn-next', '.swiper__slider-btn-prev', {
-                delay: 5000,
-                disableOnInteraction: false,
-            });
-            initTab('.tabs-item__online-store', '.online-store-container');
-            initSwiper(6, '.swiper__brew-product', '.swiper__brew-product-btn-next', '.swiper__brew-product-btn-prev');
-            initSwiper(9, '.swiper__online-store-best-sellers', '.swiper__online-store-best-sellers-btn-next', '.swiper__online-store-best-sellers-btn-prev');
-            initSwiper(9, '.swiper__online-store-newest', '.swiper__online-store-newest-btn-next', '.swiper__online-store-newest-btn-prev');
-            initSwiper(9, '.swiper__online-store-on-sale', '.swiper__online-store-on-sale-btn-next', '.swiper__online-store-on-sale-btn-prev');
-            initSwiper(9, '.swiper__online-store-seasonal', '.swiper__online-store-seasonal-btn-next', '.swiper__online-store-seasonal-btn-prev');
-            initSwiper(6, '.swiper__stories', '.swiper__stories-btn-next', '.swiper__stories-btn-prev');
-        })
+        useTab(), 
+        useSwiper()
     },
 }
 </script>

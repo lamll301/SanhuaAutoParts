@@ -15,8 +15,8 @@ html {
     box-sizing: border-box;
 }
 .grid {
-    width: 1495.2px;
-    /* width: 1440px; */
+    /* width: 1495.2px; */
+    width: 1440px;
     max-width: 100%;
     margin: 0 auto;
 }

@@ -122,7 +122,7 @@
                     </div>
                 </div>
                 <div class="category-grid">
-                    <router-link v-for="autoPart in autoParts" :key="autoPart" :to="'/san-pham/' + autoPart.slug" class="category-product">
+                    <router-link v-for="autoPart in autoParts" :key="autoPart" :to="'/san-pham/' + autoPart.id" class="category-product">
                         <img :src="autoPart.image" alt="" class="category-product-img">
                         <div class="category-product-content">
                             <h2 class="category-product-name">

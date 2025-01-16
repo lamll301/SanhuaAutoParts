@@ -28,6 +28,11 @@ const site = [
                 name: 'categoryProducts',
                 component: () => import('../pages/site/ProductCategories.vue'),
             },
+            {
+                path: 'san-pham/:id',
+                name: 'productDetail',
+                component: () => import('../pages/site/ProductDetail.vue'),
+            },
         ]
     }
 ]
