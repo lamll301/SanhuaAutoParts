@@ -10,7 +10,8 @@
   "dependencies": {
     "core-js": "^3.8.3",
     "swiper": "^11.1.15",
-    "vue-router": "^4.5.0"
+    "vue-router": "^4.5.0",
+    "vue-sweetalert2": "^5.0.11"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",

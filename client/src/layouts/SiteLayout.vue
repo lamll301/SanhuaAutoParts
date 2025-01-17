@@ -57,10 +57,10 @@
                             </div>
                         </li>
                         <li class="header__top-item header__cart">
-                            <a href="" class="header__top-icon-link">
+                            <router-link to="/gio-hang" class="header__top-icon-link">
                                 <i class="fa-solid fa-cart-shopping fa-xl"></i>
                                 <span class="header__notice header__cart-notice">{{ cartDetails.length }}</span>
-                            </a>
+                            </router-link>
                             <!--class empty cart: header__cart-list--empty-cart-->
                             <div v-if="cartDetails.length === 0" class="header__cart-list header__cart-list--empty-cart">
                                 <img src="../assets/images/empty-cart.png" alt="" class="header__cart-list--empty-cart-img">
@@ -90,8 +90,8 @@
                                         <span>{{ formatPrice(totalPrice(cartDetails)) }}đ</span>
                                     </div>
                                     <div class="header__cart-btn">
-                                        <a href="" class="button header__cart-btn--view-cart">Xem giỏ hàng</a>
-                                        <a href="" class="button header__cart-btn--checkout">Thanh toán</a>
+                                        <router-link to="/gio-hang" class="button header__cart-btn--view-cart">Xem giỏ hàng</router-link>
+                                        <router-link to="/don-hang" class="button header__cart-btn--checkout">Thanh toán</router-link>
                                     </div>
                                 </div>
                             </div>
@@ -103,9 +103,9 @@
         <!-- header with search -->
         <div class="header__underline">
             <div class="header-with-search">
-                <a href="" class="header__logo">
+                <router-link to="/" class="header__logo">
                     <img src="../assets/images/logo.jpg" alt="" class="header__logo-img">
-                </a>
+                </router-link>
                 <div class="header__search">
                     <input type="text" class="header__search-input" placeholder="Nhập để tìm kiếm sản phẩm">
                     <i class="header__search-icon fa-solid fa-magnifying-glass"></i>
@@ -321,6 +321,48 @@ export default {
 
             ],
             cartDetails: [
+                { 
+                    name: 'Daissy Casual Bag', 
+                    image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-3.jpg', 
+                    quantity: 1, 
+                    price: 800000,
+                    description: 'A stylish casual bag for everyday use.'
+                },
+                { 
+                    name: 'Leather Wallet', 
+                    image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-4.jpg', 
+                    quantity: 2, 
+                    price: 500000,
+                    description: 'A premium leather wallet with multiple compartments.'
+                },
+                { 
+                    name: 'Classic Watch', 
+                    image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-5.jpg', 
+                    quantity: 1, 
+                    price: 1200000,
+                    description: 'A classic watch with a leather strap.'
+                },
+                { 
+                    name: 'Daissy Casual Bag', 
+                    image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-3.jpg', 
+                    quantity: 1, 
+                    price: 800000,
+                    description: 'A stylish casual bag for everyday use.'
+                },
+                { 
+                    name: 'Leather Wallet', 
+                    image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-4.jpg', 
+                    quantity: 2, 
+                    price: 500000,
+                    description: 'A premium leather wallet with multiple compartments.'
+                },
+                { 
+                    name: 'Classic Watch', 
+                    image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-5.jpg', 
+                    quantity: 1, 
+                    price: 1200000,
+                    description: 'A classic watch with a leather strap.'
+                },
                 { 
                     name: 'Daissy Casual Bag', 
                     image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-3.jpg', 

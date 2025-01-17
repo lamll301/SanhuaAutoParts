@@ -111,10 +111,10 @@
                             {{ autoPart.quantity }} sản phẩm có sẵn
                         </span>
                     </div>
-                    <router-link to="" class="product-btn-buy product-btn button">
+                    <router-link to="/don-hang" class="product-btn-buy product-btn button">
                         Mua ngay
                     </router-link>
-                    <router-link to="" class="product-btn-add-to-cart product-btn button">
+                    <router-link to="/gio-hang" class="product-btn-add-to-cart product-btn button">
                         Thêm vào giỏ hàng
                     </router-link>
                     <div class="product-labels">

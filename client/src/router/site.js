@@ -19,6 +19,11 @@ const site = [
                 component: () => import('../pages/site/SiteHome.vue'),
             },
             {
+                path: 'gio-hang',
+                name: 'cart',
+                component: () => import('../pages/site/ShoppingCart.vue'),
+            },
+            {
                 path: 'danh-muc',
                 name: 'allProducts',
                 component: () => import('../pages/site/ProductCategories.vue'),

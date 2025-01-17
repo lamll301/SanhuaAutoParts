@@ -15,7 +15,7 @@ export function getImageUrl(imageName) {
     try {
         return require(`@/assets/images/data/${imageName}`);
     } 
-    catch (error) {
+    catch {
         return require('@/assets/images/error.jpg');
     }
 }
