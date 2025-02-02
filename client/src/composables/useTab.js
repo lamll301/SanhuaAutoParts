@@ -4,7 +4,6 @@ import { onMounted } from 'vue';
 export default function useTab() {
 
     onMounted(() => {
-        // trang chủ
         initTab('.tabs-item__online-store', '.online-store-container');
     });
 
@@ -25,9 +24,5 @@ export default function useTab() {
                 });
             });
         });
-    };
-
-    return {
-        initTab
     };
 }

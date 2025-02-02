@@ -19,6 +19,11 @@ const site = [
                 component: () => import('../pages/site/SiteHome.vue'),
             },
             {
+                path: 'don-hang',
+                name: 'order',
+                component: () => import('../pages/site/OrderForm.vue'),
+            },
+            {
                 path: 'gio-hang',
                 name: 'cart',
                 component: () => import('../pages/site/ShoppingCart.vue'),

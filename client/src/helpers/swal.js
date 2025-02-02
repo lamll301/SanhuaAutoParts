@@ -21,8 +21,8 @@ export function swalMixin(icon, title) {
 }
 export function swalFire(title, text, icon) {
     return Swal.fire({
-        title: `<span style="font-size: 1.2em;">${title}</span>`,
-        text: `<span style="font-size: 1.2em;">${text}</span>`,
-        icon: icon
+        title: title,
+        text: text,
+        icon: icon,
     });
 }

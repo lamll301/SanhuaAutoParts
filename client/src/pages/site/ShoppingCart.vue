@@ -83,7 +83,7 @@
                     <div class="cart-summary-line-item">
                         <span>Các mặt hàng ({{ cartDetails.length }})</span>
                         <span>
-                            {{ formatPrice(cart.tax) }}<sup>đ</sup>
+                            {{ formatPrice(cart.subTotal) }}<sup>đ</sup>
                         </span>
                     </div>
                     <div class="cart-summary-line-item">
@@ -97,7 +97,7 @@
                             Thuế (VAT)
                         </span>
                         <span>
-                            {{ formatPrice(cart.tax * 0.1) }}
+                            {{ formatPrice(cart.subTotal * 0.1) }}<sup>đ</sup>
                         </span>
                     </div>
                     <div class="cart-total cart-summary-line-item">
@@ -106,9 +106,9 @@
                             {{ formatPrice(cart.totalPrice) }}<sup>đ</sup>
                         </span>
                     </div>
-                    <a href="" class="button cart-btn">
+                    <router-link to="/don-hang" class="button cart-btn">
                         Đi tới thanh toán
-                    </a>
+                    </router-link>
                     <span class="cart-label">
                         <img src="@/assets/images/secure.png" alt="">
                         Được bảo vệ bởi
@@ -212,7 +212,7 @@ export default {
                 }
             ],
             cart: {
-                tax: 186000000,
+                subTotal: 186000000,
                 shippingFee: 5000000,
                 totalPrice: 191000000
             }
@@ -224,7 +224,7 @@ export default {
     methods: {
         validateQuantity(cartDetail) {
             let isValid = true;
-            if (cartDetail.quantity <= 0) {
+            if (cartDetail.quantity <= 0 || !Number.isInteger(cartDetail.quantity)) {
                 swalMixin('error', 'Giá trị nhập vào không hợp lệ.')
                 isValid = false;
             }
@@ -242,12 +242,12 @@ export default {
             this.calculateCart();
         },
         calculateCart() {   // tính tiền sản phẩm, tiền thuế, tiền vận chuyển & tổng tiền
-            let tax = 0;
+            let subTotal = 0;
             this.cartDetails.forEach(detail => {
-                tax += detail.total;
+                subTotal += detail.total;
             });
-            this.cart.tax = tax;
-            this.cart.totalPrice = tax + this.cart.shippingFee + (tax * 0.1);
+            this.cart.subTotal = subTotal;
+            this.cart.totalPrice = subTotal + this.cart.shippingFee + (subTotal * 0.1);
         },
         saveCart() {
             console.log("OK")
