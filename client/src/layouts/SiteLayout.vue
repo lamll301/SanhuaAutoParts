@@ -22,7 +22,10 @@
                                     </a>
                                 </li>
                                 <li class="header__top-user-item header__top-user-item-option">
-                                    <a href="">Cài đặt tài khoản</a>
+                                    <router-link to="/cai-dat">Cài đặt tài khoản</router-link>
+                                </li>
+                                <li class="header__top-user-item header__top-user-item-option">
+                                    <router-link to="/theo-doi-don-hang">Đơn mua</router-link>
                                 </li>
                                 <li class="header__top-user-item header__top-user-item-option">
                                     <a href="">Đăng xuất</a>

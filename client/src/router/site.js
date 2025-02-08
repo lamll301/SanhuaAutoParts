@@ -19,6 +19,21 @@ const site = [
                 component: () => import('../pages/site/SiteHome.vue'),
             },
             {
+                path: 'cai-dat',
+                name: 'settings',
+                component: () => import('../pages/site/AccountSettings.vue'),
+            },
+            {
+                path: 'theo-doi-don-hang/:id',
+                name: 'orderTrackingDetail',
+                component: () => import('../pages/site/OrderTrackingDetail.vue'),
+            },
+            {
+                path: 'theo-doi-don-hang',
+                name: 'orderTracking',
+                component: () => import('../pages/site/OrderTracking.vue'),
+            },
+            {
                 path: 'don-hang',
                 name: 'order',
                 component: () => import('../pages/site/OrderForm.vue'),

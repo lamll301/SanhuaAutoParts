@@ -430,6 +430,17 @@ export default {
         this.fetchCities();
         this.fetchLastPaymentSuccess();
     },
+    watch: {
+        selectedCity() {
+            this.districts = [];
+            this.wards = [];
+            this.fetchDistricts();
+        },
+        selectedDistrict() {
+            this.wards = [];
+            this.fetchWards();
+        }
+    },
     methods: {
         async fetchCities() {
             try {
