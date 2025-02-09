@@ -6,9 +6,13 @@
                     <ul class="header__top-list">
                         <!-- not logged -->
                         <li class="header__top-item">Hi!
-                            <a href="">Đăng nhập</a>
+                            <a role="button" class="header-link" data-bs-toggle="modal" data-bs-target="#authModal" data-form="login">
+                                Đăng nhập
+                            </a>
                             hoặc
-                            <a href="">Đăng ký</a>
+                            <a role="button" class="header-link" data-bs-toggle="modal" data-bs-target="#authModal" data-form="register">
+                                Đăng ký
+                            </a>
                         </li>
                         <!-- logged -->
                         <li class="header__top-item header__top-user">Hi!
@@ -310,14 +314,19 @@
             </div>
         </div>
     </footer>
+    <AuthModal />
 </template>
 
 <script>
 import { onMounted } from 'vue';
+import AuthModal from '@/components/AuthModal.vue';
 import { formatPrice, totalPrice } from '@/helpers/helpers.js'
 
 export default {
     name: 'SiteLayout',
+    components: {
+        AuthModal
+    },
     data() {
         return {
             notifyDetails: [
