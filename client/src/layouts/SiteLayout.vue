@@ -199,7 +199,7 @@
                     </router-link>
                 </li>
                 <li class="header-function-bar-item">
-                    <router-link to="" class="header-function-bar-name">
+                    <router-link to="/tin-tuc" class="header-function-bar-name">
                         Tin tức và sự kiện
                     </router-link>
                 </li>
@@ -315,17 +315,19 @@
         </div>
     </footer>
     <AuthModal />
+    <ChatComponent />
 </template>
 
 <script>
 import { onMounted } from 'vue';
 import AuthModal from '@/components/AuthModal.vue';
+import ChatComponent from '@/components/ChatComponent.vue';
 import { formatPrice, totalPrice } from '@/helpers/helpers.js'
 
 export default {
     name: 'SiteLayout',
     components: {
-        AuthModal
+        AuthModal, ChatComponent
     },
     data() {
         return {

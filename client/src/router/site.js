@@ -58,6 +58,16 @@ const site = [
                 name: 'productDetail',
                 component: () => import('../pages/site/ProductDetail.vue'),
             },
+            {
+                path: 'tin-tuc',
+                name: 'newsList',
+                component: () => import('../pages/site/NewsList.vue'),
+            },
+            {
+                path: 'tin-tuc/:slug',
+                name: 'newsDetail',
+                component: () => import('../pages/site/NewsDetail.vue'),
+            },
         ]
     }
 ]
