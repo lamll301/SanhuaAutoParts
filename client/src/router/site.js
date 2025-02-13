@@ -11,7 +11,7 @@ const site = [
             {
                 path: 've-chung-toi',
                 name: 'aboutUs',
-                component: () => import('../pages/site/SiteHome.vue'),
+                component: () => import('../pages/site/AboutUs.vue'),
             },
             {
                 path: 'lien-he',
