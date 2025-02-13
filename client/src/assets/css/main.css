@@ -3579,3 +3579,73 @@
 .about-us-footer-link i {
     margin-left: 6px;
 }
+/* contact */
+.contact {
+    margin-bottom: 40px;
+}
+.contact-body {
+    display: flex;
+    margin-bottom: 40px;
+}
+.contact-content {
+    padding: 28px;
+    border: 1px solid #bbb;
+    border-radius: 12px;
+}
+.contact-left {
+    width: 33.33%;
+    margin-right: 40px;
+}
+.contact-title {
+    font-size: 1.6rem;
+    margin-bottom: 30px;
+    font-weight: 700;
+}
+.contact-left-text {
+    font-size: 1.4rem;
+    margin-bottom: 30px;
+}
+.contact-left-icon {
+    color: #626262;
+    display: flex;
+    font-size: 1.4rem;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.contact-left-icon i {
+    margin-right: 8px;
+}
+.contact-left-app-container {
+    display: flex;
+    margin-top: 40px;
+}
+.contact-left-app {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid none;
+    font-size: 20px;
+    background-color: #b6b6b6;
+    color: var(--white-color);
+    text-decoration: none;
+    margin-right: 8px;
+}
+.contact-left-app:hover {
+    background-color: var(--primary-color);
+}
+.contact-right {
+    width: 66.66%;
+}
+.contact-btn {
+    height: 40px;
+    font-size: 1.4rem;
+    padding: 0 24px;
+    background-color: var(--primary-color);
+}
+.contact-map {
+    width: 100%;
+    height: 450px;
+    border: 1px solid #e5e5e5;
+}

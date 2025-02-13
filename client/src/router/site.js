@@ -16,7 +16,7 @@ const site = [
             {
                 path: 'lien-he',
                 name: 'contact',
-                component: () => import('../pages/site/SiteHome.vue'),
+                component: () => import('../pages/site/ContactForm.vue'),
             },
             {
                 path: 'cai-dat',
