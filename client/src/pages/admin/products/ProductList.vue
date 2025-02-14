@@ -2,89 +2,23 @@
     <div class="admin-page">
         <div class="admin-content">
             <div class="admin-content__heading">
-                <h3>Trang chủ</h3>
+                <h3>Quản lý sản phẩm</h3>
+                <router-link to="/admin/autoPart/create" class="admin-content__create">Thêm sản phẩm</router-link>
             </div>
-            <!-- admin card -->
-            <div class="admin-content__card-mold">
-                <div class="bg-blue admin-content__card">
-                    <div class="admin-content__card-body">
-                        <div class="admin-content__card-text">
-                            <h3>150</h3>
-                            <p>New Orders</p>
-                        </div>
-                        <i class="dark-blue admin-content__card-icon fa-solid fa-bag-shopping"></i>
-                    </div>
-                    <a href="#" class="admin-content__card-link white bg-dark-blue">
-                        <p>Xem thêm</p>
-                        <i class="fa-solid fa-circle-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="bg-green admin-content__card">
-                    <div class="admin-content__card-body">
-                        <div class="admin-content__card-text">
-                            <h3>50%</h3>
-                            <p>Bounce Rate</p>
-                        </div>
-                        <i class="dark-green admin-content__card-icon fa-solid fa-bag-shopping"></i>
-                    </div>
-                    <a href="#" class="admin-content__card-link white bg-dark-green">
-                        <p>Xem thêm</p>
-                        <i class="fa-solid fa-circle-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="bg-yellow admin-content__card">
-                    <div class="admin-content__card-body">
-                        <div class="black admin-content__card-text">
-                            <h3>150</h3>
-                            <p>New Orders</p>
-                        </div>
-                        <i class="dark-yellow admin-content__card-icon fa-solid fa-bag-shopping"></i>
-                    </div>
-                    <a href="#" class="admin-content__card-link black bg-dark-yellow">
-                        <p>Xem thêm</p>
-                        <i class="fa-solid fa-circle-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="bg-red admin-content__card">
-                    <div class="admin-content__card-body">
-                        <div class="admin-content__card-text">
-                            <h3>150</h3>
-                            <p>New Orders</p>
-                        </div>
-                        <i class="dark-red admin-content__card-icon fa-solid fa-bag-shopping"></i>
-                    </div>
-                    <a href="#" class="admin-content__card-link white bg-dark-red">
-                        <p>Xem thêm</p>
-                        <i class="fa-solid fa-circle-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-            <!-- chart -->
-            <div class="admin-content__chart-mold">
-                <div class="admin-content__chart">
-                    <LineChart :chartData="lineData" :chartOptions="chartOptions"/>
-                </div>
-                <div class="admin-content__form-divided">
-                    <div class="admin-content__chart">
-                        <BarChart :chartData="barData" :chartOptions="chartOptions"/>
-                    </div>
-                    <div class="admin-content__chart">
-                        <DoughnutChart :chartData="doughnutData" :chartOptions="chartOptions"/>
-                    </div>
-                </div>
-            </div>
-            <!-- table -->
+            <!-- admin table -->
             <div class="admin-content__table">
                 <div class="admin-content__header d-flex align-items-center">
-                    <h4>Sản phẩm bán chạy</h4>
+                    <h4>Tất cả sản phẩm</h4>
                     <select id="selectCheckboxAction" class="form-select admin-content__checkbox-select-all-opts" @change="renderSelectChange">
                         <option value="" selected>-- Hành động --</option>
                         <option value="delete">Xóa</option>
                         <option value="addCategory">Thêm danh mục</option>
                         <option value="removeCategory">Xóa danh mục</option>
+                        <option value="setSupplier">Đặt nhà cung cấp</option>
                         <option value="setPromotion">Đặt khuyến mãi</option>
                         <option value="setStatus">Đặt trạng thái</option>
                         <option value="filterByCategory">Lọc theo danh mục</option>
+                        <option value="filterBySupplier">Lọc theo nhà cung cấp</option>
                         <option value="filterByPromotion">Lọc theo khuyến mãi</option>
                         <option value="filterByStatus">Lọc theo trạng thái</option>
                     </select>
@@ -92,6 +26,12 @@
                         <option value="" selected>-- Chọn danh mục --</option>
                         <option v-for="category in categories" :key="category._id" :value="category._id">
                             {{ category.name }}
+                        </option>
+                    </select>
+                    <select id="selectedSupplier" class="form-select admin-content__select-attribute admin-content__select-supplier">
+                        <option value="" selected>-- Chọn nhà cung cấp --</option>
+                        <option v-for="supplier in suppliers" :key="supplier._id" :value="supplier._id">
+                            {{ supplier.name }}
                         </option>
                     </select>
                     <select id="selectedPromotion" class="form-select admin-content__select-attribute admin-content__select-promotion">
@@ -151,7 +91,7 @@
                         </tr>
                     </thead>
                     <tbody class="admin-content__table-main-body">
-                        <template v-if="autoParts">
+                        <template v-if="autoParts.length > 0">
                             <tr class="admin-content__table-row" v-for="autoPart in autoParts" :key="autoPart._id">
                                 <th>
                                     <input class="form-check-input" type="checkbox" ref="checkboxes" :value="autoPart._id" @change="onCheckboxChange()">
@@ -176,8 +116,8 @@
                         <template v-else>
                             <tr>
                                 <td colspan="13" class="text-center">
-                                    Bạn chưa có đồ uống nào.
-                                    <router-link to="/admin/autoPart/create">Thêm đồ uống</router-link>
+                                    Bạn chưa có sản phẩm nào.
+                                    <router-link to="/admin/autoPart/create">Thêm sản phẩm</router-link>
                                 </td>
                             </tr>
                         </template>
@@ -196,15 +136,16 @@
 </template>
 
 <script>
-import LineChart from '@/components/LineChart.vue';
-import BarChart from '@/components/BarChart.vue';
-import DoughnutChart from '@/components/DoughnutChart.vue';
 import AdminPagination from '@/components/AdminPagination.vue';
 import SortComponent from '@/components/SortComponent.vue';
 
 export default {
+    components: {
+        AdminPagination, SortComponent
+    },
     data() {
         return {
+            sort: {},
             autoParts: [
                 {
                     name: "Lọc dầu động cơ",
@@ -327,49 +268,16 @@ export default {
                     status: "active"
                 }
             ],
-            sort: {},
-            chartOptions: {
-                responsive: true,
-                maintainAspectRatio: false
-            },
-            lineData: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-                datasets: [
-                    {
-                        label: 'Doanh thu',
-                        data: [65, 59, 80, 81, 56],
-                        borderColor: '#4CAF50',
-                        tension: 0.1
-                    }
-                ]
-            },
-            barData: {
-                labels: ['Sản phẩm A', 'Sản phẩm B', 'Sản phẩm C'],
-                datasets: [
-                    {
-                        label: 'Bán hàng',
-                        data: [12, 19, 3],
-                        backgroundColor: ['#2196F3', '#4CAF50', '#FFC107']
-                    }
-                ]
-            },
-            doughnutData: {
-                labels: ['Đỏ', 'Xanh', 'Vàng'],
-                datasets: [
-                    {
-                        data: [300, 50, 100],
-                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
-                    }
-                ]
-            }
         }
     },
-    components: {
-        LineChart, BarChart, DoughnutChart, 
-        AdminPagination, SortComponent
+    created() {
+
+    },
+    watch: {
+
     },
     methods: {
 
-    },
+    }
 }
 </script>
