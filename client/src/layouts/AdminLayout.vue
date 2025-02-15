@@ -1,6 +1,6 @@
 <template>
-    <div class=" app flex">
-        <header class="header-admin">
+    <div class="flex">
+        <header class="header-admin" v-show="isSidebarActive" ref="sidebar">
             <div class="header-admin__label">
                 <router-link to="/admin" class="header-admin__text">Admin Dashboard</router-link>
             </div>
@@ -169,11 +169,10 @@
                 </ul>
             </div>
         </header>
-
-        <div class="container">
+        <div class="container-admin" ref="container">
             <nav class="nav-admin">
                 <div class="nav-admin__left">
-                    <i class="fa-solid fa-bars nav-admin__icon"></i>
+                    <i class="fa-solid fa-bars nav-admin__icon" @click="toggleSidebar"></i>
                     <input type="text" class="nav-admin__search" placeholder="Tìm kiếm" @keyup.enter="search">
                 </div>
                 <div class="nav-admin__right">
@@ -264,8 +263,38 @@
 </template>
 
 <script>
+import gsap from "gsap";
 export default {
+    data() {
+        return {
+            isSidebarActive: true
+        }
+    },
     methods: {
+        toggleSidebar() {
+            if (this.isSidebarActive) {
+                gsap.to(this.$refs.sidebar, {
+                    x: '-100%',
+                    duration: 0.2,
+                    onComplete: () => {
+                        this.isSidebarActive = false;
+                    },
+                });
+            } else {
+                this.isSidebarActive = true;
+                this.$nextTick(() => {
+                    gsap.fromTo(
+                        this.$refs.sidebar,
+                        { x: '-100%' },
+                        {
+                            x: '0%',
+                            duration: 0.2,
+                            ease: 'power2.out',
+                        }
+                    );
+                });
+            }
+        },
         search(event) {
             const key = event.target.value
             const params = new URLSearchParams(this.$route.query)
