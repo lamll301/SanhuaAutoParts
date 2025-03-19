@@ -225,10 +225,10 @@
                                             {{ cartDetail.name }}
                                         </a>
                                         <p class="order-product-price-curr cart-item-price-curr">
-                                            {{ formatPrice(cartDetail.priceCurrent) }}<sup>đ</sup>
+                                            {{ formatPrice(cartDetail.price * (1 - cartDetail.discount * 0.01)) }}<sup>đ</sup>
                                         </p>
                                         <p class="cart-item-price-old">
-                                            {{ formatPrice(cartDetail.priceOld) }}<sup>đ</sup>
+                                            {{ formatPrice(cartDetail.price) }}<sup>đ</sup>
                                         </p>
                                     </div>
                                 </div>
@@ -336,89 +336,46 @@ export default {
             // nếu chưa tạo đơn hàng
             cartDetails: [
                 {
-                    autoPartId: 'SP001',
-                    name: "Macbook 12-inch Retina Display 1.2 GHz Dual-Core Intel Core M Processor",
-                    image: "https://images.gr-assets.com/authors/1430676293p8/17212.jpg",
-                    priceCurrent: 10000000,
-                    priceOld: 12000000,
-                    discount: 16.67,
+                    autoPartId: 1,
+                    name: "Lọc dầu động cơ xe ô tô",
+                    image: "https://danchoioto.vn/wp-content/uploads/2021/03/loc-dau-o-to-3.jpg.webp",
+                    price: 500000,
+                    discount: 10,
                     rating: 5,
                     quantity: 1,
-                    total: 10000000,
-                    type: "Laptop",
+                    total: 450000,
+                    type: "Phụ tùng động cơ",
+                    stockQuantity: 10
+                },
+                {
+                    autoPartId: 2,
+                    name: "Bố thắng (má phanh) xe hơi",
+                    image: "https://phutungotovietnam.com.vn/datafiles/img_data/images/07gmcenvoyfrontwheelbearings00007_5575.jpg",
+                    price: 1200000,
+                    discount: 15,
+                    rating: 4,
+                    quantity: 2,
+                    total: 2040000,
+                    type: "Hệ thống phanh",
                     stockQuantity: 5
                 },
                 {
-                    autoPartId: 'SP002',
-                    name: "Điện thoại Apple iPhone 13 Pro Max 256GB Chính hãng VN/A",
-                    image: "https://images.gr-assets.com/authors/1615483024p5/676.jpg",
-                    priceCurrent: 25000000,
-                    priceOld: 27000000,
-                    discount: 7.41,
-                    rating: 4,
-                    quantity: 2,
-                    total: 50000000,
-                    type: "Điện thoại",
-                    stockQuantity: 0
-                },
-                {
-                    autoPartId: 'SP003',
-                    name: "Laptop Dell XPS 13 9310 Thin and Light Touchscreen Laptop",
-                    image: "https://images.gr-assets.com/authors/1615483024p5/676.jpg",
-                    priceCurrent: 22000000,
-                    priceOld: 25000000,
-                    discount: 12.00,
+                    autoPartId: 3,
+                    name: "Bugi đánh lửa Denso Iridium",
+                    image: "https://pos.nvncdn.com/7e21ec-18050/ps/20180730_AW3ScpJ42xPgNg7WU120dn7b.jpg",
+                    price: 300000,
+                    discount: 8,
                     rating: 5,
-                    quantity: 1,
-                    total: 22000000,
-                    type: "Laptop",
-                    stockQuantity: 3
-                },
-                {
-                    autoPartId: 'SP004',
-                    name: "Tai nghe chống ồn Sony WH-1000XM4 Wireless Over-Ear Headphones",
-                    image: "https://images.gr-assets.com/authors/1300822269p5/102824.jpg",
-                    priceCurrent: 8000000,
-                    priceOld: 9500000,
-                    discount: 15.79,
-                    rating: 4,
-                    quantity: 3,
-                    total: 24000000,
-                    type: "Phụ kiện",
-                    stockQuantity: 0
-                },
-                {
-                    autoPartId: 'SP005',
-                    name: "Máy tính bảng Samsung Galaxy Tab S6 Wi-Fi, Super AMOLED Display",
-                    image: "https://images.gr-assets.com/authors/1430676293p8/17212.jpg",
-                    priceCurrent: 12000000,
-                    priceOld: 15000000,
-                    discount: 20.00,
-                    rating: 4,
-                    quantity: 1,
-                    total: 12000000,
-                    type: "Máy tính bảng",
-                    stockQuantity: 7
-                },
-                {
-                    autoPartId: 'SP006',
-                    name: "Đồng hồ thông minh Apple Watch Series 7 GPS 45mm",
-                    image: "https://images.gr-assets.com/authors/1300822269p5/102824.jpg",
-                    priceCurrent: 8000000,
-                    priceOld: 9500000,
-                    discount: 15.79,
-                    rating: 5,
-                    quantity: 2,
-                    total: 16000000,
-                    type: "Phụ kiện",
-                    stockQuantity: 4
+                    quantity: 4,
+                    total: 1104000,
+                    type: "Hệ thống đánh lửa",
+                    stockQuantity: 20
                 }
-            ]
-            .filter(item => item.stockQuantity > 0),
+            ],
             cart: {
-                subTotal: 186000000,
-                shippingFee: 5000000,
-                totalAmount: 10000
+                subTotal: 3590000,
+                shippingFee: 50000,
+                totalAmount: 3999000
             },
             cities: [], selectedCity: '',
             districts: [], selectedDistrict: '',

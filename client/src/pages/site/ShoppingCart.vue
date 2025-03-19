@@ -33,10 +33,10 @@
                                             </span>
                                         </div>
                                         <span class="cart-item-price-curr">
-                                            {{ formatPrice(cartDetail.priceCurrent) }}<sup>đ</sup>
+                                            {{ formatPrice(cartDetail.price * (1 - cartDetail.discount * 0.01)) }}<sup>đ</sup>
                                         </span>
                                         <span class="cart-item-price-old">
-                                            {{ formatPrice(cartDetail.priceOld) }}<sup>đ</sup>
+                                            {{ formatPrice(cartDetail.price) }}<sup>đ</sup>
                                         </span>
                                         <p class="cart-item-stock">
                                             {{ cartDetail.stockQuantity }} sản phẩm có sẵn
@@ -134,87 +134,81 @@ export default {
             cartDetails: [
                 {
                     autoPartId: 'SP001',
-                    name: "Macbook 12-inch Retina Display 1.2 GHz Dual-Core Intel Core M Processor",
-                    image: "https://images.gr-assets.com/authors/1430676293p8/17212.jpg",
-                    priceCurrent: 10000000,
-                    priceOld: 12000000,
-                    discount: 16.67,
-                    rating: 5,
+                    name: "Bạt phủ xe ô tô chống nước, chống nắng",
+                    image: "https://autoca.shop/uploads/5-3-1jpg.webp",
+                    price: 550000,
+                    discount: 18,
+                    rating: 50,
                     quantity: 1,
-                    total: 10000000,
-                    type: "Laptop",
-                    stockQuantity: 5
+                    total: 451000,
+                    type: "Đồ bảo vệ xe",
+                    stockQuantity: 500
                 },
                 {
                     autoPartId: 'SP002',
-                    name: "Điện thoại Apple iPhone 13 Pro Max 256GB Chính hãng VN/A",
-                    image: "https://images.gr-assets.com/authors/1615483024p5/676.jpg",
-                    priceCurrent: 25000000,
-                    priceOld: 27000000,
-                    discount: 7.41,
-                    rating: 4,
-                    quantity: 2,
-                    total: 50000000,
-                    type: "Điện thoại",
-                    stockQuantity: 0
+                    name: "Màn hình Android ô tô Vinfast Fadil 9 inch",
+                    image: "https://pandaauto.vn/wp-content/uploads/2022/04/man-hinh-vinfast-fadil.jpg",
+                    price: 950000,
+                    discount: 21,
+                    rating: 40,
+                    quantity: 1,
+                    total: 750500,
+                    type: "Thiết bị giải trí",
+                    stockQuantity: 100
                 },
                 {
                     autoPartId: 'SP003',
-                    name: "Laptop Dell XPS 13 9310 Thin and Light Touchscreen Laptop",
-                    image: "https://images.gr-assets.com/authors/1615483024p5/676.jpg",
-                    priceCurrent: 22000000,
-                    priceOld: 25000000,
-                    discount: 12.00,
-                    rating: 5,
+                    name: "Nệm hơi ô tô du lịch cao cấp",
+                    image: "https://bhmart.vn/wp-content/uploads/2023/07/1-27.jpg",
+                    price: 450000,
+                    discount: 15,
+                    rating: 50,
                     quantity: 1,
-                    total: 22000000,
-                    type: "Laptop",
+                    total: 382500,
+                    type: "Tiện ích xe hơi",
                     stockQuantity: 3
                 },
                 {
                     autoPartId: 'SP004',
-                    name: "Tai nghe chống ồn Sony WH-1000XM4 Wireless Over-Ear Headphones",
-                    image: "https://images.gr-assets.com/authors/1300822269p5/102824.jpg",
-                    priceCurrent: 8000000,
-                    priceOld: 9500000,
-                    discount: 15.79,
-                    rating: 4,
-                    quantity: 3,
-                    total: 24000000,
-                    type: "Phụ kiện",
-                    stockQuantity: 0
+                    name: "Camera hành trình Xiaomi 70mai Pro GPS",
+                    image: "https://dinhvitoancau.net/wp-content/uploads/2021/02/A500-pro-plus.png",
+                    price: 1500000,
+                    discount: 14,
+                    rating: 48,
+                    quantity: 1,
+                    total: 1290000,
+                    type: "Thiết bị an toàn",
+                    stockQuantity: 20
                 },
                 {
                     autoPartId: 'SP005',
-                    name: "Máy tính bảng Samsung Galaxy Tab S6 Wi-Fi, Super AMOLED Display",
-                    image: "https://images.gr-assets.com/authors/1430676293p8/17212.jpg",
-                    priceCurrent: 12000000,
-                    priceOld: 15000000,
-                    discount: 20.00,
-                    rating: 4,
+                    name: "Bơm lốp xe ô tô mini 12V",
+                    image: "https://tamsonshop.vn/wp-content/uploads/2023/05/may-bom-hoi-lop-xe-oto-mini-12v-ky-thuat-so-p1100-5.jpg",
+                    price: 800000,
+                    discount: 19,
+                    rating: 45,
                     quantity: 1,
-                    total: 12000000,
-                    type: "Máy tính bảng",
-                    stockQuantity: 7
+                    total: 648000,
+                    type: "Dụng cụ sửa chữa",
+                    stockQuantity: 30
                 },
                 {
                     autoPartId: 'SP006',
-                    name: "Đồng hồ thông minh Apple Watch Series 7 GPS 45mm",
-                    image: "https://images.gr-assets.com/authors/1300822269p5/102824.jpg",
-                    priceCurrent: 8000000,
-                    priceOld: 9500000,
-                    discount: 15.79,
-                    rating: 5,
-                    quantity: 2,
-                    total: 16000000,
-                    type: "Phụ kiện",
-                    stockQuantity: 4
+                    name: "Cảm biến áp suất lốp ô tô TPMS",
+                    image: "https://phukiendochoixehoi.vn/wp-content/uploads/2020/09/cam-bien-ap-suat-lop-van-ngoai-1.jpg",
+                    price: 1400000,
+                    discount: 15,
+                    rating: 47,
+                    quantity: 1,
+                    total: 1190000,
+                    type: "Công nghệ xe",
+                    stockQuantity: 25
                 }
             ],
             cart: {
-                subTotal: 186000000,
-                shippingFee: 5000000,
-                totalPrice: 191000000
+                subTotal: 4711000,
+                shippingFee: 70000,
+                totalPrice: 4781000
             }
         }
     },
@@ -238,7 +232,7 @@ export default {
             if (!this.validateQuantity(cartDetail)) {
                 return;
             }
-            cartDetail.total = cartDetail.priceCurrent * cartDetail.quantity;
+            cartDetail.total = cartDetail.price * (1 - cartDetail.discount * 0.01) * cartDetail.quantity;
             this.calculateCart();
         },
         calculateCart() {   // tính tiền sản phẩm, tiền thuế, tiền vận chuyển & tổng tiền

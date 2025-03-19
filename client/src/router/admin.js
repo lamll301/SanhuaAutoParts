@@ -28,6 +28,27 @@ const admin = [
                 name: "admin.autoParts.edit",
                 component: () => import("../pages/admin/products/ProductForm.vue"),
             },
+            // permission
+            {
+                path: "permission",
+                name: "admin.permissions",
+                component: () => import("../pages/admin/permissions/PermissionList.vue"),
+            },
+            {
+                path: "permission/trash",
+                name: "admin.permissions.trash",
+                component: () => import("../pages/admin/permissions/PermissionList.vue"),
+            },
+            {
+                path: "permission/create",
+                name: "admin.permissions.create",
+                component: () => import("../pages/admin/permissions/PermissionForm.vue"),
+            },
+            {
+                path: "permission/edit/:id",
+                name: "admin.permissions.edit",
+                component: () => import("../pages/admin/permissions/PermissionForm.vue"),
+            },
         ]
     }
 ]

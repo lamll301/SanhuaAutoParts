@@ -275,10 +275,10 @@ export default {
                 createdAt: '09:22 08-01-2022',
                 updatedAt: '12:52 30-01-2025',
                 refundDeadlineAt: '09:22 25-02-2025',   // hạn đổi trả/hoàn tiền
-                statusHistory: "approved=09:22 08-01-2021;shipping=09:25 08-01-2022;completed=09:25 08-01-2022;",
+                statusHistory: "canceled=09:25 08-01-2022;",
                 // phải theo thứ tự: approved=09:22 08-01-2021;shipping=09:25 08-01-2022;completed=09:25 08-01-2022;
                 // status: 'approved' // duyệt thanh toán và thông tin đơn, 'shipping', 'completed', 'canceled', 'returned'
-                status: "canceled",
+                status: "approved",
                 autoParts: [
                     {
                         id: 1,

@@ -291,187 +291,167 @@ export default {
         return {
             reports: [
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Có thể tùy chỉnh 343 cách kết hợp trên chiếc chai của bạn và giờ đây còn có thể khắc tên. Tô điểm năm mới bằng phong cách riêng của bạn!",
+                    "image": "https://bizweb.dktcdn.net/100/459/013/articles/dau-nhot-o-to.jpg?v=1741855601180",
+                    "title": "Dầu nhớt tổng hợp mới giúp bảo vệ động cơ tối ưu. Gia tăng hiệu suất xe của bạn!",
                     "createdAt": "2024.12.16"
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Thiết kế chai phong cách hiện đại, giúp bạn thêm vui vẻ trong cuộc sống thường nhật. Có thể khắc tên theo ý muốn.",
+                    "image": "https://anthaiautoparts.com/wp-content/uploads/2024/08/ma-phanh-Antek.jpg",
+                    "title": "Bộ má phanh cao cấp - Đảm bảo an toàn trên mọi hành trình.",
                     "createdAt": "2024.12.20"
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Chai thân thiện với môi trường được làm từ chất liệu mới. Lựa chọn phù hợp để bảo vệ thiên nhiên.",
+                    "image": "https://broauto.vn/uploads/source/phu-kien-tien-ich/loc-gio-k-n/loc-gio-kn.jpg",
+                    "title": "Lọc gió động cơ cải tiến giúp tăng hiệu suất và tiết kiệm nhiên liệu.",
                     "createdAt": "2025.01.05"
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Chai kích thước tiện dụng và di động. Lý tưởng cho các hoạt động ngoài trời và văn phòng.",
+                    "image": "https://acquychinhhang.vn/upload/sanpham/xjx1558410011-7156.jpg",
+                    "title": "Ắc quy dung lượng lớn - Khởi động mạnh mẽ trong mọi điều kiện thời tiết.",
                     "createdAt": "2024.12.25"
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Phiên bản thiết kế giới hạn cho mùa lễ hội đã ra mắt. Sản phẩm đặc biệt chỉ có trong dịp này.",
+                    "image": "https://phuocxehoi.com/upload/images/tin-tuc/Phu%E1%BB%99c%20TEIN%20EnduraPro%20Plus.jpg",
+                    "title": "Bộ treo giảm xóc thế hệ mới, mang lại sự êm ái khi di chuyển.",
                     "createdAt": "2024.12.30"
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Chai thép không gỉ hai lớp giúp giữ nhiệt xuất sắc. Giữ ấm trong thời gian dài.",
+                    "image": "https://autoparts24.com.vn/wp-content/uploads/2020/08/CHAMPION-Iridium-RC11WYPB4-9003.jpg",
+                    "title": "Bugi bạch kim giúp đánh lửa ổn định, tối ưu hóa hiệu suất động cơ.",
                     "createdAt": "2025.01.10"
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Thiết kế năng động, phù hợp với mọi hoàn cảnh. Một lựa chọn không thể bỏ qua.",
+                    "image": "https://phukienpeugeot.com/wp-content/uploads/2022/02/boc-vo-lang-cacbon-peugeot-3.jpg",
+                    "title": "Vô lăng thể thao bọc da cao cấp, nâng tầm trải nghiệm lái xe.",
                     "createdAt": "2025.01.15"
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Chai nhẹ, dễ dàng mang theo. Phù hợp cho các hoạt động thể thao hoặc du lịch.",
+                    "image": "https://bizweb.dktcdn.net/100/459/013/articles/dau-nhot-o-to.jpg?v=1741855601180",
+                    "title": "Ống xả thể thao - Tăng công suất và cải thiện âm thanh động cơ.",
                     "createdAt": "2025.01.20"
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Chai thiết kế cổ điển. Dịch vụ khắc tên cũng được cung cấp.",
+                    "image": "https://bizweb.dktcdn.net/100/459/013/articles/dau-nhot-o-to.jpg?v=1741855601180",
+                    "title": "Bộ lọc khí thải giúp giảm ô nhiễm và nâng cao hiệu suất xe.",
                     "createdAt": "2025.02.01"
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Thiết kế chai đơn giản và hiện đại. Dễ dàng hòa hợp với mọi không gian.",
+                    "image": "https://bizweb.dktcdn.net/100/459/013/articles/dau-nhot-o-to.jpg?v=1741855601180",
+                    "title": "Đèn pha LED siêu sáng - Cải thiện tầm nhìn và tăng độ an toàn.",
                     "createdAt": "2025.02.10"
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Chai tùy chỉnh với màu sắc mới. Tự tạo phong cách riêng của bạn!",
+                    "image": "https://bizweb.dktcdn.net/100/459/013/articles/dau-nhot-o-to.jpg?v=1741855601180",
+                    "title": "Dây curoa cam chính hãng - Đảm bảo động cơ vận hành trơn tru.",
                     "createdAt": "2025.02.15"
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Chai cao cấp với chất liệu sang trọng. Lựa chọn tuyệt vời cho quà tặng.",
+                    "image": "https://bizweb.dktcdn.net/100/459/013/articles/dau-nhot-o-to.jpg?v=1741855601180",
+                    "title": "Gạt mưa silicon bền bỉ - Giúp kính chắn gió luôn sạch và rõ ràng.",
                     "createdAt": "2025.03.01"
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Chai thiết kế độc đáo, thu hút sự chú ý. Kết hợp giữa phong cách và tiện dụng.",
+                    "image": "https://bizweb.dktcdn.net/100/459/013/articles/dau-nhot-o-to.jpg?v=1741855601180",
+                    "title": "Bơm nhiên liệu điện tử - Cung cấp nhiên liệu ổn định, nâng cao hiệu suất động cơ.",
                     "createdAt": "2025.03.10"
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Chai có tay cầm tiện lợi. Dễ dàng mang theo bên mình.",
+                    "image": "https://bizweb.dktcdn.net/100/459/013/articles/dau-nhot-o-to.jpg?v=1741855601180",
+                    "title": "Gương chiếu hậu chỉnh điện - Giúp quan sát tốt hơn, tăng độ an toàn.",
                     "createdAt": "2025.03.15"
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Phiên bản đặc biệt với thiết kế holographic nổi bật. Chắc chắn sẽ gây ấn tượng.",
+                    "image": "https://bizweb.dktcdn.net/100/459/013/articles/dau-nhot-o-to.jpg?v=1741855601180",
+                    "title": "Tay nắm cửa mạ chrome sang trọng - Nâng cấp diện mạo xe của bạn.",
                     "createdAt": "2025.03.20"
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "title": "Chai eco được làm từ vật liệu bền vững. Lựa chọn thân thiện với môi trường.",
+                    "image": "https://bizweb.dktcdn.net/100/459/013/articles/dau-nhot-o-to.jpg?v=1741855601180",
+                    "title": "Cảm biến lùi thông minh - Hỗ trợ đỗ xe an toàn và chính xác hơn.",
                     "createdAt": "2025.03.25"
                 }
             ],
             bestSellersProducts: [
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình giữ nhiệt logo thép không gỉ chuyển màu xanh hồng 473ml",
-                    "price": 50000
+                    "image": "https://media.loveitopcdn.com/4083/160853-z-phin-ong-loc-dau-thuy-luc-loc-dau-dong-co-loc-nhot.jpg",
+                    "name": "Lọc dầu cao cấp - Kéo dài tuổi thọ động cơ",
+                    "price": 250000
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình giữ nhiệt thiết kế hiện đại màu đỏ 500ml",
-                    "price": 60000
+                    "image": "https://exciter.vn/images/2022/07/20220711_127b46244cac45bbce8be96132e27e00_1657520695.jpg",
+                    "name": "Đĩa phanh hiệu suất cao",
+                    "price": 1200000
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình thân thiện môi trường màu xanh lá 450ml",
-                    "price": 45000
+                    "image": "https://product.hstatic.net/200000758097/product/bugi-ngk-cr5hgp__2__40cce05cc9fb4d3a955f9c15abe87797_grande.jpg",
+                    "name": "Bugi bạch kim cao cấp",
+                    "price": 350000
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình di động tiện dụng cho hoạt động ngoài trời màu đen 700ml",
-                    "price": 70000
+                    "image": "https://images2.thanhnien.vn/528068263637045248/2025/2/25/binh-ac-quy-1-17404457851932065820973.jpeg",
+                    "name": "Ắc quy ô tô dung lượng lớn",
+                    "price": 2800000
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Phiên bản giới hạn mùa lễ hội 500ml",
-                    "price": 80000
+                    "image": "https://img1.banxehoi.com/2015/05/11/eHjsR9Gq/locgio-9c49.jpg",
+                    "name": "Lọc gió động cơ giúp xe vận hành mượt mà",
+                    "price": 450000
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình giữ nhiệt hai lớp màu đen 450ml",
-                    "price": 55000
+                    "image": "https://chanhphutungxemay.vn/upload/product/phuoc-nhun-giam-xoc-truoc-airblade-125-chinh-hang-honda-1-460.jpg",
+                    "name": "Phuộc nhún giảm chấn chính hãng",
+                    "price": 1800000
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình nhẹ nhàng dễ mang theo màu xanh dương 600ml",
-                    "price": 48000
+                    "image": "https://vinalube.com/images/products/2020/10/03/large/ket-nuoc-lam-mat-dong-co-may-xuc-dao-1-_1601662612.jpg",
+                    "name": "Két nước tản nhiệt động cơ",
+                    "price": 2200000
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình thiết kế cổ điển thép không gỉ 400ml",
-                    "price": 52000
+                    "image": "https://product.hstatic.net/200000536179/product/z6337952149162_366bd64d281cca357284afbee952bbae_d5f2a2c6e7b54e36af0d53da8ea2538b_large.jpg",
+                    "name": "Bộ má phanh cao cấp",
+                    "price": 900000
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình giữ nhiệt tùy chỉnh khắc tên 500ml",
-                    "price": 57000
+                    "image": "https://bacnam.vn/wp-content/uploads/2024/03/Giam-xoc-truoc-ben-phai-1.jpg",
+                    "name": "Bộ treo giảm xóc trước",
+                    "price": 3000000
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình đơn giản hiện đại 400ml",
-                    "price": 45000
+                    "image": "https://vinfastbinhbaominh.vn/wp-content/uploads/2024/10/tin-tuc-22.jpg",
+                    "name": "Dây curoa cam chính hãng",
+                    "price": 750000
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình thiết kế màu sắc nổi bật 500ml",
-                    "price": 60000
+                    "image": "https://vinfastbinhbaominh.vn/wp-content/uploads/2024/10/tin-tuc-22.jpg",
+                    "name": "Dầu nhớt tổng hợp 5W-30",
+                    "price": 550000
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình cao cấp chất liệu sang trọng 450ml",
-                    "price": 75000
+                    "image": "https://vinfastbinhbaominh.vn/wp-content/uploads/2024/10/tin-tuc-22.jpg",
+                    "name": "Đèn pha LED siêu sáng",
+                    "price": 1600000
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình thiết kế độc đáo 550ml",
-                    "price": 68000
+                    "image": "https://vinfastbinhbaominh.vn/wp-content/uploads/2024/10/tin-tuc-22.jpg",
+                    "name": "Bơm nhiên liệu điện tử",
+                    "price": 2000000
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình có tay cầm tiện lợi 500ml",
-                    "price": 52000
+                    "image": "https://vinfastbinhbaominh.vn/wp-content/uploads/2024/10/tin-tuc-22.jpg",
+                    "name": "Gạt mưa silicon bền bỉ",
+                    "price": 300000
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình phiên bản đặc biệt với thiết kế holographic 600ml",
-                    "price": 90000
+                    "image": "https://vinfastbinhbaominh.vn/wp-content/uploads/2024/10/tin-tuc-22.jpg",
+                    "name": "Bộ lọc khí thải Catalytic Converter",
+                    "price": 3500000
                 },
                 {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình eco thân thiện với môi trường 500ml",
-                    "price": 65000
+                    "image": "https://vinfastbinhbaominh.vn/wp-content/uploads/2024/10/tin-tuc-22.jpg",
+                    "name": "Gương chiếu hậu chỉnh điện",
+                    "price": 950000
                 },
-                {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình năng động phù hợp mọi hoàn cảnh 450ml",
-                    "price": 47000
-                },
-                {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình nhẹ dễ dàng mang theo 500ml",
-                    "price": 50000
-                },
-                {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình thiết kế cổ điển 450ml",
-                    "price": 48000
-                },
-                {
-                    "image": "https://www.starbucks.co.jp/assets/images/web2/images/wb/images/25Holiday2_naire_costum_wb.jpg",
-                    "name": "Bình thép không gỉ hai lớp giữ nhiệt 500ml",
-                    "price": 60000
-                }
             ],
             newestProducts: [
                 {

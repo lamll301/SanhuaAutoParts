@@ -249,113 +249,97 @@ export default {
         return {
             autoPart: {
                 id: 1,
-                name: "New Henley Men's Watches Luxury Fashion Glamour Boxed Lowest Price on eBay",
-                rating: 3.5,
-                description: "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Aliquam rem officia, corrupti reiciendis minima nisi modi, quasi, odio minus dolore impedit fuga eum eligendi.",
-                price: 1500000,
-                discount: 26,
-                quantity: 3399,
-                reviewCount: 663,
+                name: "Mâm Xe Hợp Kim Nhôm Cao Cấp - Hiệu Suất Tối Ưu",
+                rating: 4.5,
+                description: "Mâm xe hợp kim nhôm cao cấp với thiết kế hiện đại, độ bền vượt trội và khả năng chịu lực tối ưu. Giúp xe vận hành mượt mà, ổn định và nâng cao tính thẩm mỹ.",
+                price: 3200000,
+                discount: 15,
+                quantity: 1200,
+                reviewCount: 487,
                 starCount: [
                     {
                         stars: 5,
-                        count: 400
+                        count: 300
                     },
                     {
                         stars: 4,
-                        count: 150
+                        count: 120
                     },
                     {
                         stars: 3,
-                        count: 70
+                        count: 50
                     },
                     {
                         stars: 2,
-                        count: 30
+                        count: 10
                     },
                     {
                         stars: 1,
-                        count: 13
+                        count: 7
                     }
                 ],
                 types: [
                     {
-                        name: "Xanh - Hương Chanh",
-                        image: "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lrel5wbt69w9ee@resize_w24_nl.webp"
+                        name: "17 inch - Màu Đen",
+                        image: "https://example.com/mamxe_black_17.jpg"
                     },
                     {
-                        name: "Đỏ - Hương Đào",
-                        image: "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lrel5wbt69w9ee@resize_w24_nl.webp"
+                        name: "18 inch - Màu Bạc",
+                        image: "https://example.com/mamxe_silver_18.jpg"
                     },
                     {
-                        name: "Vàng - Hương Xoài",
-                        image: "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lrel5wbt69w9ee@resize_w24_nl.webp"
-                    },
-                    {
-                        name: "Xanh - Hương Chanh",
-                        image: "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lrel5wbt69w9ee@resize_w24_nl.webp"
-                    },
-                    {
-                        name: "Đỏ - Hương Đào",
-                        image: "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lrel5wbt69w9ee@resize_w24_nl.webp"
-                    },
-                    {
-                        name: "Vàng - Hương Xoài",
-                        image: "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lrel5wbt69w9ee@resize_w24_nl.webp"
+                        name: "19 inch - Màu Vàng Đồng",
+                        image: "https://example.com/mamxe_gold_19.jpg"
                     }
                 ],
                 images: [
-                    "https://asset.menu.starbucks.co.jp/public/sku_images/4524785000018/4524785000018_1_m.jpg",
-                    "https://asset.menu.starbucks.co.jp/public/sku_images/4524785333253/4524785333253_11_s.jpg",
-                    "https://asset.menu.starbucks.co.jp/public/sku_images/4524785354555/4524785354555_11_s.jpg",
-                    "https://asset.menu.starbucks.co.jp/public/sku_images/4524785333079/4524785333079_11_s.jpg",
-                    "https://asset.menu.starbucks.co.jp/public/sku_images/4524785353435/4524785353435_11_s.jpg",
-                    "https://asset.menu.starbucks.co.jp/public/sku_images/4524785352636/4524785352636_11_s.jpg",
-                    "https://asset.menu.starbucks.co.jp/public/sku_images/4524785333253/4524785333253_11_s.jpg",
-                    "https://asset.menu.starbucks.co.jp/public/sku_images/4524785354555/4524785354555_11_s.jpg",
-                    "https://asset.menu.starbucks.co.jp/public/sku_images/4524785333079/4524785333079_11_s.jpg",
-                    "https://images.gr-assets.com/authors/1282396130p5/1744830.jpg"
+                    "https://bacnam.vn/wp-content/uploads/2024/07/Mam-Duc-Lazang-O-to-The-Thao-1.png",
+                    "https://lopxebinhduong.com/upload/news/a-mam3-9654.jpg",
+                    "https://www.lopxeviet.vn/uploads/source/tin-tuc-thang-5/mam-o-to/tat-ca-thong-tin-ve-mam-o-to-bang-gia-loai-mam-thong-so-(4).jpg",
+                    "https://daiphatvienthong.vn/upload/sanpham/thumbs/11226-thay-mam-20-inch-cho-xe-o-to-audi-a7-dang-cap.jpg",
+                    "https://www.lopxeviet.vn/uploads/source/tin-tuc-thang-5/bao-gia-mam-xe-o-to-18-inch/bao-gia-mam-xe-o-to-18-inch-7.webp",
+                    "https://www.lopxeviet.vn/uploads/source/tin-tuc-thang-5/bao-gia-mam-xe-o-to-18-inch/bao-gia-mam-xe-o-to-18-inch-7.webp"
                 ],
                 specifications: [
                     {
                         name: "Tình trạng",
-                        content: "Mới: Đây là một sản phẩm hoàn toàn mới, chưa từng được sử dụng, không có dấu hiệu bị hư hỏng hay thay đổi. Sản phẩm được bảo quản trong bao bì nguyên vẹn, chưa được mở ra hoặc sử dụng qua bất kỳ hình thức nào."
+                        content: "Mới 100% - Sản phẩm nguyên hộp, chưa qua sử dụng, đảm bảo chất lượng chính hãng."
                     },
                     {
                         name: "Mã sản phẩm",
-                        content: "SKS-1: Mã sản phẩm này đại diện cho một dòng sản phẩm cụ thể, giúp phân biệt sản phẩm này với các sản phẩm khác trong cùng danh mục."
+                        content: "MXA-2025: Mã sản phẩm giúp nhận diện dòng mâm xe hợp kim nhôm thế hệ mới."
                     },
                     {
-                        name: "Kích thước và độ lệch vành",
-                        content: "6.5 inch: Độ lệch vành là thông số quan trọng đối với bánh xe, ảnh hưởng trực tiếp đến khả năng vận hành và sự ổn định của xe."
+                        name: "Kích thước",
+                        content: "Có sẵn kích thước 17 inch, 18 inch, 19 inch - Phù hợp với nhiều dòng xe khác nhau."
                     },
                     {
                         name: "Chất liệu",
-                        content: "Sản phẩm được làm từ chất liệu thép không gỉ cao cấp, bền bỉ và có khả năng chống chịu với tác động của môi trường, nước và các yếu tố thời tiết khắc nghiệt."
+                        content: "Hợp kim nhôm cao cấp, trọng lượng nhẹ nhưng độ bền cực cao, giúp giảm trọng lượng tổng thể của xe."
                     },
                     {
                         name: "Màu sắc",
-                        content: "Sản phẩm có sẵn trong các màu sắc đa dạng, bao gồm đen, bạc và vàng đồng, giúp khách hàng có thể chọn lựa theo sở thích cá nhân."
+                        content: "Đen, bạc, vàng đồng - Được sơn tĩnh điện chống trầy xước và ăn mòn."
                     },
                     {
-                        name: "Độ bền",
-                        content: "Sản phẩm có độ bền vượt trội, có thể chịu được áp lực cao và sử dụng trong các điều kiện thời tiết khắc nghiệt."
+                        name: "Tải trọng tối đa",
+                        content: "Có thể chịu tải lên đến 900kg/mâm, đảm bảo an toàn khi vận hành trên mọi địa hình."
                     },
                     {
                         name: "Tương thích",
-                        content: "Sản phẩm này hoàn toàn tương thích với hầu hết các dòng xe thể thao và xe mô tô có đường kính bánh xe từ 17 đến 21 inch."
+                        content: "Phù hợp với hầu hết các dòng xe sedan, SUV và bán tải có đường kính bánh xe từ 17 đến 19 inch."
                     },
                     {
                         name: "Bảo hành",
-                        content: "Sản phẩm đi kèm với chế độ bảo hành dài hạn lên đến 24 tháng kể từ ngày mua, bảo hành cho các lỗi kỹ thuật từ nhà sản xuất."
+                        content: "Bảo hành 24 tháng đối với lỗi kỹ thuật từ nhà sản xuất."
                     },
                     {
-                        name: "Hướng dẫn",
-                        content: "Trước khi sử dụng sản phẩm, khách hàng cần đảm bảo bánh xe đã được lắp đặt đúng cách và kiểm tra áp suất lốp thường xuyên."
+                        name: "Hướng dẫn lắp đặt",
+                        content: "Lắp đặt đơn giản, có thể thực hiện tại các trung tâm bảo dưỡng hoặc garage ô tô."
                     },
                     {
-                        name: "Bảo vệ môi trường",
-                        content: "Sản phẩm được sản xuất bằng các nguyên liệu thân thiện với môi trường, đảm bảo không có các chất độc hại ảnh hưởng đến sức khỏe người dùng và môi trường."
+                        name: "Độ bền và bảo vệ môi trường",
+                        content: "Sử dụng công nghệ sản xuất hiện đại, giúp tăng tuổi thọ mâm xe và giảm tác động tiêu cực đến môi trường."
                     }
                 ]
             },
@@ -466,9 +450,9 @@ export default {
                     rating: 5,
                     content: "Tôi rất hài lòng với sản phẩm này. Chất lượng vượt mong đợi, thiết kế đẹp và rất tiện dụng. Dịch vụ giao hàng cũng rất nhanh chóng và chuyên nghiệp. Tôi chắc chắn sẽ mua thêm và giới thiệu cho bạn bè!",
                     images: [
-                        "https://images.gr-assets.com/authors/1233458107p5/1943477.jpg",
-                        "https://images.gr-assets.com/authors/1337988298p5/1050.jpg",
-                        "https://images.gr-assets.com/authors/1429114964p5/9810.jpg"
+                        "https://lopxebinhduong.com/upload/filemanager/files/trucly-2010/MAM-XE-O-TO/MAM-XE10.jpg",
+                        "https://lopxebinhduong.com/upload/filemanager/files/trucly-2010/MAM-XE-O-TO/MAM-XE10.jpg",
+                        "https://broauto.vn/uploads/source/chia-se/mam-xe-o-to/mam-xe-o-to-18.jpg"
                     ]
                 },
                 {
@@ -479,8 +463,8 @@ export default {
                     rating: 4,
                     content: "Giao hàng nhanh, sản phẩm đúng như mô tả. Tuy nhiên, hộp đóng gói hơi móp, điều này làm tôi hơi thất vọng. Nhưng nhìn chung, sản phẩm bên trong vẫn nguyên vẹn và hoạt động tốt.",
                     images: [
-                        "https://images.gr-assets.com/photos/1314296949p8/326680.jpg",
-                        "https://images.gr-assets.com/photos/1314296973p8/326684.jpg"
+                        "https://linhkienauto.com/upload_file/avatar/rK3ENXDydm7Pdx50VhUpjMzB7kXe4ha0clZX5kle.webpg",
+                        "https://linhkienauto.com/upload_file/avatar/rK3ENXDydm7Pdx50VhUpjMzB7kXe4ha0clZX5kle.webp"
                     ]
                 },
                 {

@@ -272,6 +272,14 @@
                             <i class="fa-brands fa-facebook footer__list-item-icon"></i>
                             <a href="https://www.facebook.com/sanhuavietnam/?locale=vi_VN" class="footer__list-item-link">Facebook</a>
                         </li>
+                        <li class="footer__list-item">
+                            <i class="fa-brands fa-youtube footer__list-item-icon"></i>
+                            <a href="https://www.youtube.com" class="footer__list-item-link">Youtube</a>
+                        </li>
+                        <li class="footer__list-item">
+                            <i class="fa-brands fa-google footer__list-item-icon"></i>
+                            <a href="https://www.google.com" class="footer__list-item-link">Website</a>
+                        </li>
                     </ul>
                 </div>
                 <div class="grid__column-2-4">

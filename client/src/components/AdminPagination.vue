@@ -25,6 +25,7 @@
 </template>
 
 <script>
+import { watchEffect, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import usePagination from '@/composables/usePagination.js';
 
@@ -35,8 +36,12 @@ export default {
     },
     setup(props) {
         const route = useRoute();
-        const pagination = usePagination(props.currentPage, props.totalPages, route);
+        const pagination = ref(null);
 
+        watchEffect(() => {
+            pagination.value = usePagination(props.currentPage, props.totalPages, route);
+        });
+        
         return {
             pagination,
         };
