@@ -12,7 +12,7 @@
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-users header-admin__dropdown-icon"></i>
+                        <i class="fa-solid fa-key header-admin__dropdown-icon"></i>
                         Quản lý phân quyền
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
@@ -25,7 +25,20 @@
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-user-tie header-admin__dropdown-icon"></i>
+                        <i class="fa-solid fa-medal header-admin__dropdown-icon"></i>
+                        Quản lý chức vụ
+                    </div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <ul class="header-admin__dropdown-menu">
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/role">Tất cả chức vụ</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/role/create">Thêm chức vụ</router-link></li>
+                </ul>
+            </div>
+            <div class="header-admin__dropdown">
+                <div class="header-admin__dropdown-content">
+                    <div class="header-admin__dropdown-content-text">
+                        <i class="fa-solid fa-user header-admin__dropdown-icon"></i>
                         Quản lý tài khoản
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
@@ -38,7 +51,7 @@
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-icons header-admin__dropdown-icon"></i>
+                        <i class="fa-solid fa-scale-balanced header-admin__dropdown-icon"></i>
                         Quản lý đơn vị tính
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
@@ -52,7 +65,7 @@
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-car header-admin__dropdown-icon"></i>
+                        <i class="fa-solid fa-cube header-admin__dropdown-icon"></i>
                         Quản lý sản phẩm
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
@@ -62,7 +75,7 @@
                     <li class="header-admin__dropdown-item"><router-link to="/admin/autoPart/create">Thêm sản phẩm</router-link></li>
                 </ul>
             </div>
-            <div class="header-admin__dropdown">
+            <!-- <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
                         <i class="fa-solid fa-seedling header-admin__dropdown-icon"></i>
@@ -74,11 +87,11 @@
                     <li class="header-admin__dropdown-item"><router-link to="/admin/ingredient">Tất cả nguyên liệu</router-link></li>
                     <li class="header-admin__dropdown-item"><router-link to="/admin/ingredient/create">Tạo nguyên liệu</router-link></li>
                 </ul>
-            </div>
+            </div> -->
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-table-list header-admin__dropdown-icon"></i>
+                        <i class="fa-solid fa-folder-open header-admin__dropdown-icon"></i>
                         Quản lý danh mục
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
@@ -91,7 +104,7 @@
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-building header-admin__dropdown-icon"></i>
+                        <i class="fa-solid fa-industry header-admin__dropdown-icon"></i>
                         Quản lý nhà cung cấp
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
@@ -117,7 +130,7 @@
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-percent header-admin__dropdown-icon"></i>
+                        <i class="fa-solid fa-tags header-admin__dropdown-icon"></i>
                         Quản lý khuyến mãi
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
@@ -146,14 +159,13 @@
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-file header-admin__dropdown-icon"></i>
+                        <i class="fa-solid fa-box header-admin__dropdown-icon"></i>
                         Quản lý đơn hàng
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <ul class="header-admin__dropdown-menu">
                     <li class="header-admin__dropdown-item"><router-link to="/admin/order">Tất cả đơn hàng</router-link></li>
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/order/create">In hóa đơn</router-link></li>
                 </ul>
             </div>
             <div class="header-admin__dropdown">

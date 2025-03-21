@@ -49,6 +49,27 @@ const admin = [
                 name: "admin.permissions.edit",
                 component: () => import("../pages/admin/permissions/PermissionForm.vue"),
             },
+            // role
+            {
+                path: "role",
+                name: "admin.roles",
+                component: () => import("../pages/admin/roles/RoleList.vue"),
+            },
+            {
+                path: "role/trash",
+                name: "admin.roles.trash",
+                component: () => import("../pages/admin/roles/RoleList.vue"),
+            },
+            {
+                path: "role/create",
+                name: "admin.roles.create",
+                component: () => import("../pages/admin/roles/RoleForm.vue"),
+            },
+            {
+                path: "role/edit/:id",
+                name: "admin.roles.edit",
+                component: () => import("../pages/admin/roles/RoleForm.vue"),
+            },
         ]
     }
 ]

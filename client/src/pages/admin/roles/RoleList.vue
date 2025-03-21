@@ -9,15 +9,15 @@
         </div>
         <div class="admin-content" :class="{ 'loading-blur': isLoading }">
             <div class="admin-content__heading">
-                <h3 v-show="!isTrashRoute">Quản lý phân quyền</h3>
+                <h3 v-show="!isTrashRoute">Quản lý chức vụ</h3>
                 <h3 v-show="isTrashRoute">Quản lý thùng rác</h3>
-                <router-link to="/admin/permission/create" class="admin-content__create">Thêm phân quyền</router-link>
+                <router-link to="/admin/role/create" class="admin-content__create">Thêm chức vụ</router-link>
             </div>
             <!-- admin table -->
             <div class="admin-content__table">
                 <div class="admin-content__header d-flex align-items-center">
-                    <h4 v-show="!isTrashRoute">Tất cả phân quyền</h4>
-                    <h4 v-show="isTrashRoute">Phân quyền đã xóa</h4>
+                    <h4 v-show="!isTrashRoute">Tất cả chức vụ</h4>
+                    <h4 v-show="isTrashRoute">Chức vụ đã xóa</h4>
                     <select ref="selectCheckboxAction" class="form-select admin-content__checkbox-select-all-opts">
                         <option value="" selected>-- Hành động --</option>
                         <template v-if="isTrashRoute">
@@ -26,11 +26,20 @@
                         </template>
                         <template v-else>
                             <option value="delete">Xóa</option>
+                            <option value="addPermission">Thêm phân quyền</option>
+                            <option value="removePermission">Xóa phân quyền</option>
+                            <option value="filterByPermission">Lọc theo phân quyền</option>
                         </template>
+                    </select>
+                    <select v-show="!isTrashRoute" ref="selectedPermission" class="form-select admin-content__select-attribute admin-content__select-permission">
+                        <option value="" selected>-- Chọn phân quyền --</option>
+                        <option v-for="permission in permissions" :key="permission.id" :value="permission.id">
+                            {{ permission.name }}
+                        </option>
                     </select>
                     <button class="fs-16 btn btn-primary" id="btnCheckboxSubmit" @click="handleFormActions()">Thực hiện</button>
                 </div>
-                <CheckboxTable ref="checkboxTable" :items="permissions" @update:ids="handleUpdateIds">
+                <CheckboxTable ref="checkboxTable" :items="roles" @update:ids="handleUpdateIds">
                     <template #header>
                         <th scope="col">ID
                             <SortComponent field="id" :sort="sort"/>
@@ -38,9 +47,7 @@
                         <th scope="col">Tên
                             <SortComponent field="name" :sort="sort"/>
                         </th>
-                        <th scope="col">Mô tả
-                            <SortComponent field="description" :sort="sort"/>
-                        </th>
+                        <th scope="col">Phân quyền</th>
                         <template v-if="!isTrashRoute">
                             <th scope="col">Ngày tạo
                                 <SortComponent field="created_at" :sort="sort"/>
@@ -58,7 +65,7 @@
                     <template #body="{ item }">
                         <th>{{ item.id }}</th>
                         <td>{{ item.name }}</td>
-                        <td>{{ item.description }}</td>
+                        <td>{{ item.permissions.map(permission => permission.name).join(', ') }}</td>
                         <template v-if="!isTrashRoute">
                             <td>{{ formatDate(item.created_at) }}</td>
                             <td>{{ formatDate(item.updated_at) }}</td>
@@ -66,7 +73,7 @@
                         <td v-else>{{ formatDate(item.deleted_at) }}</td>
                         <td>
                             <template v-if="!isTrashRoute">
-                                <router-link :to="'/admin/permission/edit/' + item.id" class="fs-16 btn btn-primary">Sửa</router-link>&nbsp;
+                                <router-link :to="'/admin/role/edit/' + item.id" class="fs-16 btn btn-primary">Sửa</router-link>&nbsp;
                                 <button class="fs-16 btn btn-danger" @click="onDelete(item.id)">Xóa</button>
                             </template>
                             <template v-else>
@@ -80,11 +87,11 @@
                             <td colspan="13" class="text-center">
                                 <span v-show="isTrashRoute">
                                     Thùng rác trống.
-                                    <router-link to="/admin/permission">Danh sách phân quyền</router-link>
+                                    <router-link to="/admin/role">Danh sách chức vụ</router-link>
                                 </span>
                                 <span v-show="!isTrashRoute">
-                                    Bạn chưa có phân quyền nào.
-                                    <router-link to="/admin/permission/create">Thêm phân quyền</router-link>
+                                    Bạn chưa có chức vụ nào.
+                                    <router-link to="/admin/role/create">Thêm chức vụ</router-link>
                                 </span>
                             </td>
                         </tr>
@@ -92,7 +99,7 @@
                 </CheckboxTable>
                 <div class="admin-content__table-footer">
                     <template v-if="!isTrashRoute">
-                        <router-link to="/admin/permission/trash">Thùng rác
+                        <router-link to="/admin/role/trash">Thùng rác
                             <i class="fa-solid fa-trash admin-content__trash"></i>
                         </router-link>
                         <span class="header__notice admin-content__trash-notice">{{ deletedCount }}</span>
@@ -121,7 +128,7 @@ export default {
             sort: {}, totalPages: 0, currentPage: 1,
             selectedIds: [],
             isLoading: false,
-            permissions: [],
+            roles: [], permissions: []
         }
     },
     computed: {
@@ -143,13 +150,16 @@ export default {
             const params = new URLSearchParams(this.$route.query).toString();
 
             try {
-                const res = await this.$request.get(`${process.env.VUE_APP_API_BASE_URL}/api/permissions${endpoint}?${params}`);
-                this.permissions = res.data.data;
+                const res = await this.$request.get(`${process.env.VUE_APP_API_BASE_URL}/api/roles${endpoint}?${params}`);
+                this.roles = res.data.data;
                 this.totalPages = Math.ceil(res.data.pagination.total / res.data.pagination.per_page);
                 this.currentPage = res.data.pagination.current_page;
                 this.sort = res.data._sort;
                 if (!this.isTrashRoute) {
-                    await this.fetchDeletedCount();
+                    await Promise.all([
+                        this.fetchDeletedCount(), 
+                        this.fetchPermissions()
+                    ]);
                 }
             } catch (error) {
                 swalFire("Lỗi!", error, "error");
@@ -157,16 +167,24 @@ export default {
                 this.isLoading = false;
             }
         },
+        async fetchPermissions() {
+            try {
+                const res = await this.$request.get(`${process.env.VUE_APP_API_BASE_URL}/api/permissions?all=true`);
+                this.permissions = res.data.data;
+            } catch (error) {
+                swalFire("Lỗi!", error, "error");
+            }
+        },
         async fetchDeletedCount() {
             try {
-                const res = await this.$request.get(`${process.env.VUE_APP_API_BASE_URL}/api/permissions/trashed?count=true`);
+                const res = await this.$request.get(`${process.env.VUE_APP_API_BASE_URL}/api/roles/trashed?count=true`);
                 this.deletedCount = res.data.count;
             } catch (error) {
                 swalFire("Lỗi!", error, "error");
             }
         },
         onDelete(id) {
-            this.$request.delete(`${process.env.VUE_APP_API_BASE_URL}/api/permissions/${id}`).then(() => {
+            this.$request.delete(`${process.env.VUE_APP_API_BASE_URL}/api/roles/${id}`).then(() => {
                 this.swalFire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success")
                 .then(() => {
                     this.fetchData();
@@ -177,7 +195,7 @@ export default {
             })
         },
         onRestore(id) {
-            this.$request.patch(`${process.env.VUE_APP_API_BASE_URL}/api/permissions/${id}/restore`).then(() => {
+            this.$request.patch(`${process.env.VUE_APP_API_BASE_URL}/api/roles/${id}/restore`).then(() => {
                 this.swalFire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success")
                 .then(() => {
                     this.fetchData();
@@ -198,7 +216,7 @@ export default {
                 confirmButtonText: "Có, tôi muốn xóa!"
             }).then((result) => {
             if (result.isConfirmed) {
-                this.$request.delete(`${process.env.VUE_APP_API_BASE_URL}/api/permissions/${id}/force-delete`).then(() => {
+                this.$request.delete(`${process.env.VUE_APP_API_BASE_URL}/api/roles/${id}/force-delete`).then(() => {
                     this.swalFire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success")
                     .then(() => {
                         this.fetchData();
@@ -215,18 +233,38 @@ export default {
         },
         handleFormActions() {
             const action = this.$refs.selectCheckboxAction.value;
+            let targetId;
+            let isFiltered = action.startsWith("filterBy");
 
             if (!action) {
                 this.swalFire("Lỗi!", "Vui lòng chọn hành động.", "error");
+                return;
+            }
+            switch (action) {
+                case 'addPermission':
+                case 'removePermission':
+                case 'filterByPermission':
+                    targetId = this.$refs.selectedPermission.value;
+                    if (!targetId) {
+                        this.swalFire("Lỗi!", "Vui lòng chọn phân quyền để thực hiện hành động.", "error");
+                        return;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            if (isFiltered) {
+                this.$router.push({ query: { action, targetId } });
                 return;
             }
             if (this.selectedIds.length === 0) {
                 this.swalFire("Lỗi!", "Vui lòng chọn ít nhất 1 bản ghi để thực hiện hành động.", "error");
                 return;
             }
-            this.$request.post(`${process.env.VUE_APP_API_BASE_URL}/api/permissions/handle-form-actions`, {
+            this.$request.post(`${process.env.VUE_APP_API_BASE_URL}/api/roles/handle-form-actions`, {
                 action,
                 selectedIds: this.selectedIds,
+                targetId
             }).then(() => {
                 this.swalFire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success")
                 .then(() => {
@@ -238,7 +276,7 @@ export default {
         swalFire, swalMixin, 
         formatDate(dateString) {
             if (!dateString) {
-                return
+                return;
             }
             return format(parseISO(dateString), 'yyyy-MM-dd HH:mm:ss');
         }

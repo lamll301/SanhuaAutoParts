@@ -51,8 +51,18 @@ INSERT INTO permissions (name, description, created_at, updated_at) VALUES
 	run migrate: php artisan migrate
   update migrate: php artisan migrate:refresh --seed
   create migrate: php artisan make:migration create_ten_bang_so_nhieu_table
+  php artisan migrate:fresh     //Xóa toàn bộ bảng và chạy migration lại từ đầu
+
+  ** Seeder: tạo mã giả dữ liệu trong database
+  run seeder: php artisan db:seed
+  create seeder: php artisan make:seeder UsersTableSeeder
 
   run be: php artisan serve
+
+  ** Model & View & Controller:
+  php artisan make:model TenModel     //Tạo model mới
+  php artisan make:controller TenController     //Tạo Controller mới
+  
 
   *** Các câu lệnh trong postgres sql cmd
   psql -U postgres -W -h localhost -p 5432 sanhua_dev

@@ -69,6 +69,11 @@ export default {
         },
         resetCheckboxAll() {
             this.$refs.checkboxAll.checked = false;
+            if (this.$refs.checkboxes) {
+                this.$refs.checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+            }
             this.ids = [];
             this.$emit('update:ids', this.ids);
         }
