@@ -4,7 +4,12 @@ import site from './site.js';
 
 const routes = [
     ...admin,
-    ...site
+    ...site,
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'NotFound',
+        component: () => import('@/pages/NotFound.vue')
+    }
 ];
 
 const router = createRouter({

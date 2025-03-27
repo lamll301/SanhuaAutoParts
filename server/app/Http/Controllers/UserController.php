@@ -1,0 +1,88 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\UserRequest;
+use Illuminate\Http\Request;
+use App\Models\User;
+use App\Models\Role;
+
+class UserController extends Controller
+{
+    private const SEARCH_FIELDS = ['id', 'phone', 'name'];
+    private const FILTER_FIELDS = [
+        'filterByRole' => ['column' => 'role_id'],
+        'filterByStatus' => ['column' => 'status'],
+    ];
+    protected const STATUS_INACTIVE = 0;
+    protected const STATUS_ACTIVE = 1;
+    protected const STATUS_BANNED = 2;
+
+    public function index(Request $request) {
+        $query = User::query()->with('role');
+        return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
+    }
+    public function trashed(Request $request) {
+        $query = User::onlyTrashed()->with('role');
+        return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
+    }
+    public function show(string $id) {
+        $user = User::findOrFail($id);
+        return response()->json($user);
+    }
+    public function store(UserRequest $request) {
+        User::create($request->all());
+        return response()->json(['message' => 'User created']);
+    }
+    public function update(UserRequest $request, string $id) {
+        $user = User::findOrFail($id);
+        $user->update($request->all());
+        return response()->json(['message' => 'User updated']);
+    }
+    public function destroy(string $id) {
+        $user = User::findOrFail($id);
+        $user->delete();
+        return response()->json(['message' => 'User deleted']);
+    }
+    public function restore(string $id) {
+        $user = User::onlyTrashed()->findOrFail($id);
+        $user->restore();
+        return response()->json(['message' => 'User restored']);
+    }
+    public function forceDelete(string $id) {
+        $user = User::onlyTrashed()->findOrFail($id);
+        $user->forceDelete();
+        return response()->json(['message' => 'User permanently deleted']);
+    }
+    public function handleFormActions(Request $request) {
+        $action = $request->input('action');
+        $ids = $request->input('selectedIds', []);
+        $targetId = $request->input('targetId');
+
+        switch ($action) {
+            case 'delete':
+                User::destroy($ids);
+                return response()->json(['message' => 'Users deleted']);
+            case 'restore':
+                User::onlyTrashed()->whereIn('id', $ids)->restore();
+                return response()->json(['message' => 'Users restored']);
+            case 'forceDelete':
+                User::onlyTrashed()->whereIn('id', $ids)->forceDelete();
+                return response()->json(['message' => 'Users permanently deleted']);
+            case 'setRole':
+                if (!$targetId) {
+                    return response()->json(['message' => 'Role ID is required'], 400);
+                }
+                if (!Role::where('id', $targetId)->exists()) {
+                    return response()->json(['message' => 'Role not found'], 400);
+                }
+                User::whereIn('id', $ids)->update(['role_id' => $targetId]);
+                return response()->json(['message' => 'Role updated successfully']);
+            case 'removeRole':
+                User::whereIn('id', $ids)->update(['role_id' => null]);
+                return response()->json(['message' => 'Role removed successfully']);
+            default:
+                return response()->json(['message' => 'Action is invalid'], 400);
+        }
+    }
+}

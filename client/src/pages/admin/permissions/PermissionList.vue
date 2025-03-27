@@ -159,8 +159,8 @@ export default {
         },
         async fetchDeletedCount() {
             try {
-                const res = await this.$request.get(`${process.env.VUE_APP_API_BASE_URL}/api/permissions/trashed?count=true`);
-                this.deletedCount = res.data.count;
+                const res = await this.$request.get(`${process.env.VUE_APP_API_BASE_URL}/api/permissions/trashed`);
+                this.deletedCount = res.data.pagination.total;
             } catch (error) {
                 swalFire("Lỗi!", error, "error");
             }

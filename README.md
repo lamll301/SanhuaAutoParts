@@ -16,18 +16,19 @@ Cài đặt các dependency:
 ```bash
 composer install
 ```
-Cấu hình file `.env`:
+Sao chép file `.env.example` thành `.env` và cập nhật thông tin cấu hình:
 ```env
-DB_CONNECTION=pgsql
-DB_HOST=127.0.0.1
-DB_PORT=5432
 DB_DATABASE=sanhua_dev
 DB_USERNAME=
 DB_PASSWORD=
 ```
+Tạo khóa ứng dụng:
+```bash
+php artisan key:generate
+```
 Chạy migration để tạo bảng trong database:
 ```bash
-php artisan migrate
+php artisan migrate --seed
 ```
 Chạy dự án:
 ```bash

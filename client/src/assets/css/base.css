@@ -36,8 +36,6 @@ html {
     padding-right: 5px;
     width: 20%;    
 }
-/* Modal */
-
 /* animation */
 @keyframes fadeIn1 {
     from {
@@ -77,13 +75,15 @@ html {
 .mb-16 {
     margin-bottom: 16px !important;
 }
+.mb-20 {
+    margin-bottom: 20px !important;
+}
 .ml-16 {
     margin-left: 16px !important;
 }
 .mr-16 {
     margin-right: 16px !important;
 }
-
 .lh-30 {
     line-height: 30px !important;
 }

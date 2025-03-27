@@ -11,9 +11,6 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
     protected static ?string $password;
 
     /**
@@ -24,11 +21,22 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
+            'username' => fake()->unique()->userName,
+            'password' => static::$password ??= Hash::make('password'),
+            'status' => fake()->numberBetween(0, 3),
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'phone' => fake()->phoneNumber(),
+            // 'city_id' => fake()->numberBetween(1, 96),
+            // 'district_id' => fake()->numberBetween(1, 973),
+            // 'ward_id' => fake()->numberBetween(1, 32248),
+            'address' => fake()->address(),
+            'date_of_birth' => fake()->date(),
+            'created_at' => now(),
+            'updated_at' => now(),
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            // 'role_id' => fake()->optional()->numberBetween(1, 4),
         ];
     }
 

@@ -123,5 +123,5 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'admin_max_per_page' => 15,
+    'per_page' => 20,
 ];

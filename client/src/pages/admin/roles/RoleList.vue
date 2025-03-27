@@ -9,15 +9,15 @@
         </div>
         <div class="admin-content" :class="{ 'loading-blur': isLoading }">
             <div class="admin-content__heading">
-                <h3 v-show="!isTrashRoute">Quản lý chức vụ</h3>
+                <h3 v-show="!isTrashRoute">Quản lý vai trò</h3>
                 <h3 v-show="isTrashRoute">Quản lý thùng rác</h3>
-                <router-link to="/admin/role/create" class="admin-content__create">Thêm chức vụ</router-link>
+                <router-link to="/admin/role/create" class="admin-content__create">Thêm vai trò</router-link>
             </div>
             <!-- admin table -->
             <div class="admin-content__table">
                 <div class="admin-content__header d-flex align-items-center">
-                    <h4 v-show="!isTrashRoute">Tất cả chức vụ</h4>
-                    <h4 v-show="isTrashRoute">Chức vụ đã xóa</h4>
+                    <h4 v-show="!isTrashRoute">Tất cả vai trò</h4>
+                    <h4 v-show="isTrashRoute">Vai trò đã xóa</h4>
                     <select ref="selectCheckboxAction" class="form-select admin-content__checkbox-select-all-opts">
                         <option value="" selected>-- Hành động --</option>
                         <template v-if="isTrashRoute">
@@ -87,11 +87,11 @@
                             <td colspan="13" class="text-center">
                                 <span v-show="isTrashRoute">
                                     Thùng rác trống.
-                                    <router-link to="/admin/role">Danh sách chức vụ</router-link>
+                                    <router-link to="/admin/role">Danh sách vai trò</router-link>
                                 </span>
                                 <span v-show="!isTrashRoute">
-                                    Bạn chưa có chức vụ nào.
-                                    <router-link to="/admin/role/create">Thêm chức vụ</router-link>
+                                    Bạn chưa có vai trò nào.
+                                    <router-link to="/admin/role/create">Thêm vai trò</router-link>
                                 </span>
                             </td>
                         </tr>
@@ -177,8 +177,8 @@ export default {
         },
         async fetchDeletedCount() {
             try {
-                const res = await this.$request.get(`${process.env.VUE_APP_API_BASE_URL}/api/roles/trashed?count=true`);
-                this.deletedCount = res.data.count;
+                const res = await this.$request.get(`${process.env.VUE_APP_API_BASE_URL}/api/roles/trashed`);
+                this.deletedCount = res.data.pagination.total;
             } catch (error) {
                 swalFire("Lỗi!", error, "error");
             }

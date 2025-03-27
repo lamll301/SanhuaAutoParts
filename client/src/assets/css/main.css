@@ -721,6 +721,9 @@
     white-space: nowrap;
     text-overflow: ellipsis;
 }
+.admin-content__textarea-5r {
+    height: 157px;
+}
 /* admin image container */
 .admin-content__image-container {
     position: relative;

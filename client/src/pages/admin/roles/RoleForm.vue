@@ -2,26 +2,26 @@
     <div class="admin-page">
         <div class="admin-content">
             <div class="admin-content__heading">
-                <h3>Quản lý chức vụ</h3>
+                <h3>Quản lý vai trò</h3>
             </div>
             <div class="admin-content__container">
                 <div class="admin-content__form">
                     <div class="admin-content__header">
-                        <h4 v-if="this.$route.params.id">Form sửa chức vụ</h4>
-                        <h4 v-else>Form thêm chức vụ</h4>
+                        <h4 v-if="this.$route.params.id">Form sửa vai trò</h4>
+                        <h4 v-else>Form thêm vai trò</h4>
                     </div>
                     <form @submit.prevent="save()">
                     <div class="admin-content__form-body">
                         <div v-if="this.$route.params.id" class="mb-16">
-                            <h3 class="admin-content__form-text">Mã chức vụ</h3>
+                            <h3 class="admin-content__form-text">Mã vai trò</h3>
                             <div class="valid-elm input-group">
                                 <input type="text" class="fs-16 form-control" disabled v-model="role.id">
                             </div>
                         </div>
                         <div class="mb-16">
-                            <h3 class="admin-content__form-text">Tên chức vụ</h3>
+                            <h3 class="admin-content__form-text">Tên vai trò</h3>
                             <div class="valid-elm input-group">
-                                <input type="text" class="fs-16 form-control" placeholder="Nhập tên chức vụ" v-model="role.name"
+                                <input type="text" class="fs-16 form-control" placeholder="Nhập tên vai trò" v-model="role.name"
                                 v-bind:class="{'is-invalid': errors.name}" @blur="validate()">
                                 <div class="invalid-feedback" v-if="errors.name">{{ errors.name }}</div>
                             </div>
@@ -71,7 +71,7 @@ export default {
 
             if (this.role.id) {
                 this.$request.put(`${process.env.VUE_APP_API_BASE_URL}/api/roles/${this.role.id}`, this.role).then(() => {
-                    this.swalFire("Cập nhật thành công!", "Thông tin về chức vụ đã được cập nhật!", "success")
+                    this.swalFire("Cập nhật thành công!", "Thông tin về vai trò đã được cập nhật!", "success")
                     .then(() => {
                         this.$router.push({name: 'admin.roles'})
                     })
@@ -82,7 +82,7 @@ export default {
             }
             else {
                 this.$request.post(`${process.env.VUE_APP_API_BASE_URL}/api/roles`, this.role).then(() => {
-                    this.swalFire("Thêm thành công!", "Chức vụ mới đã được thêm vào hệ thống!", "success")
+                    this.swalFire("Thêm thành công!", "Vai trò mới đã được thêm vào hệ thống!", "success")
                     .then(() => {
                         this.$router.push({name: 'admin.roles'})
                     })
@@ -98,7 +98,7 @@ export default {
                 name: '',
             }
             if (!this.role.name) {
-                this.errors.name = 'Tên chức vụ không được để trống.';
+                this.errors.name = 'Tên vai trò không được để trống.';
                 isValid = false;
             }
             return isValid;

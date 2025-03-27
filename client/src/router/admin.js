@@ -70,6 +70,27 @@ const admin = [
                 name: "admin.roles.edit",
                 component: () => import("../pages/admin/roles/RoleForm.vue"),
             },
+            // user
+            {
+                path: "user",
+                name: "admin.users",
+                component: () => import("../pages/admin/users/UserList.vue"),
+            },
+            {
+                path: "user/trash",
+                name: "admin.users.trash",
+                component: () => import("../pages/admin/users/UserList.vue"),
+            },
+            {
+                path: "user/create",
+                name: "admin.users.create",
+                component: () => import("../pages/admin/users/UserForm.vue"),
+            },
+            {
+                path: "user/edit/:id",
+                name: "admin.users.edit",
+                component: () => import("../pages/admin/users/UserForm.vue"),
+            },
         ]
     }
 ]

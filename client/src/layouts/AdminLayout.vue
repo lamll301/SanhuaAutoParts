@@ -26,26 +26,26 @@
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
                         <i class="fa-solid fa-medal header-admin__dropdown-icon"></i>
-                        Quản lý chức vụ
+                        Quản lý vai trò
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <ul class="header-admin__dropdown-menu">
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/role">Tất cả chức vụ</router-link></li>
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/role/create">Thêm chức vụ</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/role">Tất cả vai trò</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/role/create">Thêm vai trò</router-link></li>
                 </ul>
             </div>
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
                         <i class="fa-solid fa-user header-admin__dropdown-icon"></i>
-                        Quản lý tài khoản
+                        Quản lý người dùng
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <ul class="header-admin__dropdown-menu">
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/account">Tất cả tài khoản</router-link></li>
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/account/create">Thêm tài khoản</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/user">Tất cả người dùng</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/user/create">Thêm người dùng</router-link></li>
                 </ul>
             </div>
             <div class="header-admin__dropdown">
