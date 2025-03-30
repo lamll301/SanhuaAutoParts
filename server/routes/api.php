@@ -19,6 +19,8 @@ Route::prefix('permissions')->group(function () {
 });
 
 Route::prefix('roles')->group(function () {
+    Route::delete('/{id}/permission/{permissionId}', [RoleController::class, 'removePermission']);
+    Route::post('/{id}/permission', [RoleController::class, 'addPermission']);
     Route::get('/trashed', [RoleController::class, 'trashed'])->middleware(SortMiddleware::class);
     Route::patch('/{id}/restore', [RoleController::class, 'restore']);
     Route::delete('/{id}/force-delete', [RoleController::class, 'forceDelete']);

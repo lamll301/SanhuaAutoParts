@@ -176,7 +176,7 @@ export default {
     methods: {
         async fetchData() {
             this.isLoading = true;
-            const [usersRes, ...others] = await Promise.all([
+            const [res, ...others] = await Promise.all([
                 handleApiCall(() => this.$request.get(apiService.users.get(this.$route.query, this.isTrashRoute))),
                 ...(!this.isTrashRoute ? [
                     handleApiCall(() => this.$request.get(apiService.users.get({}, true))),
@@ -184,10 +184,10 @@ export default {
                 ] : [])
             ]);
 
-            this.users = usersRes.data;
-            this.totalPages = Math.ceil(usersRes.pagination.total / usersRes.pagination.per_page);
-            this.currentPage = usersRes.pagination.current_page;
-            this.sort = usersRes._sort;
+            this.users = res.data;
+            this.totalPages = Math.ceil(res.pagination.total / res.pagination.per_page);
+            this.currentPage = res.pagination.current_page;
+            this.sort = res._sort;
 
             if (!this.isTrashRoute) {
                 this.deletedCount = others[0]?.pagination?.total || 0;

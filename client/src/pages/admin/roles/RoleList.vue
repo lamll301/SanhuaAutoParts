@@ -13,7 +13,6 @@
                 <h3 v-show="isTrashRoute">Quản lý thùng rác</h3>
                 <router-link to="/admin/role/create" class="admin-content__create">Thêm vai trò</router-link>
             </div>
-            <!-- admin table -->
             <div class="admin-content__table">
                 <div class="admin-content__header d-flex align-items-center">
                     <h4 v-show="!isTrashRoute">Tất cả vai trò</h4>
@@ -115,8 +114,10 @@
 import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
-import { swalFire, swalMixin } from '@/helpers/swal.js'
-import { format, parseISO } from 'date-fns';
+import { swalFire, swalConfirm } from '@/utils/swal';
+import { formatDate } from '@/utils/formatter';
+import apiService from '@/utils/apiService';
+import { handleApiCall } from '@/utils/errorHandler';
 
 export default {
     components: {
@@ -146,98 +147,66 @@ export default {
     methods: {
         async fetchData() {
             this.isLoading = true;
-            const endpoint = this.isTrashRoute ? '/trashed' : '';
-            const params = new URLSearchParams(this.$route.query).toString();
+            const [res, ...others] = await Promise.all([
+                handleApiCall(() => this.$request.get(apiService.roles.get(this.$route.query, this.isTrashRoute))),
+                ...(!this.isTrashRoute ? [
+                    handleApiCall(() => this.$request.get(apiService.roles.get({}, true))),
+                    handleApiCall(() => this.$request.get(apiService.permissions.get({}, false, true))),
+                ] : [])
+            ]);
 
-            try {
-                const res = await this.$request.get(`${process.env.VUE_APP_API_BASE_URL}/api/roles${endpoint}?${params}`);
-                this.roles = res.data.data;
-                this.totalPages = Math.ceil(res.data.pagination.total / res.data.pagination.per_page);
-                this.currentPage = res.data.pagination.current_page;
-                this.sort = res.data._sort;
-                if (!this.isTrashRoute) {
-                    await Promise.all([
-                        this.fetchDeletedCount(), 
-                        this.fetchPermissions()
-                    ]);
-                }
-            } catch (error) {
-                swalFire("Lỗi!", error, "error");
-            } finally {
-                this.isLoading = false;
+            this.roles = res.data;
+            this.totalPages = Math.ceil(res.pagination.total / res.pagination.per_page);
+            this.currentPage = res.pagination.current_page;
+            this.sort = res._sort;
+
+            if (!this.isTrashRoute) {
+                this.deletedCount = others[0]?.pagination?.total || 0;
+                this.permissions = others[1]?.data || []
             }
+            this.isLoading = false;
         },
-        async fetchPermissions() {
-            try {
-                const res = await this.$request.get(`${process.env.VUE_APP_API_BASE_URL}/api/permissions?all=true`);
-                this.permissions = res.data.data;
-            } catch (error) {
-                swalFire("Lỗi!", error, "error");
+        async onDelete(id) {
+            await handleApiCall(() => this.$request.delete(apiService.roles.delete(id)));
+            await swalFire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success");
+            await this.fetchData();
+        },
+        async onRestore(id) {
+            await handleApiCall(() => this.$request.patch(apiService.roles.restore(id)));
+            await swalFire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success");
+            await this.fetchData();
+        },
+        async onForceDelete(id) {
+            const result = await swalConfirm("Bạn chắc chắn?", "Bạn sẽ không thể khôi phục lại dữ liệu!", "warning", "Có, tôi muốn xóa!");
+            if (!result.isConfirmed) return;
+            await handleApiCall(() => this.$request.delete(apiService.roles.forceDelete(id)));
+            await swalFire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success");
+            await this.fetchData();
+        },
+        async handleFormActions() {
+            const { action, targetId, isFilterAction } = this.validateAndGetActionData();
+            if (isFilterAction) {
+                this.$router.push({ query: { action, targetId } });
+                return;
             }
-        },
-        async fetchDeletedCount() {
-            try {
-                const res = await this.$request.get(`${process.env.VUE_APP_API_BASE_URL}/api/roles/trashed`);
-                this.deletedCount = res.data.pagination.total;
-            } catch (error) {
-                swalFire("Lỗi!", error, "error");
+            if (this.selectedIds.length === 0) {
+                swalFire("Lỗi!", "Vui lòng chọn ít nhất 1 bản ghi để thực hiện hành động.", "error");
+                return;
             }
+            await handleApiCall(() => this.$request.post(apiService.roles.handleActions(), {
+                action,
+                selectedIds: this.selectedIds,
+                targetId
+            }));
+            await swalFire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success");
+            await this.fetchData();
+            await this.$refs.checkboxTable.resetCheckboxAll();
         },
-        onDelete(id) {
-            this.$request.delete(`${process.env.VUE_APP_API_BASE_URL}/api/roles/${id}`).then(() => {
-                this.swalFire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success")
-                .then(() => {
-                    this.fetchData();
-                })
-                .catch(error => {
-                    swalFire("Lỗi!", error, "error");
-                })
-            })
-        },
-        onRestore(id) {
-            this.$request.patch(`${process.env.VUE_APP_API_BASE_URL}/api/roles/${id}/restore`).then(() => {
-                this.swalFire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success")
-                .then(() => {
-                    this.fetchData();
-                })
-                .catch(error => {
-                    swalFire("Lỗi!", error, "error");
-                })
-            })
-        },
-        onForceDelete(id) {
-            this.$swal.fire({
-                title: "Bạn chắc chắn?",
-                text: "Bạn sẽ không thể khôi phục lại dữ liệu!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Có, tôi muốn xóa!"
-            }).then((result) => {
-            if (result.isConfirmed) {
-                this.$request.delete(`${process.env.VUE_APP_API_BASE_URL}/api/roles/${id}/force-delete`).then(() => {
-                    this.swalFire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success")
-                    .then(() => {
-                        this.fetchData();
-                    })
-                    .catch(error => {
-                        swalFire("Lỗi!", error, "error");
-                    })
-                })
-            }
-            });
-        },
-        handleUpdateIds(ids) {
-            this.selectedIds = ids;
-        },
-        handleFormActions() {
+        validateAndGetActionData() {
             const action = this.$refs.selectCheckboxAction.value;
             let targetId;
-            let isFiltered = action.startsWith("filterBy");
-
             if (!action) {
-                this.swalFire("Lỗi!", "Vui lòng chọn hành động.", "error");
+                swalFire("Lỗi!", "Vui lòng chọn hành động.", "error");
                 return;
             }
             switch (action) {
@@ -246,40 +215,23 @@ export default {
                 case 'filterByPermission':
                     targetId = this.$refs.selectedPermission.value;
                     if (!targetId) {
-                        this.swalFire("Lỗi!", "Vui lòng chọn phân quyền để thực hiện hành động.", "error");
+                        swalFire("Lỗi!", "Vui lòng chọn phân quyền để thực hiện hành động.", "error");
                         return;
                     }
                     break;
-                default:
-                    break;
             }
-            if (isFiltered) {
-                this.$router.push({ query: { action, targetId } });
-                return;
-            }
-            if (this.selectedIds.length === 0) {
-                this.swalFire("Lỗi!", "Vui lòng chọn ít nhất 1 bản ghi để thực hiện hành động.", "error");
-                return;
-            }
-            this.$request.post(`${process.env.VUE_APP_API_BASE_URL}/api/roles/handle-form-actions`, {
+            return {
                 action,
-                selectedIds: this.selectedIds,
-                targetId
-            }).then(() => {
-                this.swalFire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success")
-                .then(() => {
-                    this.fetchData();
-                    this.$refs.checkboxTable.resetCheckboxAll();
-                });
-            });
+                targetId,
+                isFilterAction: action.startsWith("filterBy")
+            };
+        },      
+        handleUpdateIds(ids) {
+            this.selectedIds = ids;
         },
-        swalFire, swalMixin, 
-        formatDate(dateString) {
-            if (!dateString) {
-                return;
-            }
-            return format(parseISO(dateString), 'yyyy-MM-dd HH:mm:ss');
-        }
+        formatDate(date) {
+            return formatDate(date);
+        },
     }
 }
 </script>

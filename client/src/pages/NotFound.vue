@@ -1,138 +1,104 @@
 <template>
   <div class="not-found-container">
     <div class="content-wrapper">
-      <h1>Oops! Lạc đường rồi</h1>
-      <p class="description">Liên kết này có thể đã bị xóa hoặc không tồn tại.</p>
-      
-      <div class="animation-wrapper">
-        <vue3-lottie
-          :animationData="animationData"
-          :height="350"
-          :width="350"
-          :speed="1.5"
-        />
-      </div>
-      
-      <button @click="goBack" class="button-55" role="button">
-        Quay lại trang trước
-      </button>
+      <vue3-lottie :animationData="animationData" :height="400" :width="400" />
+      <h1 class="title">
+        OPPS! - KHÔNG TÌM THẤY TRANG
+      </h1>
+      <p class="subtitle">Ôi! Có vẻ như trang bạn đang tìm kiếm đã biến mất vào thinh không...</p>
+    </div>
+    
+    <div class="decoration">
+      <div class="circle circle-1"></div>
+      <div class="circle circle-2"></div>
     </div>
   </div>
 </template>
 
 <script>
-import { defineComponent } from 'vue';
 import { Vue3Lottie } from 'vue3-lottie';
 import animationData from '@/assets/images/Animation - 1743054722358.json';
-import { useRouter } from 'vue-router';
 
-export default defineComponent({
-  name: 'NotFound',
-  components: {
-    Vue3Lottie,
-  },
-  setup() {
-    const router = useRouter();
-    
-    const goBack = () => {
-      router.go(-1);
-    };
-
-    return {
-      animationData,
-      goBack
-    };
-  },
-});
+export default {
+    name: 'NotFound',
+    components: { Vue3Lottie },
+    setup() {
+      return { animationData };
+    },
+}
 </script>
 
 <style scoped>
 .not-found-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  text-align: center;
-  padding: 20px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  overflow: hidden;
 }
 
 .content-wrapper {
-  max-width: 600px;
-  width: 100%;
+  text-align: center;
+  z-index: 2;
 }
 
-h1 {
+.title {
   font-size: 2.5rem;
   color: #2c3e50;
-  margin-bottom: 1rem;
-  font-weight: 700;
+  margin-top: -20px;
+  margin-bottom: 15px;
+  font-weight: 600;
 }
 
-.description {
-  font-size: 1.2rem;
+.subtitle {
+  font-size: 1.4rem;
   color: #7f8c8d;
-  margin-bottom: 2.5rem;
+  max-width: 500px;
+  margin: 0 auto;
   line-height: 1.6;
 }
 
-.animation-wrapper {
-  margin: 0 auto 2.5rem;
-  filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.1));
+.decoration {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.circle-1 {
+  width: 300px;
+  height: 300px;
+  top: 10%;
+  left: 10%;
+}
+
+.circle-2 {
+  width: 200px;
+  height: 200px;
+  bottom: 15%;
+  right: 15%;
 }
 
 @media (max-width: 768px) {
-  h1 {
+  .title {
     font-size: 2rem;
   }
-  .description {
+  
+  .subtitle {
     font-size: 1rem;
-  }
-  .animation-wrapper {
-    margin-bottom: 2rem;
+    padding: 0 20px;
   }
 }
-
-/* Button 55 */
-.button-55 {
-  align-self: center;
-  background-color: #fff;
-  background-image: none;
-  background-position: 0 90%;
-  background-repeat: repeat no-repeat;
-  background-size: 4px 3px;
-  border-radius: 15px 225px 255px 15px 15px 255px 225px 15px;
-  border-style: solid;
-  border-width: 2px;
-  box-shadow: rgba(0, 0, 0, .2) 15px 28px 25px -18px;
-  box-sizing: border-box;
-  color: #41403e;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Neucha, sans-serif;
-  font-size: 1.6rem;
-  line-height: 23px;
-  outline: none;
-  padding: .75rem;
-  text-decoration: none;
-  transition: all 235ms ease-in-out;
-  border-bottom-left-radius: 15px 255px;
-  border-bottom-right-radius: 225px 15px;
-  border-top-left-radius: 255px 15px;
-  border-top-right-radius: 15px 225px;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-}
-
-.button-55:hover {
-  box-shadow: rgba(0, 0, 0, .3) 2px 8px 8px -5px;
-  transform: translate3d(0, 2px, 0);
-}
-
-.button-55:focus {
-  box-shadow: rgba(0, 0, 0, .3) 2px 8px 4px -6px;
-}
-
 </style>

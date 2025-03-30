@@ -25,7 +25,7 @@ class RoleController extends Controller
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
     public function show(string $id) {
-        $role = Role::findOrFail($id);
+        $role = Role::with('permissions')->findOrFail($id);
         return response()->json($role);
     }
     public function store(RoleRequest $request) {
@@ -88,5 +88,19 @@ class RoleController extends Controller
             default:
                 return response()->json(['message' => 'Action is invalid'], 400);
         }
+    }
+    public function addPermission(Request $request, string $id) {
+        $role = Role::findOrFail($id);
+        $permissionId = $request->input('permissionId');
+        $role->permissions()->syncWithoutDetaching([$permissionId]);
+        return response()->json(['message' => 'Permission added to role successfully']);
+    }
+    public function removePermission(Request $request, string $id, string $permissionId) {
+        $role = Role::findOrFail($id);
+        if (!$permissionId) {
+            return response()->json(['message' => 'Permission ID is required'], 400);
+        }
+        $role->permissions()->detach($permissionId);
+        return response()->json(['message' => 'Permission removed from role successfully']);
     }
 }

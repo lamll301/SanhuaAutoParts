@@ -32,7 +32,7 @@
                                 <input type="password" class="fs-16 form-control" v-model="user.password"
                                 :placeholder="$route.params.id ? 'Nhập mật khẩu mới nếu muốn đổi' : 'Nhập mật khẩu'"
                                 v-bind:class="{'is-invalid': errors.password}" @blur="validate()">
-                                <div class="invalid-feedback" v-if="errors.password">{{ errors.password }}</div>
+                                <div class=" invalid-feedback" v-if="errors.password">{{ errors.password }}</div>
                             </div>
                         </div>
                         <div class="admin-content__form-divided">
@@ -61,7 +61,7 @@
                             <div class="mb-20">
                                 <h3 class="admin-content__form-text">Email</h3>
                                 <div class="valid-elm input-group">
-                                    <input type="text" class="fs-16 form-control" placeholder="Nhập email người dùng" v-model="user.email"
+                                    <input type="email" class="fs-16 form-control" placeholder="Nhập email người dùng" v-model="user.email"
                                     v-bind:class="{'is-invalid': errors.email}" @blur="validate()">
                                     <div class="invalid-feedback" v-if="errors.email">{{ errors.email }}</div>
                                 </div>
@@ -145,8 +145,8 @@
 <script>
 import { swalFire } from '@/utils/swal.js';
 import apiService from '@/utils/apiService';
-import { statusService } from '@/utils/statusService';
 import { handleApiCall } from '@/utils/errorHandler';
+import { statusService } from '@/utils/statusService';
 
 export default {
     data() {

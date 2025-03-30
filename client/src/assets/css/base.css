@@ -72,6 +72,9 @@ html {
 .fs-14 {
     font-size: 14px !important;
 }
+.mt-2{
+    margin-top: 2px !important;
+}
 .mb-16 {
     margin-bottom: 16px !important;
 }
@@ -152,6 +155,15 @@ button:disabled {
 }
 .btn-next {
     margin-right: 4px;
+}
+.btn-outline-danger {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
 }
 /* image & text area & pagination */
 .height-width-200 {
