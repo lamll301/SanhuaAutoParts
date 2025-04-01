@@ -4,9 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Permission;
 use App\Models\Role;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,6 +14,12 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             RoleSeeder::class,
             UserSeeder::class,
+            UnitSeeder::class,
+            SupplierSeeder::class,
+            VoucherSeeder::class,
+            PromotionSeeder::class,
+            ArticleSeeder::class,
+            CategorySeeder::class,
         ]);
         
         $rolePermissions = [

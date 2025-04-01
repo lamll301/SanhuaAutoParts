@@ -6,25 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('permissions', function (Blueprint $table) {
-            $table->increments('id');
+        Schema::create('promotions', function (Blueprint $table) {
+            $table->id();
             $table->string('name', 100);
-            $table->text('description')->nullable();
+            $table->integer('discount_percent');
+            $table->integer('max_discount_amount');
+            $table->dateTime('start_date');
+            $table->dateTime('end_date');
+            $table->tinyInteger('status')->default(0);
             $table->timestamps();
             $table->softDeletes();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('permissions');
+        Schema::dropIfExists('promotions');
     }
 };

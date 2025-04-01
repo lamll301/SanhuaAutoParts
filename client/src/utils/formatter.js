@@ -34,3 +34,9 @@ export function formatDate(date, pattern = 'yyyy-MM-dd HH:mm:ss') {
         return date;
     }
 }
+
+export function formatPrice(price) {
+    if (!price) return '';
+    if (typeof price !== 'number') return price;
+    return new Intl.NumberFormat('vi-VN').format(price);
+}

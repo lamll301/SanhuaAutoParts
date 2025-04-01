@@ -81,6 +81,9 @@ class UserController extends Controller
             case 'removeRole':
                 User::whereIn('id', $ids)->update(['role_id' => null]);
                 return response()->json(['message' => 'Role removed successfully']);
+            case 'setStatus':
+                User::whereIn('id', $ids)->update(['status' => $targetId]);
+                return response()->json(['message' => 'Status updated successfully']);
             default:
                 return response()->json(['message' => 'Action is invalid'], 400);
         }

@@ -6,25 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('permissions', function (Blueprint $table) {
+        Schema::create('suppliers', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name', 100);
-            $table->text('description')->nullable();
+            $table->string('contact_name', 100);
+            $table->string('address');
+            $table->string('email');
+            $table->string('phone', 20);
             $table->timestamps();
             $table->softDeletes();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('permissions');
+        Schema::dropIfExists('suppliers');
     }
 };

@@ -1,17 +1,26 @@
 
-const STATUS_TYPES = Object.freeze({
-    USER: 'user',
-    PRODUCT: 'product'
-});
-
 const STATUS_CONFIG = Object.freeze({
-    [STATUS_TYPES.USER]: {
+    user: {
         0: 'Không hoạt động',
-        1: 'Hoạt động',
+        1: 'Hoạt động', 
         2: 'Bị cấm'
     },
-    [STATUS_TYPES.PRODUCT]: {
-        
+    product: {
+        0: 'Không hoạt động',
+        1: 'Hoạt động',
+        2: 'Hết hàng',
+    },
+    article: {
+        0: 'Không hoạt động',
+        1: 'Hoạt động',
+    },
+    voucher: {
+        0: 'Không hoạt động',
+        1: 'Hoạt động',
+    },
+    promotion: {
+        0: 'Không hoạt động',
+        1: 'Hoạt động',
     }
 });
 

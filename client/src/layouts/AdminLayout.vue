@@ -51,17 +51,31 @@
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-scale-balanced header-admin__dropdown-icon"></i>
-                        Quản lý đơn vị tính
+                        <i class="fa-solid fa-industry header-admin__dropdown-icon"></i>
+                        Quản lý nhà cung cấp
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <ul class="header-admin__dropdown-menu">
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/unit">Tất cả đơn vị tính</router-link></li>
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/unit/create">Thêm đơn vị tính</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/supplier">Tất cả nhà cung cấp</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/supplier/create">Thêm nhà cung cấp</router-link></li>
                 </ul>
             </div>
-            <div class="header-admin__label1">NHÂN VIÊN HỆ THỐNG</div>
+            
+            <div class="header-admin__label1">NHÂN VIÊN BÁN HÀNG</div>
+            <div class="header-admin__dropdown">
+                <div class="header-admin__dropdown-content">
+                    <div class="header-admin__dropdown-content-text">
+                        <i class="fa-solid fa-box header-admin__dropdown-icon"></i>
+                        Quản lý đơn hàng
+                    </div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <ul class="header-admin__dropdown-menu">
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/order">Tất cả đơn hàng</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/order/create">Thêm đơn hàng</router-link></li>
+                </ul>
+            </div>
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
@@ -104,27 +118,14 @@
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-industry header-admin__dropdown-icon"></i>
-                        Quản lý nhà cung cấp
-                    </div>
-                    <i class="fa-solid fa-chevron-down"></i>
-                </div>
-                <ul class="header-admin__dropdown-menu">
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/supplier">Tất cả nhà cung cấp</router-link></li>
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/supplier/create">Thêm nhà cung cấp</router-link></li>
-                </ul>
-            </div>
-            <div class="header-admin__dropdown">
-                <div class="header-admin__dropdown-content">
-                    <div class="header-admin__dropdown-content-text">
                         <i class="fa-solid fa-newspaper header-admin__dropdown-icon"></i>
                         Quản lý tin tức
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <ul class="header-admin__dropdown-menu">
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/report">Tất cả tin tức</router-link></li>
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/report/create">Thêm tin tức</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/article">Tất cả tin tức</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/article/create">Thêm tin tức</router-link></li>
                 </ul>
             </div>
             <div class="header-admin__dropdown">
@@ -153,31 +154,19 @@
                     <li class="header-admin__dropdown-item"><router-link to="/admin/voucher/create">Thêm voucher</router-link></li>
                 </ul>
             </div>
-            
             <!-- Nhan vien ban hang -->
-            <div class="header-admin__label1">NHÂN VIÊN BÁN HÀNG</div>
+            <div class="header-admin__label1">NHÂN VIÊN KHO</div>
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-box header-admin__dropdown-icon"></i>
-                        Quản lý đơn hàng
+                        <i class="fa-solid fa-scale-balanced header-admin__dropdown-icon"></i>
+                        Quản lý đơn vị tính
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <ul class="header-admin__dropdown-menu">
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/order">Tất cả đơn hàng</router-link></li>
-                </ul>
-            </div>
-            <div class="header-admin__dropdown">
-                <div class="header-admin__dropdown-content">
-                    <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-address-card header-admin__dropdown-icon"></i>
-                        Quản lý khách hàng
-                    </div>
-                    <i class="fa-solid fa-chevron-down"></i>
-                </div>
-                <ul class="header-admin__dropdown-menu">
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/customer">Tất cả khách hàng</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/unit">Tất cả đơn vị tính</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/unit/create">Thêm đơn vị tính</router-link></li>
                 </ul>
             </div>
         </header>

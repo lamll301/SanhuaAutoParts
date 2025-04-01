@@ -184,7 +184,10 @@ export default {
             await this.fetchData();
         },
         async handleFormActions() {
-            const { action, targetId, isFilterAction } = this.validateAndGetActionData();
+            const actionData = this.validateAndGetActionData();
+            if (!actionData) return;
+
+            const { action, targetId, isFilterAction } = actionData;
             if (isFilterAction) {
                 this.$router.push({ query: { action, targetId } });
                 return;

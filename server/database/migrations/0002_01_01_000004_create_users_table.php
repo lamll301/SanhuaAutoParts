@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('password');
             $table->tinyInteger('status')->default(1);
 
-            $table->string('name')->nullable();
+            $table->string('name', 100)->nullable();
             $table->string('email')->unique()->nullable();
             $table->string('phone', 20)->nullable();
             $table->string('address')->nullable();

@@ -1,98 +1,50 @@
-const admin = [
-    {
-        path: '/admin',
-        component: () => import('@/layouts/AdminLayout.vue'),
-        children: [
-            {
-                path: '',
-                name: 'admin',
-                component: () => import('@/pages/admin/AdminHome.vue'),
-            },
-            {
-                path: "autoPart",
-                name: "admin.autoParts",
-                component: () => import("../pages/admin/products/ProductList.vue"),
-            },
-            {
-                path: "autoPart/trash",
-                name: "admin.autoParts.trash",
-                component: () => import("../pages/admin/products/ProductList.vue"),
-            },
-            {
-                path: "autoPart/create",
-                name: "admin.autoParts.create",
-                component: () => import("../pages/admin/products/ProductForm.vue"),
-            },
-            {
-                path: "autoPart/edit/:id",
-                name: "admin.autoParts.edit",
-                component: () => import("../pages/admin/products/ProductForm.vue"),
-            },
-            // permission
-            {
-                path: "permission",
-                name: "admin.permissions",
-                component: () => import("../pages/admin/permissions/PermissionList.vue"),
-            },
-            {
-                path: "permission/trash",
-                name: "admin.permissions.trash",
-                component: () => import("../pages/admin/permissions/PermissionList.vue"),
-            },
-            {
-                path: "permission/create",
-                name: "admin.permissions.create",
-                component: () => import("../pages/admin/permissions/PermissionForm.vue"),
-            },
-            {
-                path: "permission/edit/:id",
-                name: "admin.permissions.edit",
-                component: () => import("../pages/admin/permissions/PermissionForm.vue"),
-            },
-            // role
-            {
-                path: "role",
-                name: "admin.roles",
-                component: () => import("../pages/admin/roles/RoleList.vue"),
-            },
-            {
-                path: "role/trash",
-                name: "admin.roles.trash",
-                component: () => import("../pages/admin/roles/RoleList.vue"),
-            },
-            {
-                path: "role/create",
-                name: "admin.roles.create",
-                component: () => import("../pages/admin/roles/RoleForm.vue"),
-            },
-            {
-                path: "role/edit/:id",
-                name: "admin.roles.edit",
-                component: () => import("../pages/admin/roles/RoleForm.vue"),
-            },
-            // user
-            {
-                path: "user",
-                name: "admin.users",
-                component: () => import("../pages/admin/users/UserList.vue"),
-            },
-            {
-                path: "user/trash",
-                name: "admin.users.trash",
-                component: () => import("../pages/admin/users/UserList.vue"),
-            },
-            {
-                path: "user/create",
-                name: "admin.users.create",
-                component: () => import("../pages/admin/users/UserForm.vue"),
-            },
-            {
-                path: "user/edit/:id",
-                name: "admin.users.edit",
-                component: () => import("../pages/admin/users/UserForm.vue"),
-            },
-        ]
-    }
-]
+const admin = [{
+    path: '/admin',
+    component: () => import('@/layouts/AdminLayout.vue'),
+    children: [
+        { path: '', name: 'admin', component: () => import('@/pages/admin/AdminHome.vue'), },
+        { path: "product", name: "admin.products", component: () => import("../pages/admin/products/ProductList.vue"), },
+        { path: "product/trash", name: "admin.products.trash", component: () => import("../pages/admin/products/ProductList.vue"), },
+        { path: "product/create", name: "admin.products.create", component: () => import("../pages/admin/products/ProductForm.vue"), },
+        { path: "product/edit/:id", name: "admin.products.edit", component: () => import("../pages/admin/products/ProductForm.vue"), },
+        
+        { path: "permission", name: "admin.permissions", component: () => import("../pages/admin/permissions/PermissionList.vue"), },
+        { path: "permission/trash", name: "admin.permissions.trash", component: () => import("../pages/admin/permissions/PermissionList.vue"), },
+        { path: "permission/create", name: "admin.permissions.create", component: () => import("../pages/admin/permissions/PermissionForm.vue"), },
+        { path: "permission/edit/:id", name: "admin.permissions.edit", component: () => import("../pages/admin/permissions/PermissionForm.vue"), },
+        { path: "role", name: "admin.roles", component: () => import("../pages/admin/roles/RoleList.vue"), },
+        { path: "role/trash", name: "admin.roles.trash", component: () => import("../pages/admin/roles/RoleList.vue"), },
+        { path: "role/create", name: "admin.roles.create", component: () => import("../pages/admin/roles/RoleForm.vue"), },
+        { path: "role/edit/:id", name: "admin.roles.edit", component: () => import("../pages/admin/roles/RoleForm.vue"), },
+        { path: "user", name: "admin.users", component: () => import("../pages/admin/users/UserList.vue"), },
+        { path: "user/trash", name: "admin.users.trash", component: () => import("../pages/admin/users/UserList.vue"), },
+        { path: "user/create", name: "admin.users.create", component: () => import("../pages/admin/users/UserForm.vue"), },
+        { path: "user/edit/:id", name: "admin.users.edit", component: () => import("../pages/admin/users/UserForm.vue"), },
+        { path: "unit", name: "admin.units", component: () => import("../pages/admin/units/UnitList.vue"), },
+        { path: "unit/trash", name: "admin.units.trash", component: () => import("../pages/admin/units/UnitList.vue"), },
+        { path: "unit/create", name: "admin.units.create", component: () => import("../pages/admin/units/UnitForm.vue"), },
+        { path: "unit/edit/:id", name: "admin.units.edit", component: () => import("../pages/admin/units/UnitForm.vue"), },
+        { path: "supplier", name: "admin.suppliers", component: () => import("../pages/admin/suppliers/SupplierList.vue"), },
+        { path: "supplier/trash", name: "admin.suppliers.trash", component: () => import("../pages/admin/suppliers/SupplierList.vue"), },
+        { path: "supplier/create", name: "admin.suppliers.create", component: () => import("../pages/admin/suppliers/SupplierForm.vue"), },
+        { path: "supplier/edit/:id", name: "admin.suppliers.edit", component: () => import("../pages/admin/suppliers/SupplierForm.vue"), },
+        { path: "voucher", name: "admin.vouchers", component: () => import("../pages/admin/vouchers/VoucherList.vue"), },
+        { path: "voucher/trash", name: "admin.vouchers.trash", component: () => import("../pages/admin/vouchers/VoucherList.vue"), },
+        { path: "voucher/create", name: "admin.vouchers.create", component: () => import("../pages/admin/vouchers/VoucherForm.vue"), },
+        { path: "voucher/edit/:id", name: "admin.vouchers.edit", component: () => import("../pages/admin/vouchers/VoucherForm.vue"), },
+        { path: "promotion", name: "admin.promotions", component: () => import("../pages/admin/promotions/PromotionList.vue"), },
+        { path: "promotion/trash", name: "admin.promotions.trash", component: () => import("../pages/admin/promotions/PromotionList.vue"), },
+        { path: "promotion/create", name: "admin.promotions.create", component: () => import("../pages/admin/promotions/PromotionForm.vue"), },
+        { path: "promotion/edit/:id", name: "admin.promotions.edit", component: () => import("../pages/admin/promotions/PromotionForm.vue"), },
+        { path: "article", name: "admin.articles", component: () => import("../pages/admin/articles/ArticleList.vue"), },
+        { path: "article/trash", name: "admin.articles.trash", component: () => import("../pages/admin/articles/ArticleList.vue"), },
+        { path: "article/create", name: "admin.articles.create", component: () => import("../pages/admin/articles/ArticleForm.vue"), },
+        { path: "article/edit/:id", name: "admin.articles.edit", component: () => import("../pages/admin/articles/ArticleForm.vue"), },
+        { path: "category", name: "admin.categories", component: () => import("../pages/admin/categories/CategoryList.vue"), },
+        { path: "category/trash", name: "admin.categories.trash", component: () => import("../pages/admin/categories/CategoryList.vue"), },
+        { path: "category/create", name: "admin.categories.create", component: () => import("../pages/admin/categories/CategoryForm.vue"), },
+        { path: "category/edit/:id", name: "admin.categories.edit", component: () => import("../pages/admin/categories/CategoryForm.vue"), },
+    ]
+}]
 
 export default admin;

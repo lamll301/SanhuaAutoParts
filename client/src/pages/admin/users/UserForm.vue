@@ -72,7 +72,7 @@
                                 <h3 class="admin-content__form-text">Tỉnh / Thành phố</h3>
                                 <div class="input-group">
                                     <select class="valid-elm form-select" v-model="user.city_id" @change="onCityChange">
-                                        <option disabled value="">Chọn thành phố</option>
+                                        <option disabled value="null">Chọn thành phố</option>
                                         <option v-for="city in cities" :key="city.code" :value="city.code">
                                             {{ city.name }}
                                         </option>
@@ -83,7 +83,7 @@
                                 <h3 class="admin-content__form-text">Quận / Huyện</h3>
                                 <div class="input-group">
                                     <select class="valid-elm form-select" v-model="user.district_id" @change="onDistrictChange">
-                                        <option disabled value="">Chọn quận huyện</option>
+                                        <option disabled value="null">Chọn quận huyện</option>
                                         <option v-for="district in districts" :key="district.code" :value="district.code">
                                             {{ district.name }}
                                         </option>
@@ -94,7 +94,7 @@
                                 <h3 class="admin-content__form-text">Phường / Xã</h3>
                                 <div class="input-group">
                                     <select class="valid-elm form-select" v-model="user.ward_id">
-                                        <option disabled value="">Chọn phường xã</option>
+                                        <option disabled value="null">Chọn phường xã</option>
                                         <option v-for="ward in wards" :key="ward.code" :value="ward.code">
                                             {{ ward.name }}
                                         </option>
@@ -112,8 +112,7 @@
                             <h3 class="admin-content__form-text">Vai trò</h3>
                             <div class="input-group">
                                 <select class="valid-elm form-select" v-model="user.role_id">
-                                    <option disabled value="">Chọn vai trò</option>
-                                    <option :value="null">Không có vai trò</option>
+                                    <option disabled value="null">Chọn vai trò</option>
                                     <option v-for="role in roles" :key="role.id" :value="role.id">
                                         {{ role.name }}
                                     </option>
@@ -147,6 +146,7 @@ import { swalFire } from '@/utils/swal.js';
 import apiService from '@/utils/apiService';
 import { handleApiCall } from '@/utils/errorHandler';
 import { statusService } from '@/utils/statusService';
+import { isValidEmail, isValidPhone, isValidPassword } from '@/utils/helpers';
 
 export default {
     data() {
@@ -155,7 +155,10 @@ export default {
                 username: '', password: '', email: '', phone: '',
             },
             cities: [], districts: [], wards: [],
-            user: {}, roles: [],
+            user: {
+                city_id: null, district_id: null, ward_id: null, role_id: null, status: '',
+            }, 
+            roles: [],
             statusOptions: statusService.getOptions('user'),
         }
     },
@@ -178,24 +181,21 @@ export default {
                 this.errors.username = 'Tên tài khoản không được để trống.';
                 isValid = false;
             }
-            const passwordRegex = /^.{6,}$/;
             if (!this.$route.params.id) {
                 if (!this.user.password) {
                     this.errors.password = 'Mật khẩu không được để trống.';
                     isValid = false;
                 }
             }
-            if (!passwordRegex.test(this.user.password) && this.user.password) {
-                this.errors.password = 'Mật khẩu phải có ít nhất 6 ký tự.';
+            if (this.user.password && !isValidPassword(this.user.password)) {
+                this.errors.password = 'Mật khẩu phải có ít nhất 8 ký tự, gồm chữ và số.';
                 isValid = false;
             }
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (this.user.email && !emailRegex.test(this.user.email)) {
+            if (this.user.email && !isValidEmail(this.user.email)) {
                 this.errors.email = 'Email không hợp lệ.';
                 isValid = false;
             }
-            const phoneRegex = /^(0|\+84)(\s|\.)?((3[2-9])|(5[689])|(7[06-9])|(8[1-689])|(9[0-46-9]))(\d)(\s|\.)?(\d{3})(\s|\.)?(\d{3})$/;
-            if (this.user.phone && !phoneRegex.test(this.user.phone)) {
+            if (this.user.phone && !isValidPhone(this.user.phone)) {
                 this.errors.phone = 'Số điện thoại không hợp lệ.';
                 isValid = false;
             }
@@ -229,9 +229,11 @@ export default {
         },
         async save() {
             if (!this.validate()) return;
-            const { password, ...userWithoutPassword } = this.user;
-            const payload = this.user.id && password === "" ? userWithoutPassword : this.user;
-
+            const payload = Object.fromEntries(
+                Object.entries(this.user).filter(([, value]) => 
+                    value !== null && value !== undefined && value !== ''
+                )
+            );
             if (this.user.id) {
                 await handleApiCall(() => this.$request.put(apiService.users.update(this.user.id), payload));
                 await swalFire("Cập nhật thành công!", "Thông tin về người dùng đã được cập nhật!", "success");
@@ -243,14 +245,14 @@ export default {
             this.$router.push({ name: 'admin.users' });
         },
         onCityChange() {
-            this.user.district_id = '';
+            this.user.district_id = null;
             this.districts = [];
-            this.user.ward_id = '';
+            this.user.ward_id = null;
             this.wards = [];
             this.fetchDistrictsById();
         },
         onDistrictChange() {
-            this.user.ward_id = '';
+            this.user.ward_id = null;
             this.wards = [];
             this.fetchWardsById();
         },

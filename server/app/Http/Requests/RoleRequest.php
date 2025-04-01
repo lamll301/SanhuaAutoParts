@@ -22,7 +22,7 @@ class RoleRequest extends FormRequest
             'name' => [
                 'required', 
                 'string', 
-                'max:255', 
+                'max:100', 
                 $isCreate ? 'unique:roles,name' : 'unique:roles,name,' . $id
             ]
         ];
