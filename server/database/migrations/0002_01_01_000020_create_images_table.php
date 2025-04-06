@@ -12,7 +12,9 @@ return new class extends Migration
             $table->id();
             $table->string('path');
             $table->string('filename');
+            $table->integer('size'); 
             $table->string('mime_type')->nullable();
+            $table->boolean('is_thumbnail')->default(false);
             $table->unsignedInteger('category_id')->nullable();
             $table->unsignedInteger('article_id')->nullable();
             // $table->unsignedInteger('product_id')->nullable();

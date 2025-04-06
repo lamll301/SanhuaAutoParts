@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class Controller
 {
@@ -58,5 +61,46 @@ class Controller
             ];
         }
         return response()->json($response);
+    }
+    protected function storeImages($files, Model $model) {
+        if (empty($files)) return;
+        if (!is_array($files)) {
+            $files = [$files];
+        }
+
+        $storagePath = class_basename($model) . "/{$model->id}";
+        
+        foreach ($files as $file) {
+            if (!$file instanceof UploadedFile) {
+                continue;
+            }
+            
+            $path = $file->store($storagePath, 'public');
+            $model->images()->create([
+                'path' => Storage::url($path),
+                'filename' => $file->getClientOriginalName(),
+                'mime_type' => $file->getClientMimeType(),
+                'size' => $file->getSize(),
+            ]);
+        }
+    }
+    protected function deleteImages(array $imageIds, Model $model) {
+        if (empty($imageIds)) return;
+
+        $images = $model->images()->whereIn('id', $imageIds)->get();
+        foreach ($images as $image) {
+            $path = str_replace('/storage', '', $image->path);
+            Storage::disk('public')->delete($path);
+        }
+        $model->images()->whereIn('id', $imageIds)->delete();
+    }
+    protected function deleteFolder(Model $model) {
+        $storagePath = class_basename($model) . "/{$model->id}";
+        Storage::disk('public')->deleteDirectory($storagePath);
+    }
+    protected function setThumbnail(Model $model, $imageName) {
+        $model->images()->update(['is_thumbnail' => false]);
+        $model->images()->where('filename', $imageName)->update(['is_thumbnail' => true]);
+        $model->refresh();
     }
 }

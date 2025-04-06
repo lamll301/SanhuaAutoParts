@@ -15,28 +15,43 @@ class ArticleController extends Controller
     protected const STATUS_PUBLISHED = 1;
 
     public function index(Request $request) {
-        $query = Article::query();
+        $query = Article::with('images');
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
 
     public function trashed(Request $request) {
-        $query = Article::onlyTrashed();
+        $query = Article::onlyTrashed()->with('images');
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
 
     public function show(string $id) {
-        $article = Article::findOrFail($id);
+        $article = Article::with('images')->findOrFail($id);
         return response()->json($article);
     }
 
     public function store(Request $request) {
-        Article::create($request->all());
+        $article = Article::create($request->all());
+        if ($request->hasFile('images')) {
+            $this->storeImages($request->file('images'), $article);
+        }
+        if ($request->has('selectedThumbnail')) {
+            $this->setThumbnail($article, $request->input('selectedThumbnail'));
+        }
         return response()->json(['message' => 'Article created']);
     }
 
     public function update(Request $request, string $id) {
         $article = Article::findOrFail($id);
         $article->update($request->all());
+        if ($request->has('deletedImageIds')) {
+            $this->deleteImages(json_decode($request->input('deletedImageIds'), true), $article);
+        }
+        if ($request->hasFile('images')) {
+            $this->storeImages($request->file('images'), $article);
+        }
+        if ($request->has('selectedThumbnail')) {
+            $this->setThumbnail($article, $request->input('selectedThumbnail'));
+        }
         return response()->json(['message' => 'Article updated']);
     }
 
@@ -54,6 +69,7 @@ class ArticleController extends Controller
 
     public function forceDelete(string $id) {
         $article = Article::onlyTrashed()->findOrFail($id);
+        $this->deleteFolder($article);
         $article->forceDelete();
         return response()->json(['message' => 'Article permanently deleted']);
     }

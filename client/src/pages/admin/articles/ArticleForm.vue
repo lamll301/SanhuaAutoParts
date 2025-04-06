@@ -34,15 +34,22 @@
                                 <div class="invalid-feedback" v-if="errors.author">{{ errors.author }}</div>
                             </div>
                         </div>
-                        <div class="mb-20 height-105">
+                        <div class="mb-20">
                             <h3 class="admin-content__form-text">Highlight</h3>
                             <div class="valid-elm input-group">
-                                <textarea class="fs-16 form-control" rows="3" placeholder="Nhập highlight tin tức" v-model="article.highlight"></textarea>
+                                <input type="text" class="fs-16 form-control" placeholder="Nhập highlight tin tức" v-model="article.highlight"
+                                v-bind:class="{'is-invalid': errors.highlight}" @blur="validate()">
+                                <div class="invalid-feedback" v-if="errors.highlight">{{ errors.highlight }}</div>
                             </div>
                         </div>
                         <div class="mb-20">
                             <h3 class="admin-content__form-text">Nội dung</h3>
-                            <RichTextEditor v-model="article.content" @input="handleEditorInput"/>
+                            <RichTextEditor 
+                                ref="richTextEditor"
+                                :content="article.content"
+                                :images="article.images"
+                                @remove-image="handleRemoveImage"
+                            />
                         </div>
                         <div class="mb-20">
                             <h3 class="admin-content__form-text">Ngày xuất bản</h3>
@@ -73,7 +80,7 @@
 </template>
 
 <script>
-// import { swalFire } from '@/utils/swal.js';
+import { swalFire } from '@/utils/swal.js';
 import apiService from '@/utils/apiService';
 import { handleApiCall } from '@/utils/errorHandler';
 import { statusService } from '@/utils/statusService';
@@ -92,7 +99,9 @@ export default {
             errors: {
                 title: '',
                 author: '',
+                highlight: '',
             },
+            deletedImageIds: [],
         }
     },
     async created() {
@@ -106,13 +115,24 @@ export default {
             this.errors = {
                 title: '',
                 author: '',
+                highlight: '',
             }
             if (!this.article.title) {
                 this.errors.title = 'Tiêu đề không được để trống.';
                 isValid = false;
+            } else if (this.article.title.length > 100) {
+                this.errors.title = 'Tiêu đề không được quá 100 ký tự.';
+                isValid = false;
             }
             if (!this.article.author) {
                 this.errors.author = 'Tên tác giả không được để trống.';
+                isValid = false;
+            } else if (this.article.author.length > 50) {
+                this.errors.author = 'Tên tác giả không được quá 50 ký tự.';
+                isValid = false;
+            }
+            if (this.article.highlight && this.article.highlight.length > 50) {
+                this.errors.highlight = 'Highlight không được quá 50 ký tự.';
                 isValid = false;
             }
             return isValid;
@@ -122,28 +142,52 @@ export default {
             this.article = res;
         },
         async save() {
-            
-            console.log(this.article); 
+            if (!this.validate()) return;
 
-            // if (!this.validate()) return;
-            // const payload = Object.fromEntries(
-            //     Object.entries(this.article).filter(([, value]) => 
-            //         value !== null && value !== undefined && value !== ''
-            //     )
-            // );
+            const formData = this.prepareFormData();
 
-            // if (this.article.id) {
-            //     await handleApiCall(() => this.$request.put(apiService.articles.update(this.article.id), payload));
-            //     await swalFire("Cập nhật thành công!", "Thông tin về tin tức đã được cập nhật!", "success");
-            // }
-            // else {
-            //     await handleApiCall(() => this.$request.post(apiService.articles.create(), payload));
-            //     await swalFire("Thêm thành công!", "Tin tức mới đã được thêm vào hệ thống!", "success");
-            // }
-            // this.$router.push({ name: 'admin.articles' });
+            if (this.article.id) {
+                await handleApiCall(() => this.$request.post(apiService.articles.update(this.article.id), formData));
+                await swalFire("Cập nhật thành công!", "Thông tin về tin tức đã được cập nhật!", "success");
+            }
+            else {
+                await handleApiCall(() => this.$request.post(apiService.articles.create(), formData));
+                await swalFire("Thêm thành công!", "Tin tức mới đã được thêm vào hệ thống!", "success");
+            }
+            this.$router.push({ name: 'admin.articles' });
         },
-        handleEditorInput(content) {
-            this.article.content = content;
+        prepareFormData() {
+            const formData = new FormData();
+            this.article.content = this.$refs.richTextEditor.getContent();
+            const images = this.$refs.richTextEditor.getImages();
+            const selectedThumbnail = this.$refs.richTextEditor.selectedThumbnail;
+
+            Object.entries(this.article).forEach(([key, value]) => {
+                if (value !== null && value !== undefined && value !== '') {
+                    formData.append(key, value);
+                }
+            });
+
+            Object.entries(images).forEach(([imageId, file]) => {
+                formData.append(`images[]`, file, imageId);
+            });
+
+            if (selectedThumbnail) {
+                formData.append('selectedThumbnail', selectedThumbnail);
+            }
+
+            if (this.article.id) {
+                formData.append('_method', 'PUT');
+                if (this.deletedImageIds.length > 0) {
+                    formData.append('deletedImageIds', JSON.stringify(this.deletedImageIds));
+                }
+            }
+
+            return formData;
+        },
+        handleRemoveImage(imageId) {
+            this.deletedImageIds.push(imageId);
+            this.article.images = this.article.images.filter(image => image.id !== imageId);
         },
     }
 }

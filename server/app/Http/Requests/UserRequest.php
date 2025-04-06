@@ -40,7 +40,7 @@ class UserRequest extends FormRequest
                 'nullable', 'string', 'regex:/^[0-9]{9,15}$/'
             ],
             'name' => [
-                'nullable', 'string', 'max:100'
+                'nullable', 'string', 'max:50'
             ],
             'address' => [
                 'nullable', 'string', 'max:255'

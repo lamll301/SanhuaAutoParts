@@ -1,8 +1,3 @@
-
-# Project Title
-
-A brief description of what this project does and who it's for
-
 # **Notes**
 
 File này dùng để ghi chú lại những kiến thức quan trọng trong quá trình phát triển dự án.
@@ -56,16 +51,22 @@ php artisan make:model User -mcs
 ```bash
 php artisan make:controller UserController --api
 ```
-### Code
-#### [**Validation**](https://laravel.com/docs/12.x/validation#available-validation-rules)
-* Tạo 1 Form Request:
+- Tạo shortcut giúp truy cập ảnh qua url:
+```bash
+php artisan storage:link
+```
+- Tạo form request:
 ```bash
 php artisan make:request UserRequest
 ```
+### Code
+- Laravel chỉ xử lý upload file từ form data khi đó là phương thức POST
+
 ## **PostgreSql**
 ```bash
 psql -U postgres -W -h localhost -p 5432 sanhua_dev
 ```
 #### **Các lệnh cơ bản trong PostgreSQL**
+```bash
 
-[*Các loại lỗi HTTP thường gặp khi truy cập website*](https://tltvietnam.vn/99-loi-http-thuong-gap-khi-truy-cap-vao-website.html)
+```

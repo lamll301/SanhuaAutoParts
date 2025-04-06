@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('title', 100);
             $table->string('slug', 255)->unique();
             $table->string('highlight', 50)->nullable();
-            $table->string('author', 100);
+            $table->string('author', 50);
             $table->dateTime('publish_date')->nullable();
             $table->longText('content')->nullable();
             $table->tinyInteger('status')->default(0);
