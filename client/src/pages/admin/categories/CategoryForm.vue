@@ -32,6 +32,27 @@
                                 <textarea class="fs-16 form-control" rows="3" placeholder="Nhập mô tả danh mục" v-model="category.description"></textarea>
                             </div>
                         </div>
+                        <div class="mb-20">
+                            <h3 class="admin-content__form-text">Ảnh</h3>
+                            <div class="image-upload-container">
+                                <div class="upload-actions">
+                                    <button type="button" class="upload-button" @click="$refs.imagePreview.$refs.fileInput.click()">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <span>Tải lên ảnh mới</span>
+                                    </button>
+                    
+                                    <div class="upload-hint">
+                                        <p>Kéo thả ảnh vào đây hoặc nhấn để chọn</p>
+                                        <p class="file-types">Hỗ trợ: JPG, PNG, GIF (Tối đa 5MB)</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <ImagePreview
+                                ref="imagePreview"
+                                :images="category.images"
+                                @removeImage="handleRemoveImage"
+                            />
+                        </div>
                         <div class="mb-20 admin-content__form-btn">
                             <button type="submit" class="fs-16 btn btn-primary">Xác nhận</button>
                         </div>
@@ -47,6 +68,7 @@
 import { swalFire } from '@/utils/swal.js';
 import apiService from '@/utils/apiService';
 import { handleApiCall } from '@/utils/errorHandler';
+import ImagePreview from '@/components/ImagePreview.vue';
 
 export default {
     data() {
@@ -56,6 +78,9 @@ export default {
                 name: '',
             },
         }
+    },
+    components: {
+        ImagePreview
     },
     async created() {
         if (this.$route.params.id) {
@@ -81,15 +106,49 @@ export default {
         async save() {
             if (!this.validate()) return;
 
+            const formData = this.prepareFormData();
+
             if (this.category.id) {
-                await handleApiCall(() => this.$request.put(apiService.categories.update(this.category.id), this.category));
+                await handleApiCall(() => this.$request.post(apiService.categories.update(this.category.id), formData));
                 await swalFire("Cập nhật thành công!", "Thông tin về danh mục đã được cập nhật!", "success");
             }
             else {
-                await handleApiCall(() => this.$request.post(apiService.categories.create(), this.category));
+                await handleApiCall(() => this.$request.post(apiService.categories.create(), formData));
                 await swalFire("Thêm thành công!", "Danh mục mới đã được thêm vào hệ thống!", "success");
             }
             this.$router.push({ name: 'admin.categories' });
+        },
+        prepareFormData() {
+            const formData = new FormData();
+            const images = this.$refs.imagePreview.tempImages;
+            const selectedThumbnail = this.$refs.imagePreview.selectedThumbnail;
+            const deletedImageIds = this.$refs.imagePreview.deletedImageIds;
+
+            Object.entries(this.category).forEach(([key, value]) => {
+                if (value !== null && value !== undefined && value !== '') {
+                    formData.append(key, value);
+                }
+            });
+
+            Object.entries(images).forEach(([imageId, file]) => {
+                formData.append(`images[]`, file, imageId);
+            });
+
+            if (selectedThumbnail) {
+                formData.append('selectedThumbnail', selectedThumbnail);
+            }
+
+            if (this.category.id) {
+                formData.append('_method', 'PUT');
+                if (deletedImageIds.length > 0) {
+                    formData.append('deletedImageIds', JSON.stringify(deletedImageIds));
+                }
+            }
+
+            return formData;
+        },
+        handleRemoveImage(imageId) {
+            this.category.images = this.category.images.filter(image => image.id !== imageId);
         },
     }
 }

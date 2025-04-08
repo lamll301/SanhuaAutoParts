@@ -48,7 +48,7 @@
                                 ref="richTextEditor"
                                 :content="article.content"
                                 :images="article.images"
-                                @remove-image="handleRemoveImage"
+                                @removeImage="handleRemoveImage"
                             />
                         </div>
                         <div class="mb-20">
@@ -101,7 +101,6 @@ export default {
                 author: '',
                 highlight: '',
             },
-            deletedImageIds: [],
         }
     },
     async created() {
@@ -159,8 +158,9 @@ export default {
         prepareFormData() {
             const formData = new FormData();
             this.article.content = this.$refs.richTextEditor.getContent();
-            const images = this.$refs.richTextEditor.getImages();
-            const selectedThumbnail = this.$refs.richTextEditor.selectedThumbnail;
+            const images = this.$refs.richTextEditor.getTempImages();
+            const selectedThumbnail = this.$refs.richTextEditor.getThumbnail();
+            const deletedImageIds = this.$refs.richTextEditor.getDeletedImages();
 
             Object.entries(this.article).forEach(([key, value]) => {
                 if (value !== null && value !== undefined && value !== '') {
@@ -178,15 +178,14 @@ export default {
 
             if (this.article.id) {
                 formData.append('_method', 'PUT');
-                if (this.deletedImageIds.length > 0) {
-                    formData.append('deletedImageIds', JSON.stringify(this.deletedImageIds));
+                if (deletedImageIds.length > 0) {
+                    formData.append('deletedImageIds', JSON.stringify(deletedImageIds));
                 }
             }
 
             return formData;
         },
         handleRemoveImage(imageId) {
-            this.deletedImageIds.push(imageId);
             this.article.images = this.article.images.filter(image => image.id !== imageId);
         },
     }

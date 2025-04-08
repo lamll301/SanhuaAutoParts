@@ -10,24 +10,39 @@ class CategoryController extends Controller
     private const SEARCH_FIELDS = ['id', 'name'];
 
     public function index(Request $request) {
-        $query = Category::query();
+        $query = Category::with('images');
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS);
     }
     public function trashed(Request $request) {
-        $query = Category::onlyTrashed();
+        $query = Category::onlyTrashed()->with('images');
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS);
     }
     public function show(string $id) {
-        $category = Category::findOrFail($id);
+        $category = Category::with('images')->findOrFail($id);
         return response()->json($category);
     }
     public function store(Request $request) {
-        Category::create($request->all());
+        $category = Category::create($request->all());
+        if ($request->hasFile('images')) {
+            $this->storeImages($request->file('images'), $category);
+        }
+        if ($request->has('selectedThumbnail')) {
+            $this->setThumbnail($category, $request->input('selectedThumbnail'));
+        }
         return response()->json(['message' => 'Category created']);
     }
     public function update(Request $request, string $id) {
         $category = Category::findOrFail($id);
         $category->update($request->all());
+        if ($request->has('deletedImageIds')) {
+            $this->deleteImages(json_decode($request->input('deletedImageIds'), true), $category);
+        }
+        if ($request->hasFile('images')) {
+            $this->storeImages($request->file('images'), $category);
+        }
+        if ($request->has('selectedThumbnail')) {
+            $this->setThumbnail($category, $request->input('selectedThumbnail'));
+        }
         return response()->json(['message' => 'Category updated']);
     }
     public function destroy(string $id) {
@@ -42,6 +57,7 @@ class CategoryController extends Controller
     }
     public function forceDelete(string $id) {
         $category = Category::onlyTrashed()->findOrFail($id);
+        $this->deleteFolder($category);
         $category->forceDelete();
         return response()->json(['message' => 'Category permanently deleted']);
     }

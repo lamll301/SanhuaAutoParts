@@ -1,5 +1,8 @@
 <template>
-    <div class="temp-images-preview">
+    <input type="file" ref="fileInput" accept="image/*" style="display: none" 
+        @change="handleImageChange"
+    >
+    <div class="temp-images-preview" v-if="hasImages">
         <h4>Ảnh đã tải lên:</h4>
         <div class="image-list">
             <div v-for="image in images" :key="image.id" class="image-item" 
@@ -11,7 +14,7 @@
                     <span class="image-name">{{ image.filename }}</span>
                     <span class="image-size">{{ formatSize(image.size) }}</span>
                 </div>
-                <button type="button" @click="$emit('remove-image', image.id, image.filename)" class="remove-image-btn">
+                <button type="button" @click.stop="removeImage(image.id, image.filename)" class="remove-image-btn">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -19,12 +22,12 @@
                 :class="{ 'selected-thumbnail': imageName === selectedThumbnail }"
                 @click="setThumbnail(imageName)"
             >
-                <img :src="getTempImageUrl(file)" class="image-thumbnail">
+                <img :src="getTempImageUrl(file, imageName)" class="image-thumbnail">
                 <div class="image-info">
                     <span class="image-name">{{ imageName }}</span>
                     <span class="image-size">{{ formatSize(file.size) }}</span>
                 </div>
-                <button type="button" @click="$emit('remove-temp-image', imageName)" class="remove-image-btn">
+                <button type="button" @click.stop="removeTempImage(imageName)" class="remove-image-btn">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -34,33 +37,69 @@
 
 <script>
 export default {
+    name: 'ImagePreview',
+    emits: [
+        'removeImage',
+        'addImage'
+    ],
     props: {
         images: {
             type: Array,
-            required: true
+            required: true,
+            default: () => []
         },
-        tempImages: {
-            type: Object,
-            default: () => ({})
-        }
     },
     data() {
         return {
-            selectedThumbnail: null
+            selectedThumbnail: null,
+            tempImages: {}, objectUrls: {},
+            deletedImageIds: [],
         }
     },
-    created() {
-        const thumbnailImage = this.images.find(img => img.is_thumbnail);
-        if (thumbnailImage) {
-            this.selectedThumbnail = thumbnailImage.filename;
+    computed: {
+        hasImages() {
+            return Object.keys(this.tempImages).length > 0 || this.images.length > 0;
+        }
+    },
+    watch: {
+        images: {
+            handler(newImages) {
+                if (newImages.length > 0) {
+                    const thumbnailImage = newImages.find(img => img.is_thumbnail);
+                    if (thumbnailImage) {
+                        this.selectedThumbnail = thumbnailImage.filename;
+                    }
+                } else {
+                    this.selectedThumbnail = null;
+                }
+            },
+            immediate: true
         }
     },
     methods: {
         getImageUrl(path) {
             return path.startsWith('http') ? path : `${process.env.VUE_APP_API_BASE_URL || ''}${path}`;
         },
-        getTempImageUrl(file) {
-            return URL.createObjectURL(file);
+        getTempImageUrl(file, imageName) {
+            if (!this.objectUrls[imageName]) {
+                this.objectUrls[imageName] = URL.createObjectURL(file);
+            }
+            return this.objectUrls[imageName];
+        },
+        removeTempImage(imageName) {
+            const url = this.objectUrls[imageName];
+            if (url) {
+                URL.revokeObjectURL(url);
+                delete this.objectUrls[imageName];
+            }
+            delete this.tempImages[imageName];
+            this.checkAndSetThumbnail(imageName);
+            this.$emit('removeImage', null, imageName);
+        },
+        removeImage(id, imageName) {
+            this.deletedImageIds.push(id);
+            this.checkAndSetThumbnail(imageName);
+            this.$emit('removeImage', id, imageName);
         },
         formatSize(bytes) {
             if (!bytes) return '0 Bytes';
@@ -68,10 +107,23 @@ export default {
             const i = Math.floor(Math.log(bytes) / Math.log(1024));
             return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${units[i]}`;
         },
-        setThumbnail(image) {
-            this.selectedThumbnail = image;
-            this.$emit('set-thumbnail', this.selectedThumbnail);
+        handleImageChange(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const imageName = `${file.name.split('.')[0]}-${Date.now()}.${file.name.split('.').pop()}`;
+            this.tempImages[imageName] = file;
+            event.target.value = '';
+            this.$emit('addImage', imageName);
+        },
+        setThumbnail(imageName) {
+            this.selectedThumbnail = imageName;
+        },
+        checkAndSetThumbnail(imageNameDeleted) {
+            if (this.selectedThumbnail === imageNameDeleted) {
+                this.selectedThumbnail = null;
+            }
         }
+        
     }
 }
 </script>
@@ -145,7 +197,7 @@ export default {
     border: 2px solid #4CAF50;
     box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
     transform: translateY(-2px);
-    transition: all 0.3s ease;
+    transition: all 0.15s ease;
 }
 .image-item.selected-thumbnail::after {
     content: "✓ Thumbnail";
@@ -166,6 +218,6 @@ export default {
     100% { transform: scale(1); }
 }
 .image-item.selected-thumbnail {
-    animation: pulse 0.3s ease;
+    animation: pulse 0.15s ease;
 }
 </style>

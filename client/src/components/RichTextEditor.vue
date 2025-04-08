@@ -1,8 +1,8 @@
 <template>
-    <div class="editor-notice" v-if="hasImages">
+    <!-- <div class="editor-notice">
         <i class="fas fa-exclamation-circle"></i> 
         <span>Lưu ý: Không chỉnh sửa trực tiếp dòng chứa nội dung ảnh</span>
-    </div>
+    </div> -->
     <div class="rich-text-editor">
         <div class="editor-toolbar">
             <button type="button" class="tool-btn" title="Reset nội dung" @click="resetContent">
@@ -43,26 +43,25 @@
             <button type="button" class="tool-btn" title="Liên kết" @click="insertLink">
                 <i class="fas fa-link"></i>
             </button>
-            <button type="button" class="tool-btn" title="Hình ảnh" @click="$refs.fileInput.click()">
+            <button type="button" class="tool-btn" title="Hình ảnh" @click="handleImageClick">
                 <i class="fas fa-image"></i>
             </button>
-            <input type="file" ref="fileInput" accept="image/*" style="display: none" 
-                @change="handleImageChange"
-            >
         </div>
         
-        <div class="editor-content" ref="editorContent" contenteditable="true" placeholder="Nhập nội dung tại đây..."
-            v-html="content" @keydown="handleKeydown"
+        <div class="editor-content" 
+            ref="editorContent" 
+            contenteditable="true" 
+            placeholder="Nhập nội dung tại đây..."
+            v-html="content"
+            @click="handleEditorClick"
         >
         </div>
     </div>
     <ImagePreview 
-        v-if="hasImages"
+        ref="imagePreview"
         :images="images"
-        :tempImages="tempImages"
-        @remove-image="handleRemoveImage"
-        @remove-temp-image="handleRemoveTempImage"
-        @set-thumbnail="setThumbnail"
+        @removeImage="handleRemoveImage"
+        @addImage="addImagePlaceholder"
     />
     
 </template>
@@ -72,6 +71,9 @@ import ImagePreview from './ImagePreview.vue';
 
 export default {
     name: 'RichTextEditor',
+    emits: [
+        'removeImage',
+    ],
     components: {
         ImagePreview
     },
@@ -87,14 +89,8 @@ export default {
     },
     data() {
         return {
-            tempImages: {},
-            selectedThumbnail: null
-        }
-    },
-    computed: {
-        hasImages() {
-            return Object.keys(this.tempImages).length > 0 || this.images.length > 0;
-        }
+            currentSelection: null,
+        };
     },
     mounted() {
         if (this.content) {
@@ -105,11 +101,14 @@ export default {
         getContent() {
             return this.$refs.editorContent.innerHTML;
         },
-        getImages() {
-            return this.tempImages;
+        getTempImages() {
+            return this.$refs.imagePreview.tempImages;
         },
-        setThumbnail(selectedThumbnail) {
-            this.selectedThumbnail = selectedThumbnail;
+        getThumbnail() {
+            return this.$refs.imagePreview.selectedThumbnail;
+        },
+        getDeletedImages() {
+            return this.$refs.imagePreview.deletedImageIds;
         },
         resetContent() {
             this.$refs.editorContent.innerHTML = '';
@@ -129,51 +128,89 @@ export default {
                 this.execCommand('createLink', url);
             }
         },
-        handleImageChange(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const imageName = `${file.name.split('.')[0]}-${Date.now()}.${file.name.split('.').pop()}`;
-            this.tempImages[imageName] = file;
-            this.insertImagePlaceholder(imageName);
-            event.target.value = '';
-        },
-        insertImagePlaceholder(image) {
-            const placeholder = document.createElement('div');
-            placeholder.dataset.image = image;
-            placeholder.style.cssText = 'color: red; font-weight: bold;';
-            placeholder.textContent = `[image: ${image}]`;
-            
-            this.$refs.editorContent.appendChild(placeholder);
-            this.$refs.editorContent.appendChild(document.createElement('br'));
-        },
-        handleKeydown(event) {
-            if (event.key === 'Delete' || event.key === 'Backspace') {
-                const selection = window.getSelection();
-                const range = selection.getRangeAt(0);
-                const container = range.startContainer.parentNode;
-                if (container.hasAttribute('data-image')) {
-                    const imageId = container.getAttribute('data-image');
-                    delete this.tempImages[imageId];
-                }
-            }
-        },
-        handleRemoveTempImage(imageId) {
-            if (!this.tempImages[imageId]) return;
-            URL.revokeObjectURL(URL.createObjectURL(this.tempImages[imageId]));
-            delete this.tempImages[imageId];
-            this.removeImagePlaceholder(imageId);
-        },
-        handleRemoveImage(imageId, imageName) {
-            this.$emit('remove-image', imageId);
+        handleRemoveTempImage(imageName) {
             this.removeImagePlaceholder(imageName);
         },
-        removeImagePlaceholder(image) {
+        handleRemoveImage(imageId, imageName) {
+            this.removeImagePlaceholder(imageName);
+            if (imageId) {
+                this.$emit('removeImage', imageId);
+            }
+        },
+        handleImageClick() {
+            this.saveSelection();
+            this.$refs.imagePreview.$refs.fileInput.click();
+        },
+        handleEditorClick() {
+            this.saveSelection();
+        },
+        addImagePlaceholder(filename) {
+            const placeholder = document.createElement('span');
+            placeholder.dataset.image = filename;
+            placeholder.contentEditable = 'false';
+            placeholder.style.display = 'inline-block';
+            placeholder.style.padding = '2px 5px';
+            placeholder.style.border = '1px dashed #aaa';
+            placeholder.style.backgroundColor = '#f5f5f5';
+            placeholder.style.borderRadius = '3px';
+            placeholder.style.fontSize = '0.9em';
+            placeholder.style.color = '#666';
+            placeholder.style.margin = '2px 0';
+            placeholder.textContent = `<!--image:${filename}-->`;
+
             const editor = this.$refs.editorContent;
-            const placeholder = editor.querySelector(`[data-image="${image}"]`);
+            const nbsp = document.createTextNode('\u00A0');
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0 && this.currentSelection) {
+                const range = selection.getRangeAt(0);
+                range.deleteContents();
+                range.insertNode(nbsp);
+                range.insertNode(placeholder);
+                
+                const newRange = document.createRange();
+                newRange.setStartAfter(placeholder);
+                newRange.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            } else {
+                editor.appendChild(placeholder);
+                editor.appendChild(nbsp);
+
+                const newRange = document.createRange();
+                newRange.setStartAfter(nbsp);
+                newRange.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+                editor.focus();
+            }
+            this.restoreSelection();
+        },
+        removeImagePlaceholder(imageName) {
+            const editor = this.$refs.editorContent;
+            const placeholder = editor.querySelector(`span[data-image="${imageName}"]`);
             if (placeholder) {
                 placeholder.remove();
             }
-        }
+        },
+        saveSelection() {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const editor = this.$refs.editorContent;
+                if (editor.contains(range.startContainer) && editor.contains(range.endContainer)) {
+                    this.currentSelection = range;
+                } else {
+                    this.currentSelection = null;
+                }
+            }
+        },
+        restoreSelection() {
+            if (this.currentSelection) {
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(this.currentSelection);
+            }
+        },
     }
 }
 </script>
