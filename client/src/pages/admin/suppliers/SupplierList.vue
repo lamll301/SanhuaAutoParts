@@ -15,8 +15,12 @@
             </div>
             <div class="admin-content__table">
                 <div class="admin-content__header d-flex align-items-center">
-                    <h4 v-show="!isTrashRoute">Tất cả nhà cung cấp</h4>
-                    <h4 v-show="isTrashRoute">Nhà cung cấp đã xóa</h4>
+                    <router-link v-show="!isTrashRoute" to="/admin/supplier" class="admin-content__title-link">
+                        <h4>Tất cả nhà cung cấp</h4>
+                    </router-link>
+                    <router-link v-show="isTrashRoute" to="/admin/supplier/trash" class="admin-content__title-link">
+                        <h4>Nhà cung cấp đã xóa</h4>
+                    </router-link>
                     <select ref="selectCheckboxAction" class="form-select admin-content__checkbox-select-all-opts">
                         <option value="" selected>-- Hành động --</option>
                         <template v-if="isTrashRoute">
@@ -36,9 +40,6 @@
                         </th>
                         <th scope="col">Tên
                             <SortComponent field="name" :sort="sort"/>
-                        </th>
-                        <th scope="col">Người liên hệ
-                            <SortComponent field="contact_name" :sort="sort"/>
                         </th>
                         <th scope="col">Email
                             <SortComponent field="email" :sort="sort"/>
@@ -66,7 +67,6 @@
                     <template #body="{ item }">
                         <th>{{ item.id }}</th>
                         <td>{{ item.name }}</td>
-                        <td>{{ item.contact_name }}</td>
                         <td>{{ item.email }}</td>
                         <td>{{ item.phone }}</td>
                         <td>{{ item.address }}</td>
@@ -152,22 +152,27 @@ export default {
     methods: {
         async fetchData() {
             this.isLoading = true;
-            const responseData = await handleApiCall(() => 
-                this.$request.get(apiService.suppliers.get(this.$route.query, this.isTrashRoute))
-            );
-
-            this.suppliers = responseData.data;
-            this.totalPages = Math.ceil(responseData.pagination.total / responseData.pagination.per_page);
-            this.currentPage = responseData.pagination.current_page;
-            this.sort = responseData._sort;
-
-            if (!this.isTrashRoute) {
-                const resDeleted = await handleApiCall(() => 
-                    this.$request.get(apiService.suppliers.get({}, true))
+            try {
+                const responseData = await handleApiCall(() => 
+                    this.$request.get(apiService.suppliers.get(this.$route.query, this.isTrashRoute))
                 );
-                this.deletedCount = resDeleted?.pagination?.total || 0;
+    
+                this.suppliers = responseData.data;
+                this.totalPages = Math.ceil(responseData.pagination.total / responseData.pagination.per_page);
+                this.currentPage = responseData.pagination.current_page;
+                this.sort = responseData._sort;
+    
+                if (!this.isTrashRoute) {
+                    const resDeleted = await handleApiCall(() => 
+                        this.$request.get(apiService.suppliers.get({}, true))
+                    );
+                    this.deletedCount = resDeleted?.pagination?.total || 0;
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                this.isLoading = false;
             }
-            this.isLoading = false;
         },
         async onDelete(id) {
             await handleApiCall(() => this.$request.delete(apiService.suppliers.delete(id)));

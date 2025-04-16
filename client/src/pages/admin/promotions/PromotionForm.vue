@@ -46,7 +46,7 @@
                             <div class="mb-20">
                                 <h3 class="admin-content__form-text">Ngày bắt đầu</h3>
                                 <div class="valid-elm input-group">
-                                    <input type="datetime-local" class="fs-16 form-control" v-model="promotion.start_date"
+                                    <input type="date" class="fs-16 form-control" v-model="promotion.start_date"
                                     v-bind:class="{'is-invalid': errors.start_date}" @blur="validate()">
                                     <div class="invalid-feedback" v-if="errors.start_date">{{ errors.start_date }}</div>
                                 </div>
@@ -54,10 +54,9 @@
                             <div class="mb-20">
                                 <h3 class="admin-content__form-text">Ngày kết thúc</h3>
                                 <div class="valid-elm input-group">
-                                    <input type="datetime-local" class="fs-16 form-control" v-model="promotion.end_date"
+                                    <input type="date" class="fs-16 form-control" v-model="promotion.end_date"
                                     v-bind:class="{'is-invalid': errors.end_date}" @blur="validate()">
                                     <div class="invalid-feedback" v-if="errors.end_date">{{ errors.end_date }}</div>
-
                                 </div>
                             </div>
                         </div>
@@ -123,6 +122,9 @@ export default {
             if (!this.promotion.name) {
                 this.errors.name = 'Tên khuyến mãi không được để trống.';
                 isValid = false;
+            } else if (this.promotion.name.length > 128) {
+                this.errors.name = 'Tên khuyến mãi không được vuợt quá 128 ký tự.';
+                isValid = false;
             }
             if (!this.promotion.discount_percent) {
                 this.errors.discount_percent = 'Phần trăm giảm không được để trống.';
@@ -152,8 +154,12 @@ export default {
             return isValid;
         },
         async fetchData() {
-            const res = await handleApiCall(() => this.$request.get(apiService.promotions.view(this.$route.params.id)));
-            this.promotion = res;
+            try {
+                const res = await handleApiCall(() => this.$request.get(apiService.promotions.view(this.$route.params.id)));
+                this.promotion = res;
+            } catch (error) {
+                console.error(error);
+            }
         },
         async save() {
             if (!this.validate()) return;

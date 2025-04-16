@@ -166,22 +166,27 @@ export default {
     methods: {
         async fetchData() {
             this.isLoading = true;
-            const responseData = await handleApiCall(() => 
-                this.$request.get(apiService.promotions.get(this.$route.query, this.isTrashRoute))
-            );
-
-            this.promotions = responseData.data;
-            this.totalPages = Math.ceil(responseData.pagination.total / responseData.pagination.per_page);
-            this.currentPage = responseData.pagination.current_page;
-            this.sort = responseData._sort;
-
-            if (!this.isTrashRoute) {
-                const resDeleted = await handleApiCall(() => 
-                    this.$request.get(apiService.promotions.get({}, true))
+            try {
+                const responseData = await handleApiCall(() => 
+                    this.$request.get(apiService.promotions.get(this.$route.query, this.isTrashRoute))
                 );
-                this.deletedCount = resDeleted?.pagination?.total || 0;
+    
+                this.promotions = responseData.data;
+                this.totalPages = Math.ceil(responseData.pagination.total / responseData.pagination.per_page);
+                this.currentPage = responseData.pagination.current_page;
+                this.sort = responseData._sort;
+    
+                if (!this.isTrashRoute) {
+                    const resDeleted = await handleApiCall(() => 
+                        this.$request.get(apiService.promotions.get({}, true))
+                    );
+                    this.deletedCount = resDeleted?.pagination?.total || 0;
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                this.isLoading = false;
             }
-            this.isLoading = false;
         },
         async onDelete(id) {
             await handleApiCall(() => this.$request.delete(apiService.promotions.delete(id)));

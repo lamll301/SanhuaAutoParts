@@ -29,12 +29,21 @@ class RoleController extends Controller
         return response()->json($role);
     }
     public function store(RoleRequest $request) {
-        Role::create($request->all());
+        $role = Role::create($request->all());
+        if ($request->has('addedIds')) {
+            $this->addIds($role, $request->input('addedIds'), 'permissions');
+        }
         return response()->json(['message' => 'Role created']);
     }
     public function update(RoleRequest $request, string $id) {
         $role = Role::findOrFail($id);
         $role->update($request->all());
+        if ($request->has('addedIds')) {
+            $this->addIds($role, $request->input('addedIds'), 'permissions');
+        }
+        if ($request->has('deletedIds')) {
+            $this->removeIds($role, $request->input('deletedIds'), 'permissions');
+        }
         return response()->json(['message' => 'Role updated']);
     }
     public function destroy(string $id) {
@@ -88,19 +97,5 @@ class RoleController extends Controller
             default:
                 return response()->json(['message' => 'Action is invalid'], 400);
         }
-    }
-    public function addPermission(Request $request, string $id) {
-        $role = Role::findOrFail($id);
-        $permissionId = $request->input('permissionId');
-        $role->permissions()->syncWithoutDetaching([$permissionId]);
-        return response()->json(['message' => 'Permission added to role successfully']);
-    }
-    public function removePermission(Request $request, string $id, string $permissionId) {
-        $role = Role::findOrFail($id);
-        if (!$permissionId) {
-            return response()->json(['message' => 'Permission ID is required'], 400);
-        }
-        $role->permissions()->detach($permissionId);
-        return response()->json(['message' => 'Permission removed from role successfully']);
     }
 }

@@ -14,6 +14,12 @@ const resources = [
     'promotions',
     'articles',
     'categories',
+    'products',
+    'imports',
+    'exports',
+    'inventories',
+    'orders',
+    'carts',
 ];
 
 

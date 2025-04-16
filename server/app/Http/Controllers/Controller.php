@@ -42,12 +42,13 @@ class Controller
         }
         return $query;
     }
-    protected function getListResponse($query, Request $request, array $searchableColumns = [], array $filters = []) {
+    protected function getListResponse($query, Request $request, array $searchableColumns = [], array $filters = [], int $perPage = null) {
+        $perPage = $perPage ?? config('app.per_page');
         $query = $this->search($query, $request->query('key'), $searchableColumns);
         $query = $this->filter($query, $request->query('action'), $request->query('targetId'), $filters);
         $query = $this->sort($query, $request->_sort);
         $isPaginated = !$request->boolean('all');
-        $items = $isPaginated ? $query->paginate(config('app.per_page')) : $query->get();
+        $items = $isPaginated ? $query->paginate($perPage) : $query->get();
         $data = $isPaginated ? $items->items() : $items->toArray();
         $response = [
             'data' => $data,
@@ -102,5 +103,44 @@ class Controller
         $model->images()->update(['is_thumbnail' => false]);
         $model->images()->where('filename', $imageName)->update(['is_thumbnail' => true]);
         $model->refresh();
+    }
+    protected function addIds(Model $model, array $ids, String $relation) {     // cho các bảng có quan hệ n-n
+        $model->$relation()->syncWithoutDetaching($ids);
+    }
+    protected function removeIds(Model $model, array $ids, String $relation) {
+        $model->$relation()->detach($ids);
+    }
+    protected function calculateTotalAmount(array $details, String $quantity = 'quantity', String $price = 'price'): int {
+        $total = 0;
+        foreach ($details as $detail) {
+            if (isset($detail[$quantity]) && isset($detail[$price])) {
+                $total += (int)$detail[$quantity] * (int)$detail[$price];
+            }
+        }
+        return $total;
+    }
+    protected function saveDetails(Model $model, array $details, String $relation) {
+        $relationInstance = $model->$relation();
+        $relatedModel = $relationInstance->getRelated();
+        $foreignKey = $relationInstance->getForeignKeyName();
+
+        $existingIds = $model->$relation->pluck('id')->toArray();
+        $updatedIds = [];
+        foreach ($details as $detail) {
+            if (isset($detail['id'])) {
+                $detailModel = $relatedModel::findOrFail($detail['id']);
+                $detailModel->update($detail);
+                $updatedIds[] = $detailModel->id;
+            } else {
+                $detail[$foreignKey] = $model->id;
+                $detailModel = $relatedModel::create($detail);
+                $updatedIds[] = $detailModel->id;
+            }
+        }
+
+        $idsToDelete = array_diff($existingIds, $updatedIds);
+        if (!empty($idsToDelete)) {
+            $relatedModel::destroy($idsToDelete);
+        }
     }
 }

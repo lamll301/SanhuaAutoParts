@@ -26,10 +26,13 @@
                                 <div class="invalid-feedback" v-if="errors.name">{{ errors.name }}</div>
                             </div>
                         </div>
-                        <div class="mb-20 height-105">
+                        <div class="mb-20" style="height: 114px;">
                             <h3 class="admin-content__form-text">Mô tả</h3>
                             <div class="valid-elm input-group">
-                                <textarea class="fs-16 form-control" rows="3" placeholder="Nhập mô tả phân quyền" v-model="permission.description"></textarea>
+                                <textarea class="fs-16 form-control" rows="3" placeholder="Nhập mô tả phân quyền" v-model="permission.description"
+                                v-bind:class="{'is-invalid': errors.description}" @blur="validate()">
+                                </textarea>
+                                <div class="invalid-feedback" v-if="errors.description">{{ errors.description }}</div>
                             </div>
                         </div>
                         <div class="mb-20 admin-content__form-btn">
@@ -54,6 +57,7 @@ export default {
             permission: {},
             errors: {
                 name: '',
+                description: ''
             },
         }
     },
@@ -67,16 +71,28 @@ export default {
             let isValid = true;
             this.errors = {
                 name: '',
+                description: ''
             }
             if (!this.permission.name) {
                 this.errors.name = 'Tên phân quyền không được để trống.';
+                isValid = false;
+            } else if (this.permission.name.length > 64) {
+                this.errors.name = 'Tên phân quyền không được vượt quá 64 ký tự.';
+                isValid = false;
+            }
+            if (this.permission.description?.length > 255) {
+                this.errors.description = 'Mô tả phân quyền không được vượt quá 255 ký tự.';
                 isValid = false;
             }
             return isValid;
         },
         async fetchData() {
-            const res = await handleApiCall(() => this.$request.get(apiService.permissions.view(this.$route.params.id)));
-            this.permission = res;
+            try {
+                const res = await handleApiCall(() => this.$request.get(apiService.permissions.view(this.$route.params.id)));
+                this.permission = res;
+            } catch (error) {
+                console.error(error);
+            }
         },
         async save() {
             if (!this.validate()) return;

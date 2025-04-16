@@ -15,8 +15,12 @@
             </div>
             <div class="admin-content__table">
                 <div class="admin-content__header d-flex align-items-center">
-                    <h4 v-show="!isTrashRoute">Tất cả phân quyền</h4>
-                    <h4 v-show="isTrashRoute">Phân quyền đã xóa</h4>
+                    <router-link v-show="!isTrashRoute" to="/admin/permission" class="admin-content__title-link">
+                        <h4>Tất cả phân quyền</h4>
+                    </router-link>
+                    <router-link v-show="isTrashRoute" to="/admin/permission/trash" class="admin-content__title-link">
+                        <h4>Phân quyền đã xóa</h4>
+                    </router-link>
                     <select ref="selectCheckboxAction" class="form-select admin-content__checkbox-select-all-opts">
                         <option value="" selected>-- Hành động --</option>
                         <template v-if="isTrashRoute">
@@ -140,22 +144,27 @@ export default {
     methods: {
         async fetchData() {
             this.isLoading = true;
-            const resPermissions = await handleApiCall(() => 
-                this.$request.get(apiService.permissions.get(this.$route.query, this.isTrashRoute))
-            );
-
-            this.permissions = resPermissions.data;
-            this.totalPages = Math.ceil(resPermissions.pagination.total / resPermissions.pagination.per_page);
-            this.currentPage = resPermissions.pagination.current_page;
-            this.sort = resPermissions._sort;
-
-            if (!this.isTrashRoute) {
-                const resDeleted = await handleApiCall(() => 
-                    this.$request.get(apiService.permissions.get({}, true))
+            try {
+                const resPermissions = await handleApiCall(() => 
+                    this.$request.get(apiService.permissions.get(this.$route.query, this.isTrashRoute))
                 );
-                this.deletedCount = resDeleted?.pagination?.total || 0;
+    
+                this.permissions = resPermissions.data;
+                this.totalPages = Math.ceil(resPermissions.pagination.total / resPermissions.pagination.per_page);
+                this.currentPage = resPermissions.pagination.current_page;
+                this.sort = resPermissions._sort;
+    
+                if (!this.isTrashRoute) {
+                    const resDeleted = await handleApiCall(() => 
+                        this.$request.get(apiService.permissions.get({}, true))
+                    );
+                    this.deletedCount = resDeleted?.pagination?.total || 0;
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                this.isLoading = false;
             }
-            this.isLoading = false;
         },
         async onDelete(id) {
             await handleApiCall(() => this.$request.delete(apiService.permissions.delete(id)));

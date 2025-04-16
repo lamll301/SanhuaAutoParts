@@ -15,8 +15,12 @@
             </div>
             <div class="admin-content__table">
                 <div class="admin-content__header d-flex align-items-center">
-                    <h4 v-show="!isTrashRoute">Tất cả vai trò</h4>
-                    <h4 v-show="isTrashRoute">Vai trò đã xóa</h4>
+                    <router-link v-show="!isTrashRoute" to="/admin/role" class="admin-content__title-link">
+                        <h4>Tất cả vai trò</h4>
+                    </router-link>
+                    <router-link v-show="isTrashRoute" to="/admin/role/trash" class="admin-content__title-link">
+                        <h4>Vai trò đã xóa</h4>
+                    </router-link>
                     <select ref="selectCheckboxAction" class="form-select admin-content__checkbox-select-all-opts">
                         <option value="" selected>-- Hành động --</option>
                         <template v-if="isTrashRoute">
@@ -147,24 +151,29 @@ export default {
     methods: {
         async fetchData() {
             this.isLoading = true;
-            const [res, ...others] = await Promise.all([
-                handleApiCall(() => this.$request.get(apiService.roles.get(this.$route.query, this.isTrashRoute))),
-                ...(!this.isTrashRoute ? [
-                    handleApiCall(() => this.$request.get(apiService.roles.get({}, true))),
-                    handleApiCall(() => this.$request.get(apiService.permissions.get({}, false, true))),
-                ] : [])
-            ]);
-
-            this.roles = res.data;
-            this.totalPages = Math.ceil(res.pagination.total / res.pagination.per_page);
-            this.currentPage = res.pagination.current_page;
-            this.sort = res._sort;
-
-            if (!this.isTrashRoute) {
-                this.deletedCount = others[0]?.pagination?.total || 0;
-                this.permissions = others[1]?.data || []
+            try {
+                const [res, ...others] = await Promise.all([
+                    handleApiCall(() => this.$request.get(apiService.roles.get(this.$route.query, this.isTrashRoute))),
+                    ...(!this.isTrashRoute ? [
+                        handleApiCall(() => this.$request.get(apiService.roles.get({}, true))),
+                        handleApiCall(() => this.$request.get(apiService.permissions.get({}, false, true))),
+                    ] : [])
+                ]);
+    
+                this.roles = res.data;
+                this.totalPages = Math.ceil(res.pagination.total / res.pagination.per_page);
+                this.currentPage = res.pagination.current_page;
+                this.sort = res._sort;
+    
+                if (!this.isTrashRoute) {
+                    this.deletedCount = others[0]?.pagination?.total || 0;
+                    this.permissions = others[1]?.data || []
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                this.isLoading = false;
             }
-            this.isLoading = false;
         },
         async onDelete(id) {
             await handleApiCall(() => this.$request.delete(apiService.roles.delete(id)));

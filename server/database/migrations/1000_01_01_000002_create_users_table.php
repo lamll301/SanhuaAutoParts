@@ -9,15 +9,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->increments('id');
+            $table->id();
 
             $table->string('username')->unique();
             $table->string('password');
             $table->tinyInteger('status')->default(1);
 
-            $table->string('name', 50)->nullable();
-            $table->string('email')->unique()->nullable();
-            $table->string('phone', 20)->nullable();
+            $table->string('name', 64)->nullable();
+            $table->string('email', 128)->unique()->nullable();
+            $table->string('phone', 16)->nullable();
             $table->string('address')->nullable();
             $table->unsignedInteger('city_id')->nullable();
             $table->unsignedInteger('district_id')->nullable();
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->unsignedInteger('role_id')->nullable();
+            $table->unsignedBigInteger('role_id')->nullable();
             $table->foreign('role_id')->references('id')->on('roles')->onDelete('set null');
         });
 
@@ -49,9 +49,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');

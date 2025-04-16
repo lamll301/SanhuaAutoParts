@@ -2,47 +2,33 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Supplier;
+use Faker\Factory as Faker;
+use Illuminate\Support\Str;
 
 class SupplierSeeder extends Seeder
 {
     public function run(): void
     {
-        $suppliers = [
-            [
-                'name' => 'Công ty TNHH Thực Phẩm Sạch',
-                'contact_name' => 'Nguyễn Văn A',
-                'address' => '123 Đường Lê Lợi, Quận 1, TP.HCM',
-                'email' => 'supplier1@example.com',
-                'phone' => '0901234567',
-            ],
-            [
-                'name' => 'Nhà Cung Cấp Hòa Bình',
-                'contact_name' => 'Trần Thị B',
-                'address' => '456 Đường Trần Hưng Đạo, Quận 5, TP.HCM',
-                'email' => 'supplier2@example.com',
-                'phone' => '0912345678',
-            ],
-            [
-                'name' => 'Công ty Cổ phần Phát Triển TM',
-                'contact_name' => 'Lê Văn C',
-                'address' => '789 Đường Nguyễn Trãi, Quận 3, TP.HCM',
-                'email' => 'supplier3@example.com',
-                'phone' => '0923456789',
-            ],
-            [
-                'name' => 'Nhà Cung Ứng Minh Phát',
-                'contact_name' => 'Hoàng Thị D',
-                'address' => '321 Đường Võ Văn Kiệt, Quận 2, TP.HCM',
-                'email' => 'supplier4@example.com',
-                'phone' => '0934567890',
-            ],
-        ];
+        $faker = Faker::create('vi_VN');
 
-        foreach ($suppliers as $supplier) {
-            Supplier::create($supplier);
+        $prefixes = ['032', '033', '034', '035', '036', '037', '038', '039', 
+                     '070', '079', '077', '076', '078', 
+                     '083', '084', '085', '081', '082']; 
+
+        foreach (range(1, 30) as $index) {
+            $company = $faker->company;
+            $email = Str::slug($company, '.') . '@gmail.com';
+            $phone = $faker->randomElement($prefixes) . $faker->numberBetween(1000000, 9999999);
+            $address = $faker->buildingNumber . ', ' . $faker->streetName . ', ' . $faker->city . ', ' . $faker->province;
+
+            Supplier::create([
+                'name' => $company,
+                'email' => strtolower($email),
+                'phone' => $phone,
+                'address' => $address,
+            ]);
         }
     }
 }

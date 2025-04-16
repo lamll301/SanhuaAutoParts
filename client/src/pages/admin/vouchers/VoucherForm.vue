@@ -123,6 +123,9 @@ export default {
             if (!this.voucher.code) {
                 this.errors.code = 'Code voucher không được để trống.';
                 isValid = false;
+            } else if (this.voucher.code.length > 16) {
+                this.errors.code = 'Code voucher không được vượt quá 16 ký tự.';
+                isValid = false;
             }
             if (!this.voucher.value) {
                 this.errors.value = 'Giá trị voucher không được để trống.';
@@ -152,8 +155,12 @@ export default {
             return isValid;
         },
         async fetchData() {
-            const res = await handleApiCall(() => this.$request.get(apiService.vouchers.view(this.$route.params.id)));
-            this.voucher = res;
+            try {
+                const res = await handleApiCall(() => this.$request.get(apiService.vouchers.view(this.$route.params.id)));
+                this.voucher = res;
+            } catch (error) {
+                console.error(error);
+            }
         },
         async save() {
             if (!this.validate()) return;

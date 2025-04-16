@@ -15,8 +15,12 @@
             </div>
             <div class="admin-content__table">
                 <div class="admin-content__header d-flex align-items-center">
-                    <h4 v-show="!isTrashRoute">Tất cả danh mục</h4>
-                    <h4 v-show="isTrashRoute">Danh mục đã xóa</h4>
+                    <router-link v-show="!isTrashRoute" to="/admin/category" class="admin-content__title-link">
+                        <h4>Tất cả danh mục</h4>
+                    </router-link>
+                    <router-link v-show="isTrashRoute" to="/admin/category/trash" class="admin-content__title-link">
+                        <h4>Danh mục đã xóa</h4>
+                    </router-link>
                     <select ref="selectCheckboxAction" class="form-select admin-content__checkbox-select-all-opts">
                         <option value="" selected>-- Hành động --</option>
                         <template v-if="isTrashRoute">
@@ -36,6 +40,9 @@
                         </th>
                         <th scope="col">Tên
                             <SortComponent field="name" :sort="sort"/>
+                        </th>
+                        <th scope="col">Loại
+                            <SortComponent field="type" :sort="sort"/>
                         </th>
                         <th scope="col">Mô tả
                             <SortComponent field="description" :sort="sort"/>
@@ -57,6 +64,7 @@
                     <template #body="{ item }">
                         <th>{{ item.id }}</th>
                         <td>{{ item.name }}</td>
+                        <td>{{ item.type }}</td>
                         <td>{{ item.description }}</td>
                         <template v-if="!isTrashRoute">
                             <td>{{ formatDate(item.created_at) }}</td>
@@ -140,22 +148,27 @@ export default {
     methods: {
         async fetchData() {
             this.isLoading = true;
-            const responseData = await handleApiCall(() => 
-                this.$request.get(apiService.categories.get(this.$route.query, this.isTrashRoute))
-            );
-
-            this.categories = responseData.data;
-            this.totalPages = Math.ceil(responseData.pagination.total / responseData.pagination.per_page);
-            this.currentPage = responseData.pagination.current_page;
-            this.sort = responseData._sort;
-
-            if (!this.isTrashRoute) {
-                const resDeleted = await handleApiCall(() => 
-                    this.$request.get(apiService.categories.get({}, true))
+            try {
+                const responseData = await handleApiCall(() => 
+                    this.$request.get(apiService.categories.get(this.$route.query, this.isTrashRoute))
                 );
-                this.deletedCount = resDeleted?.pagination?.total || 0;
+    
+                this.categories = responseData.data;
+                this.totalPages = Math.ceil(responseData.pagination.total / responseData.pagination.per_page);
+                this.currentPage = responseData.pagination.current_page;
+                this.sort = responseData._sort;
+    
+                if (!this.isTrashRoute) {
+                    const resDeleted = await handleApiCall(() => 
+                        this.$request.get(apiService.categories.get({}, true))
+                    );
+                    this.deletedCount = resDeleted?.pagination?.total || 0;
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                this.isLoading = false;
             }
-            this.isLoading = false;
         },
         async onDelete(id) {
             await handleApiCall(() => this.$request.delete(apiService.categories.delete(id)));

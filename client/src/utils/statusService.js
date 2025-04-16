@@ -1,27 +1,10 @@
 
 const STATUS_CONFIG = Object.freeze({
-    user: {
-        0: 'Không hoạt động',
-        1: 'Hoạt động', 
-        2: 'Bị cấm'
-    },
-    product: {
-        0: 'Không hoạt động',
-        1: 'Hoạt động',
-        2: 'Hết hàng',
-    },
-    article: {
-        0: 'Không hoạt động',
-        1: 'Hoạt động',
-    },
-    voucher: {
-        0: 'Không hoạt động',
-        1: 'Hoạt động',
-    },
-    promotion: {
-        0: 'Không hoạt động',
-        1: 'Hoạt động',
-    }
+    user: { 0: 'Không hoạt động', 1: 'Hoạt động', 2: 'Bị cấm' },
+    product: { 0: 'Không hoạt động', 1: 'Hoạt động', 2: 'Hết hàng', },
+    article: { 0: 'Không hoạt động', 1: 'Hoạt động', },
+    voucher: { 0: 'Không hoạt động', 1: 'Hoạt động', },
+    promotion: { 0: 'Bản nháp', 1: 'Hoạt động', 2: 'Lên lịch', 3: 'Hết hạn', 4: 'Bị hủy' }
 });
 
 class StatusService {

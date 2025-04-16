@@ -7,7 +7,6 @@ const admin = [{
         { path: "product/trash", name: "admin.products.trash", component: () => import("../pages/admin/products/ProductList.vue"), },
         { path: "product/create", name: "admin.products.create", component: () => import("../pages/admin/products/ProductForm.vue"), },
         { path: "product/edit/:id", name: "admin.products.edit", component: () => import("../pages/admin/products/ProductForm.vue"), },
-        
         { path: "permission", name: "admin.permissions", component: () => import("../pages/admin/permissions/PermissionList.vue"), },
         { path: "permission/trash", name: "admin.permissions.trash", component: () => import("../pages/admin/permissions/PermissionList.vue"), },
         { path: "permission/create", name: "admin.permissions.create", component: () => import("../pages/admin/permissions/PermissionForm.vue"), },
@@ -44,6 +43,18 @@ const admin = [{
         { path: "category/trash", name: "admin.categories.trash", component: () => import("../pages/admin/categories/CategoryList.vue"), },
         { path: "category/create", name: "admin.categories.create", component: () => import("../pages/admin/categories/CategoryForm.vue"), },
         { path: "category/edit/:id", name: "admin.categories.edit", component: () => import("../pages/admin/categories/CategoryForm.vue"), },
+        { path: "inventory", name: "admin.inventories", component: () => import("../pages/admin/inventories/InventoryList.vue"), },
+        { path: "inventory/trash", name: "admin.inventories.trash", component: () => import("../pages/admin/inventories/InventoryList.vue"), },
+        { path: "inventory/create", name: "admin.inventories.create", component: () => import("../pages/admin/inventories/InventoryForm.vue"), },
+        { path: "inventory/edit/:id", name: "admin.inventories.edit", component: () => import("../pages/admin/inventories/InventoryForm.vue"), },
+        { path: "export", name: "admin.exports", component: () => import("../pages/admin/exports/ExportList.vue"), },
+        { path: "export/trash", name: "admin.exports.trash", component: () => import("../pages/admin/exports/ExportList.vue"), },
+        { path: "export/create", name: "admin.exports.create", component: () => import("../pages/admin/exports/ExportForm.vue"), },
+        { path: "export/edit/:id", name: "admin.exports.edit", component: () => import("../pages/admin/exports/ExportForm.vue"), },
+        { path: "import", name: "admin.imports", component: () => import("../pages/admin/imports/ImportList.vue"), },
+        { path: "import/trash", name: "admin.imports.trash", component: () => import("../pages/admin/imports/ImportList.vue"), },
+        { path: "import/create", name: "admin.imports.create", component: () => import("../pages/admin/imports/ImportForm.vue"), },
+        { path: "import/edit/:id", name: "admin.imports.edit", component: () => import("../pages/admin/imports/ImportForm.vue"), },
     ]
 }]
 

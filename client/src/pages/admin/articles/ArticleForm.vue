@@ -119,26 +119,30 @@ export default {
             if (!this.article.title) {
                 this.errors.title = 'Tiêu đề không được để trống.';
                 isValid = false;
-            } else if (this.article.title.length > 100) {
-                this.errors.title = 'Tiêu đề không được quá 100 ký tự.';
+            } else if (this.article.title.length > 128) {
+                this.errors.title = 'Tiêu đề không được vượt quá 128 ký tự.';
                 isValid = false;
             }
             if (!this.article.author) {
                 this.errors.author = 'Tên tác giả không được để trống.';
                 isValid = false;
-            } else if (this.article.author.length > 50) {
-                this.errors.author = 'Tên tác giả không được quá 50 ký tự.';
+            } else if (this.article.author.length > 64) {
+                this.errors.author = 'Tên tác giả không được vượt quá 64 ký tự.';
                 isValid = false;
             }
-            if (this.article.highlight && this.article.highlight.length > 50) {
-                this.errors.highlight = 'Highlight không được quá 50 ký tự.';
+            if (this.article.highlight?.length > 64) {
+                this.errors.highlight = 'Highlight không được vượt quá 64 ký tự.';
                 isValid = false;
             }
             return isValid;
         },
         async fetchData() {
-            const res = await handleApiCall(() => this.$request.get(apiService.articles.view(this.$route.params.id)));
-            this.article = res;
+            try {
+                const res = await handleApiCall(() => this.$request.get(apiService.articles.view(this.$route.params.id)));
+                this.article = res;
+            } catch (error) {
+                console.error(error);
+            }
         },
         async save() {
             if (!this.validate()) return;

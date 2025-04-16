@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Unit;
 
@@ -11,12 +10,13 @@ class UnitSeeder extends Seeder
     public function run(): void
     {
         $units = [
-            ['name' => 'cái'],
-            ['name' => 'can', 'description' => 'đo chất lỏng'],
-            ['name' => 'thùng', 'description' => '1 thùng gồm 100 sản phẩm'],
-            ['name' => 'kg'],
-            ['name' => 'lít'],
-            ['name' => 'hộp', 'description' => '1 hộp gồm 4 sản phẩm (chỉ áp dụng mặt hàng nhỏ gọn)'],
+            ['name' => 'Cái', 'description' => 'Đơn vị từng món riêng lẻ'],
+            ['name' => 'Bộ', 'description' => 'Gồm nhiều món thành phần trong 1 gói'],
+            ['name' => 'Thùng', 'description' => 'Số lượng lớn, chứa nhiều đơn vị nhỏ'],
+            ['name' => 'Lít', 'description' => 'Dùng cho chất lỏng như dầu nhớt, nước làm mát'],
+            ['name' => 'Kg', 'description' => 'Khối lượng sản phẩm'],
+            ['name' => 'Cuộn', 'description' => 'Thường dùng cho dây, băng keo, v.v.'],
+            ['name' => 'Ống', 'description' => 'Dạng chất lỏng hoặc gel, ví dụ keo, mỡ bôi trơn'],
         ];
 
         foreach ($units as $unit) {

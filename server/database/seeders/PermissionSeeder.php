@@ -10,25 +10,38 @@ class PermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        $permissions = [
-            ['name' => 'full-access', 'description' => 'Có thể truy cập và chỉnh sửa tất cả dữ liệu'],
-            ['name' => 'manage-users', 'description' => 'Có toàn quyền với người dùng'],
-            ['name' => 'manage-permissions', 'description' => 'Có toàn quyền với phân quyền'],
-            ['name' => 'manage-orders', 'description' => 'Quản lý đơn hàng'],
-            ['name' => 'manage-products', 'description' => 'Quản lý phụ tùng ô tô'],
-            ['name' => 'manage-units', 'description' => 'Quản lý đơn vị tính'],
-            ['name' => 'manage-categories', 'description' => 'Quản lý danh mục'],
-            ['name' => 'manage-promotions', 'description' => 'Quản lý khuyến mãi'],
-            ['name' => 'manage-vouchers', 'description' => 'Quản lý voucher'],
-            ['name' => 'manage-articles', 'description' => 'Quản lý tin tức'],
-            ['name' => 'manage-suppliers', 'description' => 'Quản lý nhà cung cấp'],
-            ['name' => 'manage-inventories', 'description' => 'Quản lý hàng tồn kho'],
-            ['name' => 'manage-imports', 'description' => 'Quản lý phiếu nhập'],
-            ['name' => 'manage-exports', 'description' => 'Quản lý phiếu xuất'],
+        $modules = [
+            'users',
+            'products',
+            'categories',
+            'orders',
+            'roles',
+            'permissions',
+            'orders',
+            'inventories',
+            'imports',
+            'exports',
+            'vouchers',
+            'promotions',
+            'articles',
+            'suppliers',
+            'units'
         ];
 
-        foreach ($permissions as $permission) {
-            Permission::create($permission);
+        $actions = ['view', 'create', 'update', 'delete'];
+
+        foreach ($modules as $module) {
+            foreach ($actions as $action) {
+                Permission::create([
+                    'name' => "$action $module",
+                    'description' => ucfirst($action) . " " . str_replace('_', ' ', $module),
+                ]);
+            }
         }
+        
+        Permission::create([
+            'name' => 'full access',
+            'description' => 'Toàn quyền hệ thống',
+        ]);
     }
 }

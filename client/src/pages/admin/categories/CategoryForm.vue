@@ -26,10 +26,21 @@
                                 <div class="invalid-feedback" v-if="errors.name">{{ errors.name }}</div>
                             </div>
                         </div>
-                        <div class="mb-20 height-105">
+                        <div class="mb-20">
+                            <h3 class="admin-content__form-text">Phân loại</h3>
+                            <div class="valid-elm input-group">
+                                <input type="text" class="fs-16 form-control" placeholder="Nhập loại danh mục" v-model="category.type"
+                                v-bind:class="{'is-invalid': errors.type}" @blur="validate()">
+                                <div class="invalid-feedback" v-if="errors.type">{{ errors.type }}</div>
+
+                            </div>
+                        </div>
+                        <div class="mb-20" style="height: 114px;">
                             <h3 class="admin-content__form-text">Mô tả</h3>
                             <div class="valid-elm input-group">
-                                <textarea class="fs-16 form-control" rows="3" placeholder="Nhập mô tả danh mục" v-model="category.description"></textarea>
+                                <textarea class="fs-16 form-control" rows="3" placeholder="Nhập mô tả danh mục" v-model="category.description"
+                                v-bind:class="{'is-invalid': errors.description}" @blur="validate()"></textarea>
+                                <div class="invalid-feedback" v-if="errors.description">{{ errors.description }}</div>
                             </div>
                         </div>
                         <div class="mb-20">
@@ -75,7 +86,7 @@ export default {
         return {
             category: {},
             errors: {
-                name: '',
+                name: '', type: '', description: ''
             },
         }
     },
@@ -91,17 +102,32 @@ export default {
         validate() {
             let isValid = true;
             this.errors = {
-                name: '',
+                name: '', type: '', description: ''
             }
             if (!this.category.name) {
                 this.errors.name = 'Tên danh mục không được để trống.';
+                isValid = false;
+            } else if (this.category.name.length > 64) {
+                this.errors.name = 'Tên danh mục không được vượt quá 64 ký tự.';
+                isValid = false;
+            }
+            if (this.category.type?.length > 32) {
+                this.errors.type = 'Tên danh mục không được vượt quá 32 ký tự.';
+                isValid = false;
+            }
+            if (this.category.description?.length > 255) {
+                this.errors.description = 'Tên danh mục không được vượt quá 255 ký tự.';
                 isValid = false;
             }
             return isValid;
         },
         async fetchData() {
-            const res = await handleApiCall(() => this.$request.get(apiService.categories.view(this.$route.params.id)));
-            this.category = res;
+            try {
+                const res = await handleApiCall(() => this.$request.get(apiService.categories.view(this.$route.params.id)));
+                this.category = res;
+            } catch (error) {
+                console.error(error);
+            }
         },
         async save() {
             if (!this.validate()) return;
@@ -148,7 +174,9 @@ export default {
             return formData;
         },
         handleRemoveImage(imageId) {
-            this.category.images = this.category.images.filter(image => image.id !== imageId);
+            if (this.category.images) {
+                this.category.images = this.category.images.filter(image => image.id !== imageId);
+            }
         },
     }
 }

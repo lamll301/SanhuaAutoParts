@@ -1,67 +1,109 @@
--- CREATE DATABASE sanhua_dev;
--- DROP DATABASE sanhua_dev;
+-- Hàm tính giá sản phẩm
+CREATE OR REPLACE FUNCTION calculate_product_price(orig_price NUMERIC, promo_id BIGINT)
+RETURNS NUMERIC AS $$
+DECLARE
+    discount_pct DECIMAL(10,2);
+    max_discount DECIMAL(15,2);
+    discount_amount DECIMAL(15,2);
+    is_active SMALLINT;
+    new_price DECIMAL(15,2);
+BEGIN
+    new_price := orig_price;
+    IF promo_id IS NOT NULL THEN
+        SELECT discount_percent, max_discount_amount, status
+        INTO discount_pct, max_discount, is_active
+        FROM promotions
+        WHERE id = promo_id AND deleted_at IS NULL
+        LIMIT 1;
+        IF FOUND AND is_active = 1 THEN
+            discount_amount := orig_price * (discount_pct / 100);
+            IF max_discount IS NOT NULL AND discount_amount > max_discount THEN
+                discount_amount := max_discount;
+            END IF;
+            new_price := GREATEST(0, orig_price - discount_amount);
+        END IF;
+    END IF;
+    RETURN new_price;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE TABLE test (
-  id BIGSERIAL NOT NULL PRIMARY KEY,
-  username VARCHAR(50) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  status INTEGER DEFAULT 1,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-INSERT INTO users (username, password, email) VALUES
-('sdelort0', 'lC3`|R<>k,h<z{Rd', 'ozipsell0@bloomberg.com'),
-('dlevane1', 'kI2/EbrU', 'wleggatt1@exblog.jp'),
-('dparoni2', 'kK7\B\A9nB|CIjJ', 'penbury2@discuz.net'),
-('nmaior3', 'nH0~eb|@WY', 'dgoodwins3@webs.com'),
-('oiglesias4', 'vH8{bkukDy_TvC', 'lprinett4@npr.org'),
-('cmatschuk5', 'zJ3#}Y$V?$', 'lmccrum5@exblog.jp'),
-('shavesides6', 'zG7`j=|57pCs', 'tmacaree6@amazon.com'),
-('kkiloh7', 'cV9`0M82R7Fe=', 'kivell7@blogtalkradio.com'),
-('kdevlin8', 'sM7{&55*', 'dbamell8@sciencedaily.com'),
-('lbignal9', 'xG0+FwI{', 'cangelini9@com.com'),
-('msailsa', 'xO7=O1CA', 'sbeetlesa@lulu.com'),
-('lbinfordb', 'cR6{{D!k~"1', 'kmaplesdenb@live.com'),
-('kshaughnessyc', 'jW5~gXKLFNCF/n', 'fguitelc@photobucket.com'),
-('rhenrionotd', 'aO1%K>p?w9qB', 'sjimed@skype.com'),
-('piorie', 'sR2~z<*Is`p+', 'tmuzzulloe@vk.com'),
-('kgirodonf', 'jC9+9(K$4`', 'otilzeyf@japanpost.jp'),
-('mclinkardg', 'bO2{G8qd>P(c4', 'ebeardowg@ca.gov'),
-('florandh', 'dO7*M$\!LSh~', 'gwindrossh@hud.gov'),
-('sdmitrienkoi', 'lU1>uPNNwC', 'sfitteri@guardian.co.uk'),
-('dluckhamj', 'uZ6,zL`3KxP+!h', 'sappleyardj@youtube.com');
+-- Trigger cho bảng products
+CREATE OR REPLACE FUNCTION update_product_price()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' OR 
+        (TG_OP = 'UPDATE' AND (NEW.original_price != OLD.original_price OR COALESCE(NEW.promotion_id, 0) != COALESCE(OLD.promotion_id, 0))) THEN
+        NEW.price := calculate_product_price(NEW.original_price, NEW.promotion_id);
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-SELECT * FROM test;
+CREATE TRIGGER trigger_update_product_price 
+BEFORE INSERT OR UPDATE ON products
+FOR EACH ROW
+EXECUTE FUNCTION update_product_price();
 
--- Xóa hết dữ liệu và đặt id về 1
-TRUNCATE TABLE permissions RESTART IDENTITY CASCADE;
+-- Trigger cho bảng promotions
+CREATE OR REPLACE FUNCTION update_product_price_from_promo()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (NEW.deleted_at IS DISTINCT FROM OLD.deleted_at) OR
+        (NEW.discount_percent != OLD.discount_percent) OR
+        (NEW.max_discount_amount IS DISTINCT FROM OLD.max_discount_amount) OR
+        ((NEW.status = 1) != (OLD.status = 1))
+    THEN
+        UPDATE products
+        SET price = CASE 
+            WHEN NEW.status != 1 OR NEW.deleted_at IS NOT NULL THEN original_price
+            ELSE calculate_product_price(original_price, NEW.id)
+        END
+        WHERE promotion_id = NEW.id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-INSERT INTO permissions (name, description, created_at, updated_at) VALUES
-('read_data', 'Có quyền đọc dữ liệu.', NOW(), NOW()),
-('write_data', 'Có quyền tạo hoặc ghi dữ liệu.', NOW(), NOW()),
-('delete_data', 'Có quyền xóa dữ liệu.', NOW(), NOW()),
-('edit_data', 'Có quyền chỉnh sửa dữ liệu.', NOW(), NOW()),
-('approve_report', 'Có quyền phê duyệt báo cáo.', NOW(), NOW());
+CREATE TRIGGER trigger_update_product_price_from_promo
+AFTER UPDATE ON promotions
+FOR EACH ROW
+EXECUTE FUNCTION update_product_price_from_promo();
 
-
-
-/* 
-  *** Các câu lệnh trong postgres sql cmd
-  psql -U postgres -W -h localhost -p 5432 sanhua_dev
-  
-  \c ten-db: access db
-  \l: list db
-	\d: list table
-		\d ten-bang: table structure details
-	\q: quit
-	\i 'duong-dan-toi-file/db.sql': run file sql
+DROP TRIGGER IF EXISTS trigger_update_product_price ON products;
+DROP FUNCTION IF EXISTS update_product_price();
+DROP FUNCTION IF EXISTS calculate_product_price(orig_price DECIMAL(15, 2), promo_id INT);
+DROP TRIGGER IF EXISTS trigger_update_product_price_from_promo ON promotions;
+DROP FUNCTION IF EXISTS update_product_price_from_promo();
 
 
-  *** Sự khác biệt giữa on delete set null và cascade
 
-  set null khi bản ghi tham chiếu bị xóa khóa ngoại được đặt thành null
-  cascade khi bản ghi tham chiếu bị xóa tất cả bản ghi liên quan cũng bị xóa theo
+-- Trigger tính số lượng sản phẩm
+CREATE OR REPLACE FUNCTION update_product_quantity()
+RETURNS TRIGGER AS $$
+BEGIN
+	UPDATE products SET quantity = (
+		SELECT COALESCE(SUM(quantity), 0) FROM inventories
+		WHERE product_id = (
+			CASE
+				WHEN TG_OP = 'DELETE' THEN OLD.product_id
+				ELSE NEW.product_id
+			END
+		)
+		AND deleted_at IS NULL
+	)
+	WHERE id = (
+		CASE
+			WHEN TG_OP = 'DELETE' THEN OLD.product_id
+			ELSE NEW.product_id
+		END
+	);
+	RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
 
-*/
+CREATE TRIGGER trigger_update_product_quantity
+AFTER INSERT OR UPDATE OR DELETE ON inventories
+FOR EACH ROW
+EXECUTE FUNCTION update_product_quantity();
 
+select * from products;

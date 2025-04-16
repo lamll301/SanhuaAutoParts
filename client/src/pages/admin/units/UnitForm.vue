@@ -26,10 +26,12 @@
                                 <div class="invalid-feedback" v-if="errors.name">{{ errors.name }}</div>
                             </div>
                         </div>
-                        <div class="mb-20 height-105">
+                        <div class="mb-20" style="height: 114px;">
                             <h3 class="admin-content__form-text">Mô tả</h3>
                             <div class="valid-elm input-group">
-                                <textarea class="fs-16 form-control" rows="3" placeholder="Nhập mô tả đơn vị tính" v-model="unit.description"></textarea>
+                                <textarea class="fs-16 form-control" rows="3" placeholder="Nhập mô tả đơn vị tính" v-model="unit.description"
+                                v-bind:class="{'is-invalid': errors.description}" @blur="validate()"></textarea>
+                                <div class="invalid-feedback" v-if="errors.description">{{ errors.description }}</div>
                             </div>
                         </div>
                         <div class="mb-20 admin-content__form-btn">
@@ -53,7 +55,7 @@ export default {
         return {
             unit: {},
             errors: {
-                name: '',
+                name: '', description: ''
             },
         }
     },
@@ -66,17 +68,28 @@ export default {
         validate() {
             let isValid = true;
             this.errors = {
-                name: '',
+                name: '', description: ''
             }
             if (!this.unit.name) {
                 this.errors.name = 'Tên đơn vị tính không được để trống.';
+                isValid = false;
+            } else if (this.unit.name.length > 32) {
+                this.errors.name = 'Tên đơn vị tính không được vượt quá 32 ký tự.';
+                isValid = false;
+            }
+            if (this.unit.description?.length > 128) {
+                this.errors.description = 'Mô tả đơn vị tính không được vượt quá 128 ký tự.';
                 isValid = false;
             }
             return isValid;
         },
         async fetchData() {
-            const res = await handleApiCall(() => this.$request.get(apiService.units.view(this.$route.params.id)));
-            this.unit = res;
+            try {
+                const res = await handleApiCall(() => this.$request.get(apiService.units.view(this.$route.params.id)));
+                this.unit = res;
+            } catch (error) {
+                console.error(error);
+            }
         },
         async save() {
             if (!this.validate()) return;

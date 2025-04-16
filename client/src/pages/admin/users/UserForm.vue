@@ -202,30 +202,50 @@ export default {
             return isValid;
         },
         async fetchData() {
-            const res = await handleApiCall(() => this.$request.get(apiService.users.view(this.$route.params.id)));
-            this.user = res;
-            if (this.user.city_id) {
-                await this.fetchDistrictsById();
-                if (this.user.district_id) {
-                    await this.fetchWardsById();
+            try {
+                const res = await handleApiCall(() => this.$request.get(apiService.users.view(this.$route.params.id)));
+                this.user = res;
+                if (this.user.city_id) {
+                    await this.fetchDistrictsById();
+                    if (this.user.district_id) {
+                        await this.fetchWardsById();
+                    }
                 }
+            } catch (error) {
+                console.error(error);
             }
         },
         async fetchRoles() {
-            const res = await handleApiCall(() => this.$request.get(apiService.roles.get({}, false, true)));
-            this.roles = res.data;
+            try {
+                const res = await handleApiCall(() => this.$request.get(apiService.roles.get({}, false, true)));
+                this.roles = res.data;
+            } catch (error) {
+                console.error(error);
+            }
         },
         async fetchCities() {
-            const res = await handleApiCall(() => this.$request.get(apiService.getAllCities()));
-            this.cities = res;
+            try {
+                const res = await handleApiCall(() => this.$request.get(apiService.getAllCities()));
+                this.cities = res;
+            } catch (error) {
+                console.error(error);
+            }
         },
         async fetchDistrictsById() {
-            const res = await handleApiCall(() => this.$request.get(apiService.getDistrictsById(this.user.city_id)));
-            this.districts = res.districts;
+            try {
+                const res = await handleApiCall(() => this.$request.get(apiService.getDistrictsById(this.user.city_id)));
+                this.districts = res.districts;
+            } catch (error) {
+                console.error(error);
+            }
         },
         async fetchWardsById() {
-            const res = await handleApiCall(() => this.$request.get(apiService.getWardsById(this.user.district_id)));
-            this.wards = res.wards;
+            try {
+                const res = await handleApiCall(() => this.$request.get(apiService.getWardsById(this.user.district_id)));
+                this.wards = res.wards;
+            } catch (error) {
+                console.error(error);
+            }
         },
         async save() {
             if (!this.validate()) return;

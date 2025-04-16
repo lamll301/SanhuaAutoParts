@@ -15,8 +15,12 @@
             </div>
             <div class="admin-content__table">
                 <div class="admin-content__header d-flex align-items-center">
-                    <h4 v-show="!isTrashRoute">Tất cả đơn vị tính</h4>
-                    <h4 v-show="isTrashRoute">Đơn vị tính đã xóa</h4>
+                    <router-link v-show="!isTrashRoute" to="/admin/unit" class="admin-content__title-link">
+                        <h4>Tất cả đơn vị tính</h4>
+                    </router-link>
+                    <router-link v-show="isTrashRoute" to="/admin/unit/trash" class="admin-content__title-link">
+                        <h4>Đơn vị tính đã xóa</h4>
+                    </router-link>
                     <select ref="selectCheckboxAction" class="form-select admin-content__checkbox-select-all-opts">
                         <option value="" selected>-- Hành động --</option>
                         <template v-if="isTrashRoute">
@@ -140,22 +144,27 @@ export default {
     methods: {
         async fetchData() {
             this.isLoading = true;
-            const responseData = await handleApiCall(() => 
-                this.$request.get(apiService.units.get(this.$route.query, this.isTrashRoute))
-            );
-
-            this.units = responseData.data;
-            this.totalPages = Math.ceil(responseData.pagination.total / responseData.pagination.per_page);
-            this.currentPage = responseData.pagination.current_page;
-            this.sort = responseData._sort;
-
-            if (!this.isTrashRoute) {
-                const resDeleted = await handleApiCall(() => 
-                    this.$request.get(apiService.units.get({}, true))
+            try {
+                const res = await handleApiCall(() => 
+                    this.$request.get(apiService.units.get(this.$route.query, this.isTrashRoute))
                 );
-                this.deletedCount = resDeleted?.pagination?.total || 0;
+    
+                this.units = res.data;
+                this.totalPages = Math.ceil(res.pagination.total / res.pagination.per_page);
+                this.currentPage = res.pagination.current_page;
+                this.sort = res._sort;
+    
+                if (!this.isTrashRoute) {
+                    const deleted = await handleApiCall(() => 
+                        this.$request.get(apiService.units.get({}, true))
+                    );
+                    this.deletedCount = deleted?.pagination?.total || 0;
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                this.isLoading = false;
             }
-            this.isLoading = false;
         },
         async onDelete(id) {
             await handleApiCall(() => this.$request.delete(apiService.units.delete(id)));

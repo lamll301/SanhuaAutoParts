@@ -15,8 +15,12 @@
             </div>
             <div class="admin-content__table">
                 <div class="admin-content__header d-flex align-items-center">
-                    <h4 v-show="!isTrashRoute">Tất cả người dùng</h4>
-                    <h4 v-show="isTrashRoute">Người dùng đã xóa</h4>
+                    <router-link v-show="!isTrashRoute" to="/admin/user" class="admin-content__title-link">
+                        <h4>Tất cả người dùng</h4>
+                    </router-link>
+                    <router-link v-show="isTrashRoute" to="/admin/user/trash" class="admin-content__title-link">
+                        <h4>Người dùng đã xóa</h4>
+                    </router-link>
                     <select ref="selectCheckboxAction" class="form-select admin-content__checkbox-select-all-opts">
                         <option value="" selected>-- Hành động --</option>
                         <template v-if="isTrashRoute">
@@ -177,34 +181,43 @@ export default {
     methods: {
         async fetchData() {
             this.isLoading = true;
-            const [res, ...others] = await Promise.all([
-                handleApiCall(() => this.$request.get(apiService.users.get(this.$route.query, this.isTrashRoute))),
-                ...(!this.isTrashRoute ? [
-                    handleApiCall(() => this.$request.get(apiService.users.get({}, true))),
-                    handleApiCall(() => this.$request.get(apiService.roles.get({}, false, true))),
-                ] : [])
-            ]);
-
-            this.users = res.data;
-            this.totalPages = Math.ceil(res.pagination.total / res.pagination.per_page);
-            this.currentPage = res.pagination.current_page;
-            this.sort = res._sort;
-
-            if (!this.isTrashRoute) {
-                this.deletedCount = others[0]?.pagination?.total || 0;
-                this.roles = others[1]?.data || []
+            try {
+                const [res, ...others] = await Promise.all([
+                    handleApiCall(() => this.$request.get(apiService.users.get(this.$route.query, this.isTrashRoute))),
+                    ...(!this.isTrashRoute ? [
+                        handleApiCall(() => this.$request.get(apiService.users.get({}, true))),
+                        handleApiCall(() => this.$request.get(apiService.roles.get({}, false, true))),
+                    ] : [])
+                ]);
+    
+                this.users = res.data;
+                this.totalPages = Math.ceil(res.pagination.total / res.pagination.per_page);
+                this.currentPage = res.pagination.current_page;
+                this.sort = res._sort;
+    
+                if (!this.isTrashRoute) {
+                    this.deletedCount = others[0]?.pagination?.total || 0;
+                    this.roles = others[1]?.data || []
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                this.isLoading = false;
             }
-            this.isLoading = false;
         },
         async fetchLocations() {
-            const [cities, districts, wards] = await Promise.all([
-                handleApiCall(() => this.$request.get(apiService.getAllCities())),
-                handleApiCall(() => this.$request.get(apiService.getAllDistricts())),
-                handleApiCall(() => this.$request.get(apiService.getAllWards()))
-            ])
-            this.cities = cities;
-            this.districts = districts;
-            this.wards = wards;
+            try {
+                const [cities, districts, wards] = await Promise.all([
+                    handleApiCall(() => this.$request.get(apiService.getAllCities())),
+                    handleApiCall(() => this.$request.get(apiService.getAllDistricts())),
+                    handleApiCall(() => this.$request.get(apiService.getAllWards()))
+                ])
+                this.cities = cities;
+                this.districts = districts;
+                this.wards = wards;
+            } catch (error) {
+                console.error(error);
+            }
         },
         async onDelete(id) {
             await handleApiCall(() => this.$request.delete(apiService.users.delete(id)));

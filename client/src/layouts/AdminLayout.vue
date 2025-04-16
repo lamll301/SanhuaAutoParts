@@ -85,8 +85,8 @@
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <ul class="header-admin__dropdown-menu">
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/autoPart">Tất cả sản phẩm</router-link></li>
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/autoPart/create">Thêm sản phẩm</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/product">Tất cả sản phẩm</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/product/create">Thêm sản phẩm</router-link></li>
                 </ul>
             </div>
             <!-- <div class="header-admin__dropdown">
@@ -156,6 +156,45 @@
             </div>
             <!-- Nhan vien ban hang -->
             <div class="header-admin__label1">NHÂN VIÊN KHO</div>
+            <div class="header-admin__dropdown">
+                <div class="header-admin__dropdown-content">
+                    <div class="header-admin__dropdown-content-text">
+                        <i class="fa-solid fa-boxes-stacked header-admin__dropdown-icon"></i>
+                        Quản lý hàng tồn kho
+                    </div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <ul class="header-admin__dropdown-menu">
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/inventory">Tất cả hàng tồn kho</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/inventory/create">Thêm hàng tồn kho</router-link></li>
+                </ul>
+            </div>
+            <div class="header-admin__dropdown">
+                <div class="header-admin__dropdown-content">
+                    <div class="header-admin__dropdown-content-text">
+                        <i class="fa-solid fa-truck-ramp-box header-admin__dropdown-icon"></i>
+                        Quản lý phiếu nhập
+                    </div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <ul class="header-admin__dropdown-menu">
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/import">Tất cả phiếu nhập</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/import/create">Thêm phiếu nhập</router-link></li>
+                </ul>
+            </div>
+            <div class="header-admin__dropdown">
+                <div class="header-admin__dropdown-content">
+                    <div class="header-admin__dropdown-content-text">
+                        <i class="fa-solid fa-truck-moving header-admin__dropdown-icon"></i>
+                        Quản lý phiếu xuất
+                    </div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <ul class="header-admin__dropdown-menu">
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/export">Tất cả phiếu xuất</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/export/create">Thêm phiếu xuất</router-link></li>
+                </ul>
+            </div>
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">

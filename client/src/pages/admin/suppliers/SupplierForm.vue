@@ -27,14 +27,6 @@
                             </div>
                         </div>
                         <div class="mb-20">
-                            <h3 class="admin-content__form-text">Tên người liên hệ</h3>
-                            <div class="valid-elm input-group">
-                                <input type="text" class="fs-16 form-control" placeholder="Nhập tên người liên hệ" v-model="supplier.contact_name"
-                                v-bind:class="{'is-invalid': errors.contact_name}" @blur="validate()">
-                                <div class="invalid-feedback" v-if="errors.contact_name">{{ errors.contact_name }}</div>
-                            </div>
-                        </div>
-                        <div class="mb-20">
                             <h3 class="admin-content__form-text">Email</h3>
                             <div class="valid-elm input-group">
                                 <input type="email" class="fs-16 form-control" placeholder="Nhập email" v-model="supplier.email"
@@ -82,7 +74,6 @@ export default {
             supplier: {},
             errors: {
                 name: '',
-                contact_name: '',
                 email: '',
                 phone: '',
                 address: '',
@@ -99,7 +90,6 @@ export default {
             let isValid = true;
             this.errors = {
                 name: '',
-                contact_name: '',
                 email: '',
                 phone: '',
                 address: '',
@@ -107,9 +97,8 @@ export default {
             if (!this.supplier.name) {
                 this.errors.name = 'Tên nhà cung cấp không được để trống.';
                 isValid = false;
-            }
-            if (!this.supplier.contact_name) {
-                this.errors.contact_name = 'Tên người liên hệ không được để trống.';
+            } else if (this.supplier.name.length > 128) {
+                this.errors.name = 'Tên nhà cung cấp không được vượt quá 128 ký tự.';
                 isValid = false;
             }
             if (!this.supplier.email) {
@@ -129,12 +118,19 @@ export default {
             if (!this.supplier.address) {
                 this.errors.address = 'Địa chỉ không được để trống.';
                 isValid = false;
+            } else if (this.supplier.address.length > 255) {
+                this.errors.address = 'Địa chỉ không được vượt quá 255 ký tự.';
+                isValid = false;
             }
             return isValid;
         },
         async fetchData() {
-            const res = await handleApiCall(() => this.$request.get(apiService.suppliers.view(this.$route.params.id)));
-            this.supplier = res;
+            try {
+                const res = await handleApiCall(() => this.$request.get(apiService.suppliers.view(this.$route.params.id)));
+                this.supplier = res;
+            } catch (error) {
+                console.error(error);
+            }
         },
         async save() {
             if (!this.validate()) return;
