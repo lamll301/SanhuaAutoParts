@@ -3,6 +3,9 @@
         <div class="admin-content">
             <div class="admin-content__heading">
                 <h3>Quản lý nhà cung cấp</h3>
+                <router-link v-show="this.$route.params.id" to="/admin/supplier/create" class="admin-content__create">
+                    Thêm nhà cung cấp
+                </router-link>
             </div>
             <div class="admin-content__container">
                 <div class="admin-content__form">
@@ -63,9 +66,7 @@
 </template>
 
 <script>
-import { swalFire } from '@/utils/swal.js';
 import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
 import { isValidEmail, isValidPhone } from '@/utils/helpers';
 
 export default {
@@ -80,10 +81,17 @@ export default {
             },
         }
     },
-    async created() {
-        if (this.$route.params.id) {
-            await this.fetchData();
+    watch: {
+        '$route'(to, from) {
+            if (from.params.id && !to.params.id) {
+                this.resetForm();
+            } else {
+                this.fetchData();
+            }
         }
+    },
+    async created() {
+        await this.fetchData();
     },
     methods: {
         validate() {
@@ -97,8 +105,8 @@ export default {
             if (!this.supplier.name) {
                 this.errors.name = 'Tên nhà cung cấp không được để trống.';
                 isValid = false;
-            } else if (this.supplier.name.length > 128) {
-                this.errors.name = 'Tên nhà cung cấp không được vượt quá 128 ký tự.';
+            } else if (this.supplier.name.length > 255) {
+                this.errors.name = 'Tên nhà cung cấp không được vượt quá 255 ký tự.';
                 isValid = false;
             }
             if (!this.supplier.email) {
@@ -126,24 +134,37 @@ export default {
         },
         async fetchData() {
             try {
-                const res = await handleApiCall(() => this.$request.get(apiService.suppliers.view(this.$route.params.id)));
-                this.supplier = res;
+                if (this.$route.params.id) {
+                    const res = await this.$swal.withLoading(apiService.suppliers.getOne(this.$route.params.id));
+                    this.supplier = res.data;
+                }
             } catch (error) {
                 console.error(error);
             }
         },
         async save() {
             if (!this.validate()) return;
-
-            if (this.supplier.id) {
-                await handleApiCall(() => this.$request.put(apiService.suppliers.update(this.supplier.id), this.supplier));
-                await swalFire("Cập nhật thành công!", "Thông tin về nhà cung cấp đã được cập nhật!", "success");
+            try {
+                if (this.supplier.id) {
+                    await apiService.suppliers.update(this.supplier.id, this.supplier);
+                    await this.$swal.fire("Cập nhật thành công!", "Thông tin về nhà cung cấp đã được cập nhật!", "success");
+                }
+                else {
+                    await apiService.suppliers.create(this.supplier);
+                    await this.$swal.fire("Thêm thành công!", "Nhà cung cấp mới đã được thêm vào hệ thống!", "success");
+                }
+                this.$router.push({ name: 'admin.suppliers' });
+            } catch (error) {
+                console.error(error)
             }
-            else {
-                await handleApiCall(() => this.$request.post(apiService.suppliers.create(), this.supplier));
-                await swalFire("Thêm thành công!", "Nhà cung cấp mới đã được thêm vào hệ thống!", "success");
-            }
-            this.$router.push({ name: 'admin.suppliers' });
+        },
+        resetForm() {
+            this.supplier = {
+                name: '', email: '', phone: '', address: ''
+            };
+            this.errors = {
+                name: '', email: '', phone: '', address: ''
+            };
         },
     }
 }

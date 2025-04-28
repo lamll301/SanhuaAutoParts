@@ -37,7 +37,7 @@ export default {
             }
             const icon = icons[sortType]
             const type = types[sortType]
-            let link = `?_sort&column=${this.field}&type=${type}`
+            let link = `?_sort=true&column=${this.field}&type=${type}`
             if (key) link += `&key=${key}`
             if (action) link += `&action=${action}`
             if (filterId) link += `&filterId=${filterId}`

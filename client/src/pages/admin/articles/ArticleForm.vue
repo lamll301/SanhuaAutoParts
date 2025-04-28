@@ -3,16 +3,19 @@
         <div class="admin-content">
             <div class="admin-content__heading">
                 <h3>Quản lý tin tức</h3>
+                <router-link v-show="$route.params.id" to="/admin/article/create" class="admin-content__create">
+                    Thêm tin tức
+                </router-link>
             </div>
             <div class="admin-content__container">
                 <div class="admin-content__form">
                     <div class="admin-content__header">
-                        <h4 v-if="this.$route.params.id">Form sửa tin tức</h4>
+                        <h4 v-if="$route.params.id">Form sửa tin tức</h4>
                         <h4 v-else>Form thêm tin tức</h4>
                     </div>
                     <form @submit.prevent="save()">
                     <div class="admin-content__form-body">
-                        <div v-if="this.$route.params.id" class="mb-20">
+                        <div v-if="$route.params.id" class="mb-20">
                             <h3 class="admin-content__form-text">Mã tin tức</h3>
                             <div class="valid-elm input-group">
                                 <input type="text" class="fs-16 form-control" disabled v-model="article.id">
@@ -27,17 +30,9 @@
                             </div>
                         </div>
                         <div class="mb-20">
-                            <h3 class="admin-content__form-text">Tác giả</h3>
+                            <h3 class="admin-content__form-text">Nổi bật</h3>
                             <div class="valid-elm input-group">
-                                <input type="text" class="fs-16 form-control" placeholder="Nhập tên tác giả" v-model="article.author"
-                                v-bind:class="{'is-invalid': errors.author}" @blur="validate()">
-                                <div class="invalid-feedback" v-if="errors.author">{{ errors.author }}</div>
-                            </div>
-                        </div>
-                        <div class="mb-20">
-                            <h3 class="admin-content__form-text">Highlight</h3>
-                            <div class="valid-elm input-group">
-                                <input type="text" class="fs-16 form-control" placeholder="Nhập highlight tin tức" v-model="article.highlight"
+                                <input type="text" class="fs-16 form-control" placeholder="Nhập nổi bật tin tức" v-model="article.highlight"
                                 v-bind:class="{'is-invalid': errors.highlight}" @blur="validate()">
                                 <div class="invalid-feedback" v-if="errors.highlight">{{ errors.highlight }}</div>
                             </div>
@@ -54,18 +49,7 @@
                         <div class="mb-20">
                             <h3 class="admin-content__form-text">Ngày xuất bản</h3>
                             <div class="valid-elm input-group">
-                                <input type="datetime-local" class="fs-16 form-control" v-model="article.publish_date">
-                            </div>
-                        </div>
-                        <div class="mb-20">
-                            <h3 class="admin-content__form-text">Trạng thái</h3>
-                            <div class="input-group">
-                                <select class="valid-elm form-select" v-model="article.status">
-                                    <option value="" disabled selected>Chọn trạng thái</option>
-                                    <option v-for="status in statusOptions" :key="status.value" :value="status.value">
-                                        {{ status.label }}
-                                    </option>
-                                </select>
+                                <input type="date" class="fs-16 form-control" v-model="article.publish_date">
                             </div>
                         </div>
                         <div class="mb-20 admin-content__form-btn">
@@ -80,11 +64,8 @@
 </template>
 
 <script>
-import { swalFire } from '@/utils/swal.js';
-import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
-import { statusService } from '@/utils/statusService';
 import RichTextEditor from '@/components/RichTextEditor.vue';
+import apiService from '@/utils/apiService';
 
 export default {
     components: {
@@ -92,82 +73,67 @@ export default {
     },
     data() {
         return {
-            article: {
-                status: '',
-            },
-            statusOptions: statusService.getOptions('article'),
+            article: {},
             errors: {
-                title: '',
-                author: '',
-                highlight: '',
+                title: '', highlight: ''
             },
+        }
+    },
+    watch: {
+        '$route'(to, from) {
+            if (from.params.id && !to.params.id) {
+                this.resetForm();
+            } else {
+                this.fetchData();
+            }
         }
     },
     async created() {
-        if (this.$route.params.id) {
-            await this.fetchData();
-        }
+        await this.fetchData();
     },
     methods: {
-        validate() {
-            let isValid = true;
-            this.errors = {
-                title: '',
-                author: '',
-                highlight: '',
-            }
-            if (!this.article.title) {
-                this.errors.title = 'Tiêu đề không được để trống.';
-                isValid = false;
-            } else if (this.article.title.length > 128) {
-                this.errors.title = 'Tiêu đề không được vượt quá 128 ký tự.';
-                isValid = false;
-            }
-            if (!this.article.author) {
-                this.errors.author = 'Tên tác giả không được để trống.';
-                isValid = false;
-            } else if (this.article.author.length > 64) {
-                this.errors.author = 'Tên tác giả không được vượt quá 64 ký tự.';
-                isValid = false;
-            }
-            if (this.article.highlight?.length > 64) {
-                this.errors.highlight = 'Highlight không được vượt quá 64 ký tự.';
-                isValid = false;
-            }
-            return isValid;
-        },
         async fetchData() {
             try {
-                const res = await handleApiCall(() => this.$request.get(apiService.articles.view(this.$route.params.id)));
-                this.article = res;
+                if (this.$route.params.id) {
+                    const res = await this.$swal.withLoading(apiService.articles.getOne(this.$route.params.id));
+                    this.article = res.data;
+                }
             } catch (error) {
                 console.error(error);
             }
         },
         async save() {
             if (!this.validate()) return;
+            const data = this.cleanData(this.article);
+            // for (let [key, value] of data.entries()) {
+            //     console.log(`${key}:`, value);
+            // }
 
-            const formData = this.prepareFormData();
-
-            if (this.article.id) {
-                await handleApiCall(() => this.$request.post(apiService.articles.update(this.article.id), formData));
-                await swalFire("Cập nhật thành công!", "Thông tin về tin tức đã được cập nhật!", "success");
+            try {
+                if (this.article.id) {
+                    await apiService.articles.updateWithImages(this.article.id, data);
+                    await this.$swal.fire("Cập nhật thành công!", "Thông tin về tin tức đã được cập nhật!", "success")
+                }
+                else {
+                    await apiService.articles.create(data);
+                    await this.$swal.fire("Thêm thành công!", "Tin tức mới đã được thêm vào hệ thống!", "success")
+                }
+                this.$router.push({ name: 'admin.articles' });
+            } catch (error) {
+                console.error(error);
             }
-            else {
-                await handleApiCall(() => this.$request.post(apiService.articles.create(), formData));
-                await swalFire("Thêm thành công!", "Tin tức mới đã được thêm vào hệ thống!", "success");
-            }
-            this.$router.push({ name: 'admin.articles' });
         },
-        prepareFormData() {
+        cleanData(article) {
             const formData = new FormData();
-            this.article.content = this.$refs.richTextEditor.getContent();
+            const content = this.$refs.richTextEditor.getContent();
             const images = this.$refs.richTextEditor.getTempImages();
             const selectedThumbnail = this.$refs.richTextEditor.getThumbnail();
             const deletedImageIds = this.$refs.richTextEditor.getDeletedImages();
 
-            Object.entries(this.article).forEach(([key, value]) => {
-                if (value !== null && value !== undefined && value !== '') {
+            formData.append('content', content);
+            Object.entries(article).forEach(([key, value]) => {
+                if (key === 'content') return
+                if (value !== null && value !== undefined) {
                     formData.append(key, value);
                 }
             });
@@ -180,7 +146,7 @@ export default {
                 formData.append('selectedThumbnail', selectedThumbnail);
             }
 
-            if (this.article.id) {
+            if (article.id) {
                 formData.append('_method', 'PUT');
                 if (deletedImageIds.length > 0) {
                     formData.append('deletedImageIds', JSON.stringify(deletedImageIds));
@@ -191,6 +157,30 @@ export default {
         },
         handleRemoveImage(imageId) {
             this.article.images = this.article.images.filter(image => image.id !== imageId);
+        },
+        validate() {
+            let isValid = true;
+            this.errors = {
+                title: '', highlight: ''
+            }
+            if (!this.article.title) {
+                this.errors.title = 'Tiêu đề không được để trống';
+                isValid = false;
+            } else if (this.article.title.length > 255) {
+                this.errors.title = 'Tiêu đề không được vượt quá 255 ký tự';
+                isValid = false;
+            }
+
+            if (this.article.highlight && this.article.highlight.length > 255) {
+                this.errors.highlight = 'Nổi bật không được vượt quá 255 ký tự';
+                isValid = false;
+            }
+
+            return isValid;
+        },
+        resetForm() {
+            this.article = { title: '', highlight: '', publish_date: '', content: '' };
+            this.errors = { title: '', highlight: '' };
         },
     }
 }

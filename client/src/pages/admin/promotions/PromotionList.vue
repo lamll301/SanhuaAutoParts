@@ -1,13 +1,6 @@
 <template>
     <div class="admin-page">
-        <div v-show="isLoading" class="loading-overlay">
-            <div class="loader">
-                <svg class="circular" viewBox="25 25 50 50">
-                    <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10"/>
-                </svg>
-            </div>
-        </div>
-        <div class="admin-content" :class="{ 'loading-blur': isLoading }">
+        <div class="admin-content">
             <div class="admin-content__heading">
                 <h3 v-show="!isTrashRoute">Quản lý khuyến mãi</h3>
                 <h3 v-show="isTrashRoute">Quản lý thùng rác</h3>
@@ -131,10 +124,8 @@
 import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
-import { swalFire, swalConfirm } from '@/utils/swal';
 import { formatDate, formatPrice } from '@/utils/formatter';
 import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
 import { statusService } from '@/utils/statusService';
 
 export default {
@@ -146,7 +137,6 @@ export default {
             deletedCount: 0,
             sort: {}, totalPages: 0, currentPage: 1,
             selectedIds: [],
-            isLoading: false,
             promotions: [],
             statusOptions: statusService.getOptions('promotion'),
         }
@@ -165,45 +155,65 @@ export default {
     },
     methods: {
         async fetchData() {
-            this.isLoading = true;
             try {
-                const responseData = await handleApiCall(() => 
-                    this.$request.get(apiService.promotions.get(this.$route.query, this.isTrashRoute))
-                );
-    
-                this.promotions = responseData.data;
-                this.totalPages = Math.ceil(responseData.pagination.total / responseData.pagination.per_page);
-                this.currentPage = responseData.pagination.current_page;
-                this.sort = responseData._sort;
+                const req = [
+                    this.isTrashRoute
+                        ? apiService.promotions.getTrashed(this.$route.query)
+                        : apiService.promotions.get(this.$route.query)
+                ];
+
+                if (!this.isTrashRoute) {
+                    req.push(
+                        apiService.promotions.getTrashed(),
+                    );
+                }
+                
+                const res = await this.$swal.withLoading(Promise.all(req))
+
+                this.promotions = res[0].data.data;
+                this.totalPages = Math.ceil(res[0].data.pagination.total / res[0].data.pagination.per_page);
+                this.currentPage = res[0].data.pagination.current_page;
+                this.sort = res[0].data._sort;
     
                 if (!this.isTrashRoute) {
-                    const resDeleted = await handleApiCall(() => 
-                        this.$request.get(apiService.promotions.get({}, true))
-                    );
-                    this.deletedCount = resDeleted?.pagination?.total || 0;
+                    this.deletedCount = res[1].data?.pagination?.total || 0;
                 }
             } catch (error) {
                 console.error(error);
-            } finally {
-                this.isLoading = false;
             }
         },
         async onDelete(id) {
-            await handleApiCall(() => this.$request.delete(apiService.promotions.delete(id)));
-            await swalFire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success");
-            await this.fetchData();
+            try {
+                await apiService.promotions.delete(id)
+                await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success")
+                await this.fetchData()
+            } catch (error) {
+                console.error(error)
+            }
         },
         async onRestore(id) {
-            await handleApiCall(() => this.$request.patch(apiService.promotions.restore(id)));
-            await swalFire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success");
-            await this.fetchData();
+            try {
+                await apiService.promotions.restore(id)
+                await this.$swal.fire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success")
+                await this.fetchData()
+            } catch (error) {
+                console.error(error)
+            }
         },
         async onForceDelete(id) {
-            const result = await swalConfirm("Bạn chắc chắn?", "Bạn sẽ không thể khôi phục lại dữ liệu!", "warning", "Có, tôi muốn xóa!");
+            const result = await this.$swal.fire("Bạn chắc chắn?", "Bạn sẽ không thể khôi phục lại dữ liệu!", "warning", {
+                showCancelButton: true,
+                confirmButtonText: "Có, tôi muốn xóa!",
+                cancelButtonText: "Hủy"
+            })
             if (!result.isConfirmed) return;
-            await handleApiCall(() => this.$request.delete(apiService.promotions.forceDelete(id)));
-            await swalFire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success");
-            await this.fetchData();
+            try {
+                await apiService.promotions.forceDelete(id);
+                await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success")
+                await this.fetchData();
+            } catch (error) {
+                console.error(error)
+            }
         },
         async handleFormActions() {
             const actionData = this.validateAndGetActionData();
@@ -214,23 +224,27 @@ export default {
                 return;
             }
             if (this.selectedIds.length === 0) {
-                swalFire("Lỗi!", "Vui lòng chọn ít nhất 1 bản ghi để thực hiện hành động.", "error");
+                this.$swal.fire("Lỗi!", "Vui lòng chọn ít nhất 1 bản ghi để thực hiện hành động.", "error");
                 return;
             }
-            await handleApiCall(() => this.$request.post(apiService.promotions.handleActions(), {
-                action,
-                selectedIds: this.selectedIds,
-                targetId
-            }));
-            await swalFire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success");
-            await this.fetchData();
-            await this.$refs.checkboxTable.resetCheckboxAll();
+            try {
+                await apiService.promotions.handleFormActions({
+                    action,
+                    selectedIds: this.selectedIds,
+                    targetId
+                })
+                await this.$swal.fire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success")
+                await this.fetchData()
+                await this.$refs.checkboxTable.resetCheckboxAll()
+            } catch (error) {
+                console.error(error)
+            }
         },
         validateAndGetActionData() {
             const action = this.$refs.selectCheckboxAction.value;
             let targetId;
             if (!action) {
-                swalFire("Lỗi!", "Vui lòng chọn hành động.", "error");
+                this.$swal.fire("Lỗi!", "Vui lòng chọn hành động.", "error");
                 return;
             }
             switch (action) {
@@ -238,7 +252,7 @@ export default {
                 case 'filterByStatus':
                     targetId = this.$refs.selectedStatus.value;
                     if (!targetId) {
-                        swalFire("Lỗi!", "Vui lòng chọn trạng thái để thực hiện hành động.", "error");
+                        this.$swal.fire("Lỗi!", "Vui lòng chọn trạng thái để thực hiện hành động.", "error");
                         return;
                     }
                     break;

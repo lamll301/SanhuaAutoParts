@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('permissions', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 64);
+            $table->string('name');
             $table->string('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
@@ -18,7 +18,7 @@ return new class extends Migration
 
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 64)->unique();
+            $table->string('name')->unique();
             $table->timestamps();
             $table->softDeletes();
         });

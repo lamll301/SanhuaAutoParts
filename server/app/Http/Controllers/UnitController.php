@@ -23,27 +23,27 @@ class UnitController extends Controller
     }
     public function store(Request $request) {
         Unit::create($request->all());
-        return response()->json(['message' => 'Unit created']);
+        return response()->json(['message' => 'success'], 201);
     }
     public function update(Request $request, string $id) {
         $unit = Unit::findOrFail($id);
         $unit->update($request->all());
-        return response()->json(['message' => 'Unit updated']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function destroy(string $id) {
         $unit = Unit::findOrFail($id);
         $unit->delete();
-        return response()->json(['message' => 'Unit deleted']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function restore(string $id) {
         $unit = Unit::onlyTrashed()->findOrFail($id);
         $unit->restore();
-        return response()->json(['message' => 'Unit restored']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function forceDelete(string $id) {
         $unit = Unit::onlyTrashed()->findOrFail($id);
         $unit->forceDelete();
-        return response()->json(['message' => 'Unit permanently deleted']);
+        return response()->json(['message' => 'success'], 204);
     }
     public function handleFormActions(Request $request) {
         $action = $request->input('action');
@@ -51,13 +51,13 @@ class UnitController extends Controller
         switch ($action) {
             case 'delete':
                 Unit::destroy($ids);
-                return response()->json(['message' => 'Units deleted']);
+                return response()->json(['message' => 'success'], 200);
             case 'restore':
                 Unit::onlyTrashed()->whereIn('id', $ids)->restore();
-                return response()->json(['message' => 'Units restored']);
+                return response()->json(['message' => 'success'], 200);
             case 'forceDelete':
                 Unit::onlyTrashed()->whereIn('id', $ids)->forceDelete();
-                return response()->json(['message' => 'Units permanently deleted']);
+                return response()->json(['message' => 'success'], 204);
             default:
                 return response()->json(['message' => 'Action is invalid'], 400);
         }

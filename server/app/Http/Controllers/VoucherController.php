@@ -7,7 +7,7 @@ use App\Models\Voucher;
 
 class VoucherController extends Controller
 {
-    private const SEARCH_FIELDS = ['id', 'code'];
+    private const SEARCH_FIELDS = ['code'];
     private const FILTER_FIELDS = [
         'filterByStatus' => ['column' => 'status'],
     ];
@@ -28,27 +28,27 @@ class VoucherController extends Controller
     }
     public function store(Request $request) {
         Voucher::create($request->all());
-        return response()->json(['message' => 'Voucher created']);
+        return response()->json(['message' => 'success'], 201);
     }
     public function update(Request $request, string $id) {
         $voucher = Voucher::findOrFail($id);
         $voucher->update($request->all());
-        return response()->json(['message' => 'Voucher updated']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function destroy(string $id) {
         $voucher = Voucher::findOrFail($id);
         $voucher->delete();
-        return response()->json(['message' => 'Voucher deleted']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function restore(string $id) {
         $voucher = Voucher::onlyTrashed()->findOrFail($id);
         $voucher->restore();
-        return response()->json(['message' => 'Voucher restored']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function forceDelete(string $id) {
         $voucher = Voucher::onlyTrashed()->findOrFail($id);
         $voucher->forceDelete();
-        return response()->json(['message' => 'Voucher permanently deleted']);
+        return response()->json(['message' => 'success'], 204);
     }
     public function handleFormActions(Request $request) {
         $action = $request->input('action');
@@ -57,16 +57,16 @@ class VoucherController extends Controller
         switch ($action) {
             case 'delete':
                 Voucher::destroy($ids);
-                return response()->json(['message' => 'Vouchers deleted']);
+                return response()->json(['message' => 'success'], 200);
             case 'restore':
                 Voucher::onlyTrashed()->whereIn('id', $ids)->restore();
-                return response()->json(['message' => 'Vouchers restored']);
+                return response()->json(['message' => 'success'], 200);
             case 'forceDelete':
                 Voucher::onlyTrashed()->whereIn('id', $ids)->forceDelete();
-                return response()->json(['message' => 'Vouchers permanently deleted']);
+                return response()->json(['message' => 'success'], 204);
             case 'setStatus':
                 Voucher::whereIn('id', $ids)->update(['status' => $targetId]);
-                return response()->json(['message' => 'Status updated successfully']);
+                return response()->json(['message' => 'success'], 200);
             default:
                 return response()->json(['message' => 'Action is invalid'], 400);
         }

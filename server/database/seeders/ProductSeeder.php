@@ -55,8 +55,6 @@ class ProductSeeder extends Seeder
                 'promotion_id' => $faker->optional()->randomElement($promotionIds),
                 'unit_id' => $faker->optional()->randomElement($unitIds),
                 'supplier_id' => $faker->optional()->randomElement($supplierIds),
-
-                'status' => $faker->randomElement([0, 1]),
             ]);
         }
     }

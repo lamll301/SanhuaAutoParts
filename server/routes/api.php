@@ -13,5 +13,6 @@ Route::group([], base_path('routes/api/articles.php'));
 Route::group([], base_path('routes/api/categories.php'));
 Route::group([], base_path('routes/api/products.php'));
 Route::group([], base_path('routes/api/inventories.php'));
-Route::group([], base_path('routes/api/imports.php'));
-Route::group([], base_path('routes/api/exports.php'));
+Route::group([], base_path('routes/api/locations.php'));
+Route::group([], base_path('routes/api/warehouse_receipt.php'));
+

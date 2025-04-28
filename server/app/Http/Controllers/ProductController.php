@@ -7,7 +7,7 @@ use App\Models\Product;
 
 class ProductController extends Controller
 {
-    private const SEARCH_FIELDS = ['id', 'name'];
+    private const SEARCH_FIELDS = ['name'];
     private const FILTER_FIELDS = [
         'filterByCategory' => [
             'relation' => 'categories',
@@ -50,7 +50,7 @@ class ProductController extends Controller
         if ($request->has('selectedThumbnail')) {
             $this->setThumbnail($product, $request->input('selectedThumbnail'));
         }
-        return response()->json(['message' => 'Product created']);
+        return response()->json(['message' => 'success'], 201);
     }
 
     public function update(Request $request, string $id) {
@@ -71,26 +71,26 @@ class ProductController extends Controller
         if ($request->has('selectedThumbnail')) {
             $this->setThumbnail($product, $request->input('selectedThumbnail'));
         }
-        return response()->json(['message' => 'Product updated']);
+        return response()->json(['message' => 'success'], 200);
     }
 
     public function destroy(string $id) {
         $product = Product::findOrFail($id);
         $product->delete();
-        return response()->json(['message' => 'Product deleted']);
+        return response()->json(['message' => 'success'], 200);
     }
 
     public function restore(string $id) {
         $product = Product::onlyTrashed()->findOrFail($id);
         $product->restore();
-        return response()->json(['message' => 'Product restored']);
+        return response()->json(['message' => 'success'], 200);
     }
 
     public function forceDelete(string $id) {
         $product = Product::onlyTrashed()->findOrFail($id);
         $this->deleteFolder($product);
         $product->forceDelete();
-        return response()->json(['message' => 'Product permanently deleted']);
+        return response()->json(['message' => 'success'], 204);
     }
 
     public function handleFormActions(Request $request) {
@@ -100,40 +100,40 @@ class ProductController extends Controller
         switch ($action) {
             case 'delete':
                 Product::destroy($ids);
-                return response()->json(['message' => 'Products deleted']);
+                return response()->json(['message' => 'success'], 200);
             case 'restore':
                 Product::onlyTrashed()->whereIn('id', $ids)->restore();
-                return response()->json(['message' => 'Products restored']);
+                return response()->json(['message' => 'success'], 200);
             case 'forceDelete':
                 Product::onlyTrashed()->whereIn('id', $ids)->forceDelete();
-                return response()->json(['message' => 'Products permanently deleted']);
+                return response()->json(['message' => 'success'], 204);
             case 'setStatus':
                 Product::whereIn('id', $ids)->update(['status' => $targetId]);
-                return response()->json(['message' => 'Status updated successfully']);
+                return response()->json(['message' => 'success'], 200);
             case 'addCategory':
                 $products = Product::whereIn('id', $ids)->get();
                 foreach ($products as $product) {
                     $product->categories()->syncWithoutDetaching([$targetId]);
                 }
-                return response()->json(['message' => 'Categories added successfully']);
+                return response()->json(['message' => 'success'], 200);
             case 'removeCategory':
                 $products = Product::whereIn('id', $ids)->get();
                 foreach ($products as $product) {
                     $product->categories()->detach($targetId);
                 }
-                return response()->json(['message' => 'Categories removed successfully']);
+                return response()->json(['message' => 'success'], 200);
             case 'setSupplier':
                 Product::whereIn('id', $ids)->update(['supplier_id' => $targetId]);
-                return response()->json(['message' => 'Supplier updated successfully']);
+                return response()->json(['message' => 'success'], 200);
             case 'setPromotion':
                 Product::whereIn('id', $ids)->update(['promotion_id' => $targetId]);
-                return response()->json(['message' => 'Promotion updated successfully']);
+                return response()->json(['message' => 'success'], 200);
             case 'removePromotion':
                 Product::whereIn('id', $ids)->update(['promotion_id' => null]);
-                return response()->json(['message' => 'Promotion removed successfully']);
+                return response()->json(['message' => 'success'], 200);
             case 'setUnit':
                 Product::whereIn('id', $ids)->update(['unit_id' => $targetId]);
-                return response()->json(['message' => 'Unit updated successfully']);
+                return response()->json(['message' => 'success'], 200);
             default:
                 return response()->json(['message' => 'Action is invalid'], 400);
         }

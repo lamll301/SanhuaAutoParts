@@ -23,11 +23,11 @@
                                 <option disabled value="">-- {{ header.placeholder || 'Chọn' }} --</option>
                                 <option 
                                     v-for="option in header.options"
-                                    :key="option[header.optionValue || 'id']"
-                                    :value="option[header.optionValue || 'id']"
-                                    :title="option[header.optionText || 'name']"
+                                    :key="option.id"
+                                    :value="option.id"
+                                    :title="getOptionDisplayText(option, header)"
                                 >
-                                    {{ option[header.optionText || 'name'] }}
+                                    {{ getOptionDisplayText(option, header) }}
                                 </option>
                             </select>
                             <div class="select-value-preview" :title="getSelectedOptionText(item[header.key], header)">
@@ -70,9 +70,9 @@
                 </tr>
                 
                 <tr v-if="!items || items.length === 0">
-                    <td :colspan="headers.length + (showTotalColumn ? 2 : 1)" class="text-center py-4">
+                    <td :colspan="headers.length + (showTotalColumn ? 2 : 1)" class="empty-state">
                         <img src="../assets/images/search-no-result.jpg" alt="" class="empty-img">
-                        <p class="text-muted mb-0 fs-14 mt-2">Chưa có dữ liệu nào</p>
+                        <p class="empty-text">Chưa có dữ liệu nào</p>
                     </td>
                 </tr>
             </tbody>
@@ -151,7 +151,9 @@ export default {
         getSelectedOptionText(value, header) {
             if (!value) return '';
             const selectedOption = this.findOptionByValue(header, value);
-            return selectedOption ? selectedOption[header.optionText || 'name'] : '';
+            if (!selectedOption) return '';
+            
+            return this.getOptionDisplayText(selectedOption, header);
         },
         
         addItem() {
@@ -223,20 +225,22 @@ export default {
         
         findOptionByValue(header, value) {
             if (header.options) {
-                return header.options.find(opt => 
-                    opt[header.optionValue || 'id'] === value
-                );
+                return header.options.find(opt => opt.id === value);
             }
             return null;
-        }
+        },
+
+        getOptionDisplayText(option, header) {
+            if (header.optionDisplayText && typeof header.optionDisplayText === 'function') {
+                return header.optionDisplayText(option);
+            }
+            return option.name || '';
+        },
     }
 }
 </script>
 
 <style scoped>
-.empty-img {
-    width: 140px;
-}
 .item-details-container {
     margin-top: 16px;
     border: 1px solid #e2e8f0;
@@ -244,6 +248,7 @@ export default {
     background: white;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    font-size: 14px;
 }
 
 .item-details-table {
@@ -259,7 +264,6 @@ thead tr {
 
 th {
     padding: 12px 16px;
-    font-size: 13px;
     font-weight: 600;
     color: #475569;
     text-align: left;
@@ -297,6 +301,20 @@ td {
 .amount-value {
     color: #1e293b;
     font-weight: 500;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.empty-img {
+    width: 140px;
+}
+
+.empty-text {
+    color: #64748b;
+    margin: 0.5rem 0 0;
     font-size: 14px;
 }
 
@@ -327,15 +345,15 @@ td {
     opacity: 0;
     cursor: pointer;
     z-index: 2;
+    font-size: inherit;
 }
 
 .select-value-preview {
     width: 100%;
-    padding: 8px 12px;
+    padding: 10px 12px;
     background-color: white;
     border: 1px solid #e2e8f0;
     border-radius: 6px;
-    font-size: 14px;
     color: #334155;
     white-space: nowrap;
     overflow: hidden;
@@ -353,14 +371,19 @@ td {
     box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
 }
 
+.custom-select option {
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
 .form-input {
     width: 100%;
-    padding: 8px 12px;
+    padding: 10px 12px;
     border: 1px solid #e2e8f0;
     border-radius: 6px;
-    font-size: 14px;
     color: #334155;
     transition: all 0.2s;
+    font-size: inherit;
 }
 
 .form-input:focus {
@@ -392,13 +415,13 @@ td {
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    font-size: 14px;
     color: #4f46e5;
     background: #fff;
     border: 1px solid #e0e7ff;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s;
+    font-size: 14px;
 }
 
 .add-row-btn:hover {
@@ -414,40 +437,13 @@ td {
 }
 
 .total-label {
-    font-size: 14px;
     color: #64748b;
     margin-right: 8px;
 }
 
 .total-value {
-    font-size: 15px;
     font-weight: 600;
     color: #1e40af;
-}
-
-.text-center {
-    text-align: center;
-}
-
-.py-4 {
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-}
-
-.mb-0 {
-    margin-bottom: 0;
-}
-
-.mt-2 {
-    margin-top: 0.5rem;
-}
-
-.fs-14 {
-    font-size: 14px;
-}
-
-.text-muted {
-    color: #64748b;
 }
 
 @media (max-width: 768px) {
@@ -476,6 +472,7 @@ td {
         padding: 8px 0;
         position: relative;
         padding-left: 50%;
+        font-size: 16px;
     }
     
     td:before {
@@ -484,7 +481,6 @@ td {
         left: 0;
         width: 45%;
         font-weight: 600;
-        font-size: 12px;
         color: #475569;
     }
     
@@ -494,6 +490,12 @@ td {
         right: 16px;
         width: auto;
         padding-left: 0;
+    }
+    
+    .select-value-preview,
+    .form-input {
+        font-size: 16px;
+        padding: 12px 16px;
     }
     
     .table-footer {
@@ -508,6 +510,7 @@ td {
     .add-row-btn {
         width: 100%;
         justify-content: center;
+        font-size: 16px;
     }
     
     .total-amount-container {

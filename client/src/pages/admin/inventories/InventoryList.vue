@@ -1,13 +1,6 @@
 <template>
     <div class="admin-page">
-        <div v-show="isLoading" class="loading-overlay">
-            <div class="loader">
-                <svg class="circular" viewBox="25 25 50 50">
-                    <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10"/>
-                </svg>
-            </div>
-        </div>
-        <div class="admin-content" :class="{ 'loading-blur': isLoading }">
+        <div class="admin-content">
             <div class="admin-content__heading">
                 <h3 v-show="!isTrashRoute">Quản lý hàng tồn kho</h3>
                 <h3 v-show="isTrashRoute">Quản lý thùng rác</h3>
@@ -31,20 +24,12 @@
                             <option value="delete">Xóa</option>
                             <option value="setProduct">Đặt sản phẩm</option>
                             <option value="filterByProduct">Lọc theo sản phẩm</option>
-                            <option value="setImport">Đặt phiếu nhập</option>
-                            <option value="filterByImport">Lọc theo phiếu nhập</option>
                         </template>
                     </select>
                     <select v-show="!isTrashRoute" ref="selectedProduct" class="form-select admin-content__select-attribute admin-content__select-promotion">
                         <option value="" selected>-- Chọn sản phẩm --</option>
                         <option v-for="product in products" :key="product.id" :value="product.id">
                             {{ product.name }}
-                        </option>
-                    </select>
-                    <select v-show="!isTrashRoute" ref="selectedImport" class="form-select admin-content__select-attribute admin-content__select-promotion">
-                        <option value="" selected>-- Chọn phiếu nhập --</option>
-                        <option v-for="importReceipt in imports" :key="importReceipt.id" :value="importReceipt.id">
-                            {{ importReceipt.id }}
                         </option>
                     </select>
                     <button class="fs-16 btn btn-primary" id="btnCheckboxSubmit" @click="handleFormActions()">Thực hiện</button>
@@ -55,10 +40,6 @@
                             <SortComponent field="id" :sort="sort"/>
                         </th>
                         <th scope="col">Tên sản phẩm</th>
-                        <th scope="col">ID phiếu nhập</th>
-                        <th scope="col">Vị trí
-                            <SortComponent field="location" :sort="sort"/>
-                        </th>
                         <th scope="col">Số lô
                             <SortComponent field="batch_number" :sort="sort"/>
                         </th>
@@ -89,8 +70,6 @@
                     <template #body="{ item }">
                         <th>{{ item.id }}</th>
                         <td>{{ item.product?.name }}</td>
-                        <td>{{ item.import?.id }}</td>
-                        <td>{{ item.location }}</td>
                         <td>{{ item.batch_number }}</td>
                         <td>{{ item.quantity }}</td>
                         <td>{{ item.product?.unit?.name }}</td>
@@ -145,10 +124,8 @@
 import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
-import { swalFire, swalConfirm } from '@/utils/swal';
 import { formatDate } from '@/utils/formatter';
 import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
 
 export default {
     components: {
@@ -159,8 +136,7 @@ export default {
             deletedCount: 0,
             sort: {}, totalPages: 0, currentPage: 1,
             selectedIds: [],
-            isLoading: false,
-            inventories: [], products: [], imports: [],
+            inventories: [], products: [],
         }
     },
     computed: {
@@ -177,49 +153,67 @@ export default {
     },
     methods: {
         async fetchData() {
-            this.isLoading = true;
             try {
-                const [res, ...others] = await Promise.all([
-                    handleApiCall(() => this.$request.get(apiService.inventories.get(this.$route.query, this.isTrashRoute))),
-                    ...(!this.isTrashRoute ? [
-                        handleApiCall(() => this.$request.get(apiService.inventories.get({}, true))),
-                        handleApiCall(() => this.$request.get(apiService.products.get({}, false, true))),
-                        handleApiCall(() => this.$request.get(apiService.imports.get({}, false, true))),
-                    ] : [])
-                ]);
+                const req = [
+                    this.isTrashRoute
+                        ? apiService.inventories.getTrashed(this.$route.query)
+                        : apiService.inventories.get(this.$route.query)
+                ];
+
+                if (!this.isTrashRoute) {
+                    req.push(
+                        apiService.inventories.getTrashed(),
+                        apiService.products.getAll(),
+                    );
+                }
+
+                const res = await this.$swal.withLoading(Promise.all(req))
     
-                this.inventories = res.data;
-                this.totalPages = Math.ceil(res.pagination.total / res.pagination.per_page);
-                this.currentPage = res.pagination.current_page;
-                this.sort = res._sort;
+                this.inventories = res[0].data.data;
+                this.totalPages = Math.ceil(res[0].data.pagination.total / res[0].data.pagination.per_page);
+                this.currentPage = res[0].data.pagination.current_page;
+                this.sort = res[0].data._sort;
     
                 if (!this.isTrashRoute) {
-                    this.deletedCount = others[0]?.pagination?.total || 0;
-                    this.products = others[1]?.data || []
-                    this.imports = others[2]?.data || []
+                    this.deletedCount = res[1].data?.pagination?.total || 0;
+                    this.products = res[2].data?.data || []
                 }
             } catch (error) {
                 console.error(error);
-            } finally {
-                this.isLoading = false;
             }
         },
         async onDelete(id) {
-            await handleApiCall(() => this.$request.delete(apiService.inventories.delete(id)));
-            await swalFire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success");
-            await this.fetchData();
+            try {
+                await apiService.inventories.delete(id)
+                await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success")
+                await this.fetchData()
+            } catch (error) {
+                console.error(error)
+            }
         },
         async onRestore(id) {
-            await handleApiCall(() => this.$request.patch(apiService.inventories.restore(id)));
-            await swalFire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success");
-            await this.fetchData();
+            try {
+                await apiService.inventories.restore(id)
+                await this.$swal.fire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success")
+                await this.fetchData()
+            } catch (error) {
+                console.error(error)
+            }
         },
         async onForceDelete(id) {
-            const result = await swalConfirm("Bạn chắc chắn?", "Bạn sẽ không thể khôi phục lại dữ liệu!", "warning", "Có, tôi muốn xóa!");
+            const result = await this.$swal.fire("Bạn chắc chắn?", "Bạn sẽ không thể khôi phục lại dữ liệu!", "warning", {
+                showCancelButton: true,
+                confirmButtonText: "Có, tôi muốn xóa!",
+                cancelButtonText: "Hủy"
+            })
             if (!result.isConfirmed) return;
-            await handleApiCall(() => this.$request.delete(apiService.inventories.forceDelete(id)));
-            await swalFire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success");
-            await this.fetchData();
+            try {
+                await apiService.inventories.forceDelete(id);
+                await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success")
+                await this.fetchData();
+            } catch (error) {
+                console.error(error)
+            }
         },
         async handleFormActions() {
             const actionData = this.validateAndGetActionData();
@@ -231,24 +225,27 @@ export default {
                 return;
             }
             if (this.selectedIds.length === 0) {
-                swalFire("Lỗi!", "Vui lòng chọn ít nhất 1 bản ghi để thực hiện hành động.", "error");
+                this.$swal.fire("Lỗi!", "Vui lòng chọn ít nhất 1 bản ghi để thực hiện hành động.", "error")
                 return;
             }
-            await handleApiCall(() => this.$request.post(apiService.inventories.handleActions(), {
-                action,
-                selectedIds: this.selectedIds,
-                targetId
-
-            }));
-            await swalFire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success");
-            await this.fetchData();
-            await this.$refs.checkboxTable.resetCheckboxAll();
+            try {
+                await apiService.inventories.handleFormActions({
+                    action,
+                    selectedIds: this.selectedIds,
+                    targetId
+                })
+                await this.$swal.fire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success")
+                await this.fetchData()
+                await this.$refs.checkboxTable.resetCheckboxAll()
+            } catch (error) {
+                console.error(error)
+            }
         },
         validateAndGetActionData() {
             const action = this.$refs.selectCheckboxAction.value;
             let targetId;
             if (!action) {
-                swalFire("Lỗi!", "Vui lòng chọn hành động.", "error");
+                this.$swal.fire("Lỗi!", "Vui lòng chọn hành động.", "error");
                 return;
             }
             switch (action) {
@@ -256,15 +253,7 @@ export default {
                 case 'filterByProduct':
                     targetId = this.$refs.selectedProduct.value;
                     if (!targetId) {
-                        swalFire("Lỗi!", "Vui lòng chọn sản phẩm để thực hiện hành động.", "error");
-                        return;
-                    }
-                    break;
-                case 'setImport':
-                case 'filterByImport':
-                    targetId = this.$refs.selectedImport.value;
-                    if (!targetId) {
-                        swalFire("Lỗi!", "Vui lòng chọn đơn vị tính để thực hiện hành động.", "error");
+                        this.$swal.fire("Lỗi!", "Vui lòng chọn sản phẩm để thực hiện hành động.", "error");
                         return;
                     }
                     break;

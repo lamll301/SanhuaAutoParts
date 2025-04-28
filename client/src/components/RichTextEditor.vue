@@ -1,8 +1,4 @@
 <template>
-    <!-- <div class="editor-notice">
-        <i class="fas fa-exclamation-circle"></i> 
-        <span>Lưu ý: Không chỉnh sửa trực tiếp dòng chứa nội dung ảnh</span>
-    </div> -->
     <div class="rich-text-editor">
         <div class="editor-toolbar">
             <button type="button" class="tool-btn" title="Reset nội dung" @click="resetContent">
@@ -145,39 +141,28 @@ export default {
             this.saveSelection();
         },
         addImagePlaceholder(filename) {
-            const placeholder = document.createElement('span');
-            placeholder.dataset.image = filename;
-            placeholder.contentEditable = 'false';
-            placeholder.style.display = 'inline-block';
-            placeholder.style.padding = '2px 5px';
-            placeholder.style.border = '1px dashed #aaa';
-            placeholder.style.backgroundColor = '#f5f5f5';
-            placeholder.style.borderRadius = '3px';
-            placeholder.style.fontSize = '0.9em';
-            placeholder.style.color = '#666';
-            placeholder.style.margin = '2px 0';
-            placeholder.textContent = `<!--image:${filename}-->`;
-
+            const imgElement = document.createElement('img');
+            imgElement.alt = filename;
+            imgElement.dataset.image = filename;
+            const divElement = document.createElement('div');
+            divElement.appendChild(imgElement);
             const editor = this.$refs.editorContent;
-            const nbsp = document.createTextNode('\u00A0');
             const selection = window.getSelection();
             if (selection.rangeCount > 0 && this.currentSelection) {
                 const range = selection.getRangeAt(0);
                 range.deleteContents();
-                range.insertNode(nbsp);
-                range.insertNode(placeholder);
+                range.insertNode(divElement);
                 
                 const newRange = document.createRange();
-                newRange.setStartAfter(placeholder);
+                newRange.setStartAfter(divElement);
                 newRange.collapse(true);
                 selection.removeAllRanges();
                 selection.addRange(newRange);
             } else {
-                editor.appendChild(placeholder);
-                editor.appendChild(nbsp);
+                editor.appendChild(divElement);
 
                 const newRange = document.createRange();
-                newRange.setStartAfter(nbsp);
+                newRange.setStartAfter(divElement);
                 newRange.collapse(true);
                 selection.removeAllRanges();
                 selection.addRange(newRange);
@@ -187,9 +172,14 @@ export default {
         },
         removeImagePlaceholder(imageName) {
             const editor = this.$refs.editorContent;
-            const placeholder = editor.querySelector(`span[data-image="${imageName}"]`);
-            if (placeholder) {
-                placeholder.remove();
+            const image = editor.querySelector(`img[data-image="${imageName}"]`);
+            if (image) {
+                const parentDiv = image.closest('div');
+                if (parentDiv) {
+                    parentDiv.remove();
+                } else {
+                    image.remove();
+                }
             }
         },
         saveSelection() {

@@ -3,6 +3,9 @@
         <div class="admin-content">
             <div class="admin-content__heading">
                 <h3>Quản lý phân quyền</h3>
+                <router-link v-show="this.$route.params.id" to="/admin/permission/create" class="admin-content__create">
+                    Thêm phân quyền
+                </router-link>
             </div>
             <div class="admin-content__container">
                 <div class="admin-content__form">
@@ -47,37 +50,40 @@
 </template>
 
 <script>
-import { swalFire } from '@/utils/swal.js';
 import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
 
 export default {
     data() {
         return {
             permission: {},
             errors: {
-                name: '',
-                description: ''
+                name: '', description: ''
             },
         }
     },
-    async created() {
-        if (this.$route.params.id) {
-            await this.fetchData();
+    watch: {
+        '$route'(to, from) {
+            if (from.params.id && !to.params.id) {
+                this.resetForm();
+            } else {
+                this.fetchData();
+            }
         }
+    },
+    async created() {
+        await this.fetchData();
     },
     methods: {
         validate() {
             let isValid = true;
             this.errors = {
-                name: '',
-                description: ''
+                name: '', description: ''
             }
             if (!this.permission.name) {
                 this.errors.name = 'Tên phân quyền không được để trống.';
                 isValid = false;
-            } else if (this.permission.name.length > 64) {
-                this.errors.name = 'Tên phân quyền không được vượt quá 64 ký tự.';
+            } else if (this.permission.name.length > 255) {
+                this.errors.name = 'Tên phân quyền không được vượt quá 255 ký tự.';
                 isValid = false;
             }
             if (this.permission.description?.length > 255) {
@@ -88,8 +94,10 @@ export default {
         },
         async fetchData() {
             try {
-                const res = await handleApiCall(() => this.$request.get(apiService.permissions.view(this.$route.params.id)));
-                this.permission = res;
+                if (this.$route.params.id) {
+                    const res = await this.$swal.withLoading(apiService.permissions.getOne(this.$route.params.id));
+                    this.permission = res.data;
+                }
             } catch (error) {
                 console.error(error);
             }
@@ -97,15 +105,27 @@ export default {
         async save() {
             if (!this.validate()) return;
 
-            if (this.permission.id) {
-                await handleApiCall(() => this.$request.put(apiService.permissions.update(this.permission.id), this.permission));
-                await swalFire("Cập nhật thành công!", "Thông tin về phân quyền đã được cập nhật!", "success");
+            try {
+                if (this.permission.id) {
+                    await apiService.permissions.update(this.permission.id, this.permission);
+                    await this.$swal.fire("Cập nhật thành công!", "Thông tin về phân quyền kho đã được cập nhật!", "success")
+                }
+                else {
+                    await apiService.permissions.create(this.permission);
+                    await this.$swal.fire("Thêm thành công!", "Phân quyền kho mới đã được thêm vào hệ thống!", "success")
+                }
+                this.$router.push({ name: 'admin.permissions' });
+            } catch (error) {
+                console.error(error);
             }
-            else {
-                await handleApiCall(() => this.$request.post(apiService.permissions.create(), this.permission));
-                await swalFire("Thêm thành công!", "Phân quyền mới đã được thêm vào hệ thống!", "success");
-            }
-            this.$router.push({ name: 'admin.permissions' });
+        },
+        resetForm() {
+            this.permission = {
+                name: '', description: ''
+            };
+            this.errors = {
+                name: '', description: ''
+            };
         },
     }
 }

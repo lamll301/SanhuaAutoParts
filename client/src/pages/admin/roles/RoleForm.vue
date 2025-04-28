@@ -48,9 +48,7 @@
 
 <script>
 import { formatDate } from '@/utils/formatter';
-import { swalFire } from '@/utils/swal.js';
 import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
 import ItemDashboard from '@/components/ItemDashboard.vue';
 
 export default {
@@ -66,11 +64,17 @@ export default {
             },
         }
     },
-    async created() {
-        await this.fetchInitialData();
-        if (this.$route.params.id) {
-            await this.fetchData();
+    watch: {
+        '$route'(to, from) {
+            if (from.params.id && !to.params.id) {
+                this.resetForm();
+            } else {
+                this.fetchData();
+            }
         }
+    },
+    async created() {
+        await this.fetchData();
     },
     methods: {
         validate() {
@@ -81,53 +85,72 @@ export default {
             if (!this.role.name) {
                 this.errors.name = 'Tên vai trò không được để trống.';
                 isValid = false;
-            } else if (this.role.name.length > 64) {
-                this.errors.name = 'Tên vai trò không được vượt quá 64 ký tự.';
+            } else if (this.role.name.length > 255) {
+                this.errors.name = 'Tên vai trò không được vượt quá 255 ký tự.';
                 isValid = false;
             }
             return isValid;
         },
-        async fetchInitialData() {
-            try {
-                const resPermissions = await handleApiCall(() => this.$request.get(apiService.permissions.get({}, false, true)));
-                this.permissions = resPermissions.data;
-            } catch (error) {
-                console.log(error);
-            }
-        },
         async fetchData() {
             try {
-                const resRole = await handleApiCall(() => this.$request.get(apiService.roles.view(this.$route.params.id)));
-                this.role = resRole;
+                const req = [
+                    apiService.permissions.getAll(),
+                ];
+
+                if (this.$route.params.id) {
+                    req.push(
+                        apiService.roles.getOne(this.$route.params.id)
+                    );
+                }
+
+                const res = await this.$swal.withLoading(Promise.all(req));
+
+                this.permissions = res[0].data.data;
+                if (this.$route.params.id) this.role = res[1].data;
             } catch (error) {
                 console.log(error);
             }
         },
-        async save() {
-            if (!this.validate()) return;
-
+        cleanData(role) {
             const { addedIds, deletedIds } = this.$refs.itemDashboard.getIds();
-            const payload = {
-                ...this.role,
+
+            return {
+                ...role,
                 addedIds,
                 deletedIds
             };
+        },
+        async save() {
+            if (!this.validate()) return;
+            const data = this.cleanData(this.role);
 
-            if (this.role.id) {
-                await handleApiCall(() => this.$request.put(apiService.roles.update(this.role.id), payload));
-                await swalFire("Cập nhật thành công!", "Thông tin về người dùng đã được cập nhật!", "success");
+            try {
+                if (this.role.id) {
+                    await apiService.roles.update(this.role.id, data);
+                    await this.$swal.fire("Cập nhật thành công!", "Thông tin về vai trò đã được cập nhật!", "success")
+                }
+                else {
+                    await apiService.roles.create(data);
+                    await this.$swal.fire("Thêm thành công!", "Vai trò mới đã được thêm vào hệ thống!", "success")
+                }
+                this.$router.push({ name: 'admin.roles' });
+            } catch (error) {
+                console.error(error);
             }
-            else {
-                await handleApiCall(() => this.$request.post(apiService.roles.create(), payload));
-                await swalFire("Thêm thành công!", "Người dùng mới đã được thêm vào hệ thống!", "success");
-            }
-            this.$router.push({ name: 'admin.roles' });
         },
         formatDate(date) {
             return formatDate(date);
         },
         removePermission(id) {
             this.role.permissions = this.role.permissions.filter(permission => permission.id !== id);
+        },
+        resetForm() {
+            this.role = {
+                name: ''
+            };
+            this.errors = {
+                name: ''
+            };
         },
     }
 }

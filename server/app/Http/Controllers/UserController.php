@@ -9,14 +9,11 @@ use App\Models\Role;
 
 class UserController extends Controller
 {
-    private const SEARCH_FIELDS = ['id', 'phone', 'name'];
+    private const SEARCH_FIELDS = ['phone', 'name'];
     private const FILTER_FIELDS = [
         'filterByRole' => ['column' => 'role_id'],
         'filterByStatus' => ['column' => 'status'],
     ];
-    protected const STATUS_INACTIVE = 0;
-    protected const STATUS_ACTIVE = 1;
-    protected const STATUS_BANNED = 2;
 
     public function index(Request $request) {
         $query = User::query()->with('role');
@@ -32,27 +29,27 @@ class UserController extends Controller
     }
     public function store(UserRequest $request) {
         User::create($request->all());
-        return response()->json(['message' => 'User created']);
+        return response()->json(['message' => 'success'], 201);
     }
     public function update(UserRequest $request, string $id) {
         $user = User::findOrFail($id);
         $user->update($request->all());
-        return response()->json(['message' => 'User updated']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function destroy(string $id) {
         $user = User::findOrFail($id);
         $user->delete();
-        return response()->json(['message' => 'User deleted']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function restore(string $id) {
         $user = User::onlyTrashed()->findOrFail($id);
         $user->restore();
-        return response()->json(['message' => 'User restored']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function forceDelete(string $id) {
         $user = User::onlyTrashed()->findOrFail($id);
         $user->forceDelete();
-        return response()->json(['message' => 'User permanently deleted']);
+        return response()->json(['message' => 'success'], 204);
     }
     public function handleFormActions(Request $request) {
         $action = $request->input('action');
@@ -62,13 +59,13 @@ class UserController extends Controller
         switch ($action) {
             case 'delete':
                 User::destroy($ids);
-                return response()->json(['message' => 'Users deleted']);
+                return response()->json(['message' => 'success'], 200);
             case 'restore':
                 User::onlyTrashed()->whereIn('id', $ids)->restore();
-                return response()->json(['message' => 'Users restored']);
+                return response()->json(['message' => 'success'], 200);
             case 'forceDelete':
                 User::onlyTrashed()->whereIn('id', $ids)->forceDelete();
-                return response()->json(['message' => 'Users permanently deleted']);
+                return response()->json(['message' => 'success'], 204);
             case 'setRole':
                 if (!$targetId) {
                     return response()->json(['message' => 'Role ID is required'], 400);
@@ -77,13 +74,13 @@ class UserController extends Controller
                     return response()->json(['message' => 'Role not found'], 400);
                 }
                 User::whereIn('id', $ids)->update(['role_id' => $targetId]);
-                return response()->json(['message' => 'Role updated successfully']);
+                return response()->json(['message' => 'success'], 200);
             case 'removeRole':
                 User::whereIn('id', $ids)->update(['role_id' => null]);
-                return response()->json(['message' => 'Role removed successfully']);
+                return response()->json(['message' => 'success'], 200);
             case 'setStatus':
                 User::whereIn('id', $ids)->update(['status' => $targetId]);
-                return response()->json(['message' => 'Status updated successfully']);
+                return response()->json(['message' => 'success'], 200);
             default:
                 return response()->json(['message' => 'Action is invalid'], 400);
         }

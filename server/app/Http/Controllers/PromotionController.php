@@ -7,12 +7,10 @@ use App\Models\Promotion;
 
 class PromotionController extends Controller
 {
-    private const SEARCH_FIELDS = ['id', 'name'];
+    private const SEARCH_FIELDS = ['name'];
     private const FILTER_FIELDS = [
         'filterByStatus' => ['column' => 'status'],
     ];
-    protected const STATUS_INACTIVE = 0;
-    protected const STATUS_ACTIVE = 1;
 
     public function index(Request $request) {
         $query = Promotion::query();
@@ -28,27 +26,27 @@ class PromotionController extends Controller
     }
     public function store(Request $request) {
         Promotion::create($request->all());
-        return response()->json(['message' => 'Promotion created']);
+        return response()->json(['message' => 'success'], 201);
     }
     public function update(Request $request, string $id) {
         $promotion = Promotion::findOrFail($id);
         $promotion->update($request->all());
-        return response()->json(['message' => 'Promotion updated']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function destroy(string $id) {
         $promotion = Promotion::findOrFail($id);
         $promotion->delete();
-        return response()->json(['message' => 'Promotion deleted']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function restore(string $id) {
         $promotion = Promotion::onlyTrashed()->findOrFail($id);
         $promotion->restore();
-        return response()->json(['message' => 'Promotion restored']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function forceDelete(string $id) {
         $promotion = Promotion::onlyTrashed()->findOrFail($id);
         $promotion->forceDelete();
-        return response()->json(['message' => 'Promotion permanently deleted']);
+        return response()->json(['message' => 'success'], 204);
     }
     public function handleFormActions(Request $request) {
         $action = $request->input('action');
@@ -57,16 +55,16 @@ class PromotionController extends Controller
         switch ($action) {
             case 'delete':
                 Promotion::destroy($ids);
-                return response()->json(['message' => 'Promotions deleted']);
+                return response()->json(['message' => 'success'], 200);
             case 'restore':
                 Promotion::onlyTrashed()->whereIn('id', $ids)->restore();
-                return response()->json(['message' => 'Promotions restored']);
+                return response()->json(['message' => 'success'], 200);
             case 'forceDelete':
                 Promotion::onlyTrashed()->whereIn('id', $ids)->forceDelete();
-                return response()->json(['message' => 'Promotions permanently deleted']);
+                return response()->json(['message' => 'success'], 204);
             case 'setStatus':
                 Promotion::whereIn('id', $ids)->update(['status' => $targetId]);
-                return response()->json(['message' => 'Status updated successfully']);
+                return response()->json(['message' => 'success'], 200);
             default:
                 return response()->json(['message' => 'Action is invalid'], 400);
         }

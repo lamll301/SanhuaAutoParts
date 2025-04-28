@@ -1,13 +1,6 @@
 <template>
     <div class="admin-page">
-        <div v-show="isLoading" class="loading-overlay">
-            <div class="loader">
-                <svg class="circular" viewBox="25 25 50 50">
-                    <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10"/>
-                </svg>
-            </div>
-        </div>
-        <div class="admin-content" :class="{ 'loading-blur': isLoading }">
+        <div class="admin-content">
             <div class="admin-content__heading">
                 <h3 v-show="!isTrashRoute">Quản lý phiếu xuất</h3>
                 <h3 v-show="isTrashRoute">Quản lý thùng rác</h3>
@@ -15,8 +8,12 @@
             </div>
             <div class="admin-content__table">
                 <div class="admin-content__header d-flex align-items-center">
-                    <h4 v-show="!isTrashRoute">Tất cả phiếu xuất</h4>
-                    <h4 v-show="isTrashRoute">Phiếu xuất đã xóa</h4>
+                    <router-link v-show="!isTrashRoute" to="/admin/export" class="admin-content__title-link">
+                        <h4>Tất cả phiếu xuất</h4>
+                    </router-link>
+                    <router-link v-show="isTrashRoute" to="/admin/export/trash" class="admin-content__title-link">
+                        <h4>Phiếu xuất đã xóa</h4>
+                    </router-link>
                     <select ref="selectCheckboxAction" class="form-select admin-content__checkbox-select-all-opts">
                         <option value="" selected>-- Hành động --</option>
                         <template v-if="isTrashRoute">
@@ -40,16 +37,22 @@
                         <th scope="col">Địa chỉ
                             <SortComponent field="address" :sort="sort"/>
                         </th>
-                        <th scope="col">Lý do
+                        <th scope="col">Lý do xuất
                             <SortComponent field="reason" :sort="sort"/>
                         </th>
                         <th scope="col">Ngày xuất
-                            <SortComponent field="export_date" :sort="sort"/>
+                            <SortComponent field="date" :sort="sort"/>
                         </th>
                         <th scope="col">Tổng tiền
                             <SortComponent field="total_amount" :sort="sort"/>
                         </th>
                         <template v-if="!isTrashRoute">
+                            <th scope="col">Người tạo
+                                <SortComponent field="created_by" :sort="sort"/>
+                            </th>
+                            <th scope="col">Người duyệt
+                                <SortComponent field="approved_by" :sort="sort"/>
+                            </th>
                             <th scope="col">Ngày tạo
                                 <SortComponent field="created_at" :sort="sort"/>
                             </th>
@@ -68,9 +71,11 @@
                         <td>{{ item.receiver }}</td>
                         <td>{{ item.address }}</td>
                         <td>{{ item.reason }}</td>
-                        <td>{{ item.export_date }}</td>
+                        <td>{{ item.date }}</td>
                         <td>{{ formatPrice(item.total_amount) }}</td>
                         <template v-if="!isTrashRoute">
+                            <td>{{ item.creator?.name }}</td>
+                            <td>{{ item.approver?.name }}</td>
                             <td>{{ formatDate(item.created_at) }}</td>
                             <td>{{ formatDate(item.updated_at) }}</td>
                         </template>
@@ -119,10 +124,8 @@
 import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
-import { swalFire, swalConfirm } from '@/utils/swal';
 import { formatDate, formatPrice } from '@/utils/formatter';
 import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
 
 export default {
     components: {
@@ -133,7 +136,6 @@ export default {
             deletedCount: 0,
             sort: {}, totalPages: 0, currentPage: 1,
             selectedIds: [],
-            isLoading: false,
             exports: [],
         }
     },
@@ -151,63 +153,101 @@ export default {
     },
     methods: {
         async fetchData() {
-            this.isLoading = true;
             try {
-                const res = await handleApiCall(() => 
-                    this.$request.get(apiService.exports.get(this.$route.query, this.isTrashRoute))
-                );
-
-                this.exports = res.data;
-                this.totalPages = Math.ceil(res.pagination.total / res.pagination.per_page);
-                this.currentPage = res.pagination.current_page;
-                this.sort = res._sort;
+                const req = [
+                    this.isTrashRoute
+                        ? apiService.exports.getTrashed(this.$route.query)
+                        : apiService.exports.get(this.$route.query)
+                ];
 
                 if (!this.isTrashRoute) {
-                    const resDeleted = await handleApiCall(() => 
-                        this.$request.get(apiService.exports.get({}, true))
+                    req.push(
+                        apiService.exports.getTrashed(),
                     );
-                    this.deletedCount = resDeleted?.pagination?.total || 0;
+                }
+                
+                const res = await this.$swal.withLoading(Promise.all(req))
+
+                this.exports = res[0].data.data;
+                this.totalPages = Math.ceil(res[0].data.pagination.total / res[0].data.pagination.per_page);
+                this.currentPage = res[0].data.pagination.current_page;
+                this.sort = res[0].data._sort;
+    
+                if (!this.isTrashRoute) {
+                    this.deletedCount = res[1].data?.pagination?.total || 0;
                 }
             } catch (error) {
-                console.error(error);
-            } finally {
-                this.isLoading = false;
+                console.error(error)
             }
         },
         async onDelete(id) {
-            await handleApiCall(() => this.$request.delete(apiService.exports.delete(id)));
-            await swalFire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success");
-            await this.fetchData();
+            try {
+                await apiService.exports.delete(id)
+                await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success")
+                await this.fetchData()
+            } catch (error) {
+                console.error(error)
+            }
         },
         async onRestore(id) {
-            await handleApiCall(() => this.$request.patch(apiService.exports.restore(id)));
-            await swalFire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success");
-            await this.fetchData();
+            try {
+                await apiService.exports.restore(id)
+                await this.$swal.fire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success")
+                await this.fetchData()
+            } catch (error) {
+                console.error(error)
+            }
         },
         async onForceDelete(id) {
-            const result = await swalConfirm("Bạn chắc chắn?", "Bạn sẽ không thể khôi phục lại dữ liệu!", "warning", "Có, tôi muốn xóa!");
+            const result = await this.$swal.fire("Bạn chắc chắn?", "Bạn sẽ không thể khôi phục lại dữ liệu!", "warning", {
+                showCancelButton: true,
+                confirmButtonText: "Có, tôi muốn xóa!",
+                cancelButtonText: "Hủy"
+            })
             if (!result.isConfirmed) return;
-            await handleApiCall(() => this.$request.delete(apiService.exports.forceDelete(id)));
-            await swalFire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success");
-            await this.fetchData();
+            try {
+                await apiService.exports.forceDelete(id);
+                await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success")
+                await this.fetchData();
+            } catch (error) {
+                console.error(error)
+            }
         },
         async handleFormActions() {
-            const action = this.$refs.selectCheckboxAction.value;
-            if (!action) {
-                swalFire("Lỗi!", "Vui lòng chọn hành động.", "error");
+            const actionData = this.validateAndGetActionData();
+            if (!actionData) return;
+
+            const { action, isFilterAction } = actionData;
+            if (isFilterAction) {
+                this.$router.push({ query: { action } });
                 return;
             }
             if (this.selectedIds.length === 0) {
-                swalFire("Lỗi!", "Vui lòng chọn ít nhất 1 bản ghi để thực hiện hành động.", "error");
+                this.$swal.fire("Lỗi!", "Vui lòng chọn ít nhất 1 bản ghi để thực hiện hành động.", "error");
                 return;
             }
-            await handleApiCall(() => this.$request.post(apiService.exports.handleActions(), {
+            try {
+                await apiService.exports.handleFormActions({
+                    action,
+                    selectedIds: this.selectedIds,
+                })
+                await this.$swal.fire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success")
+                await this.fetchData()
+                await this.$refs.checkboxTable.resetCheckboxAll()
+            } catch (error) {
+                console.error(error)
+            }
+        },
+        validateAndGetActionData() {
+            const action = this.$refs.selectCheckboxAction.value;
+            if (!action) {
+                this.$swal.fire("Lỗi!", "Vui lòng chọn hành động.", "error");
+                return;
+            }
+            return {
                 action,
-                selectedIds: this.selectedIds,
-            }));
-            await swalFire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success");
-            await this.fetchData();
-            await this.$refs.checkboxTable.resetCheckboxAll();
+                isFilterAction: action.startsWith("filterBy")
+            };
         },
         handleUpdateIds(ids) {
             this.selectedIds = ids;

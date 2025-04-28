@@ -3,6 +3,9 @@
         <div class="admin-content">
             <div class="admin-content__heading">
                 <h3>Quản lý khuyến mãi</h3>
+                <router-link v-show="this.$route.params.id" to="/admin/promotion/create" class="admin-content__create">
+                    Thêm khuyến mãi
+                </router-link>
             </div>
             <div class="admin-content__container">
                 <div class="admin-content__form">
@@ -83,9 +86,7 @@
 </template>
 
 <script>
-import { swalFire } from '@/utils/swal.js';
 import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
 import { statusService } from '@/utils/statusService';
 
 export default {
@@ -104,10 +105,17 @@ export default {
             },
         }
     },
-    async created() {
-        if (this.$route.params.id) {
-            await this.fetchData();
+    watch: {
+        '$route'(to, from) {
+            if (from.params.id && !to.params.id) {
+                this.resetForm();
+            } else {
+                this.fetchData();
+            }
         }
+    },
+    async created() {
+        await this.fetchData();
     },
     methods: {
         validate() {
@@ -122,8 +130,8 @@ export default {
             if (!this.promotion.name) {
                 this.errors.name = 'Tên khuyến mãi không được để trống.';
                 isValid = false;
-            } else if (this.promotion.name.length > 128) {
-                this.errors.name = 'Tên khuyến mãi không được vuợt quá 128 ký tự.';
+            } else if (this.promotion.name.length > 255) {
+                this.errors.name = 'Tên khuyến mãi không được vuợt quá 255 ký tự.';
                 isValid = false;
             }
             if (!this.promotion.discount_percent) {
@@ -155,28 +163,44 @@ export default {
         },
         async fetchData() {
             try {
-                const res = await handleApiCall(() => this.$request.get(apiService.promotions.view(this.$route.params.id)));
-                this.promotion = res;
+                if (this.$route.params.id) {
+                    const res = await this.$swal.withLoading(apiService.promotions.getOne(this.$route.params.id));
+                    this.promotion = res.data;
+                }
             } catch (error) {
                 console.error(error);
             }
         },
         async save() {
             if (!this.validate()) return;
-            const payload = Object.fromEntries(
-                Object.entries(this.promotion).filter(([, value]) => 
-                    value !== null && value !== undefined && value !== ''
-                )
-            );
-            if (this.promotion.id) {
-                await handleApiCall(() => this.$request.put(apiService.promotions.update(this.promotion.id), payload));
-                await swalFire("Cập nhật thành công!", "Thông tin về khuyến mãi đã được cập nhật!", "success");
+            try {
+                if (this.promotion.id) {
+                    await apiService.promotions.update(this.promotion.id, this.promotion);
+                    await this.$swal.fire("Cập nhật thành công!", "Thông tin về khuyến mãi đã được cập nhật!", "success");
+                }
+                else {
+                    await apiService.promotions.create(this.promotion);
+                    await this.$swal.fire("Thêm thành công!", "Khuyến mãi mới đã được thêm vào hệ thống!", "success");
+                }
+                this.$router.push({ name: 'admin.promotions' });
+            } catch (error) {
+                console.error(error)
             }
-            else {
-                await handleApiCall(() => this.$request.post(apiService.promotions.create(), payload));
-                await swalFire("Thêm thành công!", "Khuyến mãi mới đã được thêm vào hệ thống!", "success");
-            }
-            this.$router.push({ name: 'admin.promotions' });
+        },
+        resetForm() {
+            this.promotion = {
+                name: '',
+                discount_percent: '',
+                max_discount_amount: '',
+                status: '',
+            };
+            this.errors = {
+                name: '',
+                discount_percent: '',
+                max_discount_amount: '',
+                start_date: '',
+                end_date: '',
+            };
         },
     }
 }

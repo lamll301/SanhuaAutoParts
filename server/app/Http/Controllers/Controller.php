@@ -5,17 +5,40 @@ namespace App\Http\Controllers;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 
 class Controller
 {
+    // chuẩn hóa chuỗi tiếng việt (loại dấu & chuyển sang chữ thường)
+    private function normalizeVietnameseString($str) {
+        $str = mb_strtolower($str, 'UTF-8');
+        $patterns = [
+            '/[áàảãạăắằẳẵặâấầẩẫậ]/u' => 'a',
+            '/[éèẻẽẹêếềểễệ]/u' => 'e',
+            '/[íìỉĩị]/u' => 'i',
+            '/[óòỏõọôốồổỗộơớờởỡợ]/u' => 'o',
+            '/[úùủũụưứừửữự]/u' => 'u',
+            '/[ýỳỷỹỵ]/u' => 'y',
+            '/đ/u' => 'd',
+        ];
+        return preg_replace(array_keys($patterns), array_values($patterns), $str);
+    }
     protected function search($query, $key, array $columns = []) {
         if (empty($key)) {
             return $query;
         }
-        $query->where(function ($q) use ($key, $columns) {
+        $normalizedKey = $this->normalizeVietnameseString($key);
+        $query->where(function ($q) use ($normalizedKey, $columns) {
             foreach ($columns as $column) {
-                $q->orWhere($column, 'like', "%{$key}%");
+                if (strpos($column, '.') !== false) {
+                    list($relation, $relatedColumn) = explode('.', $column, 2);
+                    $q->orWhereHas($relation, function($subQuery) use ($normalizedKey, $relatedColumn) {
+                        $subQuery->whereRaw("LOWER(UNACCENT({$relatedColumn})) LIKE ?", ["%{$normalizedKey}%"]);
+                    });
+                } else {
+                    $q->orWhereRaw("LOWER(UNACCENT({$column})) LIKE ?", ["%{$normalizedKey}%"]);
+                }
             }
         });
         return $query;
@@ -104,11 +127,32 @@ class Controller
         $model->images()->where('filename', $imageName)->update(['is_thumbnail' => true]);
         $model->refresh();
     }
-    protected function addIds(Model $model, array $ids, String $relation) {     // cho các bảng có quan hệ n-n
-        $model->$relation()->syncWithoutDetaching($ids);
+    protected function addIds(Model $model, array $ids = [], String $relation, array $idsWithAttributes = []) {   // cho các bảng có quan hệ n-n
+        if (!empty($ids)) {
+            $model->$relation()->syncWithoutDetaching($ids);
+        } elseif (!empty($idsWithAttributes)) {
+            $data = [];
+            foreach ($idsWithAttributes as $i) {
+                if (!isset($i['id'])) continue;
+
+                $data[$i['id']] = array_filter($i, function ($key) {
+                    return $key !== 'id';
+                }, ARRAY_FILTER_USE_KEY);
+            }
+            $model->$relation()->syncWithoutDetaching($data);
+        }
     }
     protected function removeIds(Model $model, array $ids, String $relation) {
         $model->$relation()->detach($ids);
+    }
+    protected function updateIds(Model $model, array $idsWithAttributes, string $relation) {
+        $data = [];
+        foreach ($idsWithAttributes as $i) {
+            if (!isset($i['id'])) continue;
+            
+            $data[$i['id']] = Arr::except($i, 'id');
+        }
+        $model->$relation()->syncWithoutDetaching($data);
     }
     protected function calculateTotalAmount(array $details, String $quantity = 'quantity', String $price = 'price'): int {
         $total = 0;

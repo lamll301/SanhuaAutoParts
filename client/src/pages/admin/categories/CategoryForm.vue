@@ -3,6 +3,9 @@
         <div class="admin-content">
             <div class="admin-content__heading">
                 <h3>Quản lý danh mục</h3>
+                <router-link v-show="this.$route.params.id" to="/admin/category/create" class="admin-content__create">
+                    Thêm danh mục
+                </router-link>
             </div>
             <div class="admin-content__container">
                 <div class="admin-content__form">
@@ -76,82 +79,103 @@
 </template>
 
 <script>
-import { swalFire } from '@/utils/swal.js';
 import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
 import ImagePreview from '@/components/ImagePreview.vue';
 
 export default {
     data() {
         return {
             category: {},
-            errors: {
-                name: '', type: '', description: ''
+            errors: { 
+                name: '',
+                type: '',
+                description: '', 
             },
         }
     },
     components: {
         ImagePreview
     },
-    async created() {
-        if (this.$route.params.id) {
-            await this.fetchData();
+    watch: {
+        '$route'(to, from) {
+            if (from.params.id && !to.params.id) {
+                this.resetForm();
+            } else {
+                this.fetchData();
+            }
         }
+    },
+    async created() {
+        await this.fetchData();
     },
     methods: {
         validate() {
             let isValid = true;
-            this.errors = {
-                name: '', type: '', description: ''
+            this.errors = { 
+                name: '',
+                type: '',
+                description: '',
             }
-            if (!this.category.name) {
-                this.errors.name = 'Tên danh mục không được để trống.';
+
+            if (!this.category.name || this.category.name.trim() === '') {
+                this.errors.name = 'Vui lòng nhập tên danh mục';
                 isValid = false;
-            } else if (this.category.name.length > 64) {
-                this.errors.name = 'Tên danh mục không được vượt quá 64 ký tự.';
-                isValid = false;
-            }
-            if (this.category.type?.length > 32) {
-                this.errors.type = 'Tên danh mục không được vượt quá 32 ký tự.';
-                isValid = false;
-            }
-            if (this.category.description?.length > 255) {
-                this.errors.description = 'Tên danh mục không được vượt quá 255 ký tự.';
+            } else if (this.category.name.length > 255) {
+                this.errors.name = 'Tên danh mục không được vượt quá 255 ký tự';
                 isValid = false;
             }
+            
+            if (!this.category.type || this.category.type.trim() === '') {
+                this.errors.type = 'Vui lòng nhập phân loại';
+                isValid = false;
+            } else if (this.category.type.length > 255) {
+                this.errors.type = 'Phân loại không được vượt quá 255 ký tự';
+                isValid = false;
+            }
+            
+            if (this.category.description && this.category.description.length > 255) {
+                this.errors.description = 'Mô tả không được vượt quá 255 ký tự';
+                isValid = false;
+            }
+            
             return isValid;
         },
         async fetchData() {
             try {
-                const res = await handleApiCall(() => this.$request.get(apiService.categories.view(this.$route.params.id)));
-                this.category = res;
+                if (this.$route.params.id) {
+                    const res = await this.$swal.withLoading(apiService.categories.getOne(this.$route.params.id));
+                    this.category = res.data;
+                }
             } catch (error) {
                 console.error(error);
             }
         },
         async save() {
             if (!this.validate()) return;
+            const data = this.cleanData(this.category);
 
-            const formData = this.prepareFormData();
-
-            if (this.category.id) {
-                await handleApiCall(() => this.$request.post(apiService.categories.update(this.category.id), formData));
-                await swalFire("Cập nhật thành công!", "Thông tin về danh mục đã được cập nhật!", "success");
+            try {
+                if (this.category.id) {
+                    await apiService.categories.updateWithImages(this.category.id, data);
+                    await this.$swal.fire("Cập nhật thành công!", "Thông tin về danh mục đã được cập nhật!", "success")
+                }
+                else {
+                    await apiService.categories.create(data);
+                    await this.$swal.fire("Thêm thành công!", "Danh mục mới đã được thêm vào hệ thống!", "success")
+                }
+                this.$router.push({ name: 'admin.categories' });
+            } catch (error) {
+                console.error(error);
             }
-            else {
-                await handleApiCall(() => this.$request.post(apiService.categories.create(), formData));
-                await swalFire("Thêm thành công!", "Danh mục mới đã được thêm vào hệ thống!", "success");
-            }
-            this.$router.push({ name: 'admin.categories' });
         },
-        prepareFormData() {
+        cleanData(category) {
             const formData = new FormData();
             const images = this.$refs.imagePreview.tempImages;
             const selectedThumbnail = this.$refs.imagePreview.selectedThumbnail;
             const deletedImageIds = this.$refs.imagePreview.deletedImageIds;
 
-            Object.entries(this.category).forEach(([key, value]) => {
-                if (value !== null && value !== undefined && value !== '') {
+            Object.entries(category).forEach(([key, value]) => {
+                if (value !== null && value !== undefined) {
                     formData.append(key, value);
                 }
             });
@@ -164,7 +188,7 @@ export default {
                 formData.append('selectedThumbnail', selectedThumbnail);
             }
 
-            if (this.category.id) {
+            if (category.id) {
                 formData.append('_method', 'PUT');
                 if (deletedImageIds.length > 0) {
                     formData.append('deletedImageIds', JSON.stringify(deletedImageIds));
@@ -177,6 +201,18 @@ export default {
             if (this.category.images) {
                 this.category.images = this.category.images.filter(image => image.id !== imageId);
             }
+        },
+        resetForm() {
+            this.category = { 
+                name: '',
+                type: '',
+                description: '',
+            };
+            this.errors = { 
+                name: '',
+                type: '',
+                description: '',
+            };
         },
     }
 }

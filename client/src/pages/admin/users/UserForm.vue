@@ -3,6 +3,9 @@
         <div class="admin-content">
             <div class="admin-content__heading">
                 <h3>Quản lý người dùng</h3>
+                <router-link v-show="this.$route.params.id" to="/admin/user/create" class="admin-content__create">
+                    Thêm người dùng
+                </router-link>
             </div>
             <div class="admin-content__container">
                 <div class="admin-content__form">
@@ -45,7 +48,9 @@
                             <div class="mb-20">
                                 <h3 class="admin-content__form-text">Ngày sinh</h3>
                                 <div class="valid-elm input-group">
-                                    <input type="date" class="fs-16 form-control" v-model="user.date_of_birth">
+                                    <input type="date" class="fs-16 form-control" v-model="user.date_of_birth"
+                                    v-bind:class="{'is-invalid': errors.date_of_birth}" @blur="validate()">
+                                    <div class="invalid-feedback" v-if="errors.date_of_birth">{{ errors.date_of_birth }}</div>
                                 </div>
                             </div>
                         </div>
@@ -142,9 +147,7 @@
 </template>
 
 <script>
-import { swalFire } from '@/utils/swal.js';
 import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
 import { statusService } from '@/utils/statusService';
 import { isValidEmail, isValidPhone, isValidPassword } from '@/utils/helpers';
 
@@ -152,7 +155,7 @@ export default {
     data() {
         return {
             errors: {
-                username: '', password: '', email: '', phone: '',
+                username: '', password: '', email: '', phone: '', date_of_birth: ''
             },
             cities: [], districts: [], wards: [],
             user: {
@@ -162,20 +165,23 @@ export default {
             statusOptions: statusService.getOptions('user'),
         }
     },
-    async created() {
-        await Promise.all([
-            this.fetchCities(),
-            this.fetchRoles()
-        ]);
-        if (this.$route.params.id) {
-            await this.fetchData();
+    watch: {
+        '$route'(to, from) {
+            if (from.params.id && !to.params.id) {
+                this.resetForm();
+            } else {
+                this.fetchData();
+            }
         }
+    },
+    async created() {
+        await this.fetchData();
     },
     methods: {
         validate() {
             let isValid = true;
             this.errors = {
-                username: '', password: '', email: '', phone: '',
+                username: '', password: '', email: '', phone: '', date_of_birth: ''
             }
             if (!this.user.username) {
                 this.errors.username = 'Tên tài khoản không được để trống.';
@@ -199,83 +205,95 @@ export default {
                 this.errors.phone = 'Số điện thoại không hợp lệ.';
                 isValid = false;
             }
+            if (this.user.date_of_birth && new Date(this.user.date_of_birth).setHours(0,0,0,0) >= new Date().setHours(0,0,0,0)) {
+                this.errors.date_of_birth = 'Ngày sinh phải nhỏ hơn ngày hiện tại.';
+                isValid = false;
+            }
             return isValid;
         },
         async fetchData() {
             try {
-                const res = await handleApiCall(() => this.$request.get(apiService.users.view(this.$route.params.id)));
-                this.user = res;
-                if (this.user.city_id) {
-                    await this.fetchDistrictsById();
-                    if (this.user.district_id) {
-                        await this.fetchWardsById();
-                    }
+                const req = [
+                    apiService.provinces.getProvinces(),
+                    apiService.roles.getAll(),
+                ];
+
+                if (this.$route.params.id) {
+                    req.push(
+                        apiService.users.getOne(this.$route.params.id),
+                    );
                 }
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async fetchRoles() {
-            try {
-                const res = await handleApiCall(() => this.$request.get(apiService.roles.get({}, false, true)));
-                this.roles = res.data;
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async fetchCities() {
-            try {
-                const res = await handleApiCall(() => this.$request.get(apiService.getAllCities()));
-                this.cities = res;
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async fetchDistrictsById() {
-            try {
-                const res = await handleApiCall(() => this.$request.get(apiService.getDistrictsById(this.user.city_id)));
-                this.districts = res.districts;
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async fetchWardsById() {
-            try {
-                const res = await handleApiCall(() => this.$request.get(apiService.getWardsById(this.user.district_id)));
-                this.wards = res.wards;
+
+                const res = await this.$swal.withLoading(Promise.all(req));
+
+                this.cities = res[0].data;
+                this.roles = res[1].data.data;
+                if (this.$route.params.id) this.user = res[2].data;
+
+                const extraReq = []
+
+                if (this.user?.city_id) extraReq.push(apiService.provinces.getProvinceWithDistricts(this.user.city_id))
+                if (this.user?.district_id) extraReq.push(apiService.provinces.getDistrictWithWards(this.user.district_id))
+                if (extraReq.length) {
+                    const extraRes = await this.$swal.withLoading(Promise.all(extraReq));
+                    if (this.user.city_id) this.districts = extraRes[0].data.districts;
+                    if (this.user.district_id) this.wards = extraRes[1].data.wards;
+                }
             } catch (error) {
                 console.error(error);
             }
         },
         async save() {
             if (!this.validate()) return;
-            const payload = Object.fromEntries(
-                Object.entries(this.user).filter(([, value]) => 
-                    value !== null && value !== undefined && value !== ''
-                )
-            );
-            if (this.user.id) {
-                await handleApiCall(() => this.$request.put(apiService.users.update(this.user.id), payload));
-                await swalFire("Cập nhật thành công!", "Thông tin về người dùng đã được cập nhật!", "success");
+            const data = this.cleanData(this.user);
+
+            try {
+                if (this.user.id) {
+                    await apiService.users.update(this.user.id, data);
+                    await this.$swal.fire("Cập nhật thành công!", "Thông tin về người dùng đã được cập nhật!", "success")
+                }
+                else {
+                    await apiService.users.create(data);
+                    await this.$swal.fire("Thêm thành công!", "Người dùng mới đã được thêm vào hệ thống!", "success")
+                }
+                this.$router.push({ name: 'admin.users' });
+            } catch (error) {
+                console.error(error);
             }
-            else {
-                await handleApiCall(() => this.$request.post(apiService.users.create(), payload));
-                await swalFire("Thêm thành công!", "Người dùng mới đã được thêm vào hệ thống!", "success");
-            }
-            this.$router.push({ name: 'admin.users' });
         },
-        onCityChange() {
+
+        async onCityChange() {
             this.user.district_id = null;
             this.districts = [];
             this.user.ward_id = null;
             this.wards = [];
-            this.fetchDistrictsById();
+            
+            const res = await apiService.provinces.getProvinceWithDistricts(this.user.city_id);
+            this.districts = res.data.districts;
         },
-        onDistrictChange() {
+        async onDistrictChange() {
             this.user.ward_id = null;
             this.wards = [];
-            this.fetchWardsById();
+
+            const res = await apiService.provinces.getDistrictWithWards(this.user.district_id);
+            this.wards = res.data.wards;
         },
+        resetForm() {
+            this.user = {
+                city_id: null, district_id: null, ward_id: null, role_id: null, status: '',
+                phone: '', date_of_birth: '', address: '', username: '', password: '', email: ''
+            };
+            this.errors = {
+                username: '', password: '', email: '', phone: '', date_of_birth: ''
+            };
+            this.districts = [];
+            this.wards = [];
+        },
+        cleanData(user) {
+            if (user.status === '') delete user.status;
+
+            return user
+        }
     }
 }
 </script>

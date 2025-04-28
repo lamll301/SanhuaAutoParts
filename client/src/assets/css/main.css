@@ -414,7 +414,7 @@
 .admin-content {
     margin: -160px 0 0;
     width: 94%;
-    /* width: 1200px; */
+    max-width: 1200px;
 }
 .admin-content__heading {
     display: flex;

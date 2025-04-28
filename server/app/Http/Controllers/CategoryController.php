@@ -7,7 +7,7 @@ use App\Models\Category;
 
 class CategoryController extends Controller
 {
-    private const SEARCH_FIELDS = ['id', 'name'];
+    private const SEARCH_FIELDS = ['name', 'type'];
 
     public function index(Request $request) {
         $query = Category::with('images');
@@ -29,7 +29,7 @@ class CategoryController extends Controller
         if ($request->has('selectedThumbnail')) {
             $this->setThumbnail($category, $request->input('selectedThumbnail'));
         }
-        return response()->json(['message' => 'Category created']);
+        return response()->json(['message' => 'success'], 201);
     }
     public function update(Request $request, string $id) {
         $category = Category::findOrFail($id);
@@ -43,23 +43,23 @@ class CategoryController extends Controller
         if ($request->has('selectedThumbnail')) {
             $this->setThumbnail($category, $request->input('selectedThumbnail'));
         }
-        return response()->json(['message' => 'Category updated']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function destroy(string $id) {
         $category = Category::findOrFail($id);
         $category->delete();
-        return response()->json(['message' => 'Category deleted']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function restore(string $id) {
         $category = Category::onlyTrashed()->findOrFail($id);
         $category->restore();
-        return response()->json(['message' => 'Category restored']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function forceDelete(string $id) {
         $category = Category::onlyTrashed()->findOrFail($id);
         $this->deleteFolder($category);
         $category->forceDelete();
-        return response()->json(['message' => 'Category permanently deleted']);
+        return response()->json(['message' => 'success'], 204);
     }
     public function handleFormActions(Request $request) {
         $action = $request->input('action');
@@ -67,13 +67,13 @@ class CategoryController extends Controller
         switch ($action) {
             case 'delete':
                 Category::destroy($ids);
-                return response()->json(['message' => 'Categories deleted']);
+                return response()->json(['message' => 'success'], 200);
             case 'restore':
                 Category::onlyTrashed()->whereIn('id', $ids)->restore();
-                return response()->json(['message' => 'Categories restored']);
+                return response()->json(['message' => 'success'], 200);
             case 'forceDelete':
                 Category::onlyTrashed()->whereIn('id', $ids)->forceDelete();
-                return response()->json(['message' => 'Categories permanently deleted']);
+                return response()->json(['message' => 'success'], 204);
             default:
                 return response()->json(['message' => 'Action is invalid'], 400);
         }

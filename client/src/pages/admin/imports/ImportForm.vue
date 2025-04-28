@@ -3,6 +3,9 @@
         <div class="admin-content">
             <div class="admin-content__heading">
                 <h3>Quản lý phiếu nhập</h3>
+                <router-link v-show="this.$route.params.id" to="/admin/import/create" class="admin-content__create">
+                    Thêm phiếu nhập
+                </router-link>
             </div>
             <div class="admin-content__container">
                 <div class="admin-content__form">
@@ -22,7 +25,7 @@
                             <h3 class="admin-content__form-text">Nhà cung cấp</h3>
                             <div class="input-group">
                                 <select class="valid-elm form-select" v-model="importData.supplier_id">
-                                    <option disabled value="">Chọn nhà cung cấp</option>
+                                    <option disabled selected value="null">Chọn nhà cung cấp</option>
                                     <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
                                         {{ supplier.name }}
                                     </option>
@@ -49,9 +52,9 @@
                         <div class="mb-20">
                             <h3 class="admin-content__form-text">Ngày nhập</h3>
                             <div class="valid-elm input-group">
-                                <input type="date" class="fs-16 form-control" v-model="importData.import_date"
-                                v-bind:class="{'is-invalid': errors.import_date}" @blur="validate()">
-                                <div class="invalid-feedback" v-if="errors.import_date">{{ errors.import_date }}</div>
+                                <input type="date" class="fs-16 form-control" v-model="importData.date"
+                                v-bind:class="{'is-invalid': errors.date}" @blur="validate()">
+                                <div class="invalid-feedback" v-if="errors.date">{{ errors.date }}</div>
                             </div>
                         </div>
                         <div class="mb-20">
@@ -62,7 +65,7 @@
                                     { text: 'Số lượng', key: 'quantity', type: 'number', min: 1, default: 1 },
                                     { text: 'Đơn giá', key: 'price', type: 'number' }
                                 ]"
-                                :items="importData.import_details"
+                                :items="importData.details"
                                 @add="addImportDetail"
                                 @remove="removeImportDetail"
                             />
@@ -79,10 +82,7 @@
 </template>
 
 <script>
-/* eslint-disable */
-import { swalFire } from '@/utils/swal.js';
 import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
 import TableDetails from '@/components/TableDetails.vue';
 
 export default {
@@ -92,22 +92,28 @@ export default {
     data() {
         return {
             importData: {
-                supplier_id: '',
-                import_details: []
+                supplier_id: null,
+                details: []
             },
             suppliers: [], products: [],
             errors: {
                 deliverer: '',
                 address: '',
-                import_date: ''
+                date: ''
             },
         }
     },
-    async created() {
-        await this.fetchInitialData();
-        if (this.$route.params.id) {
-            await this.fetchData();
+    watch: {
+        '$route'(to, from) {
+            if (from.params.id && !to.params.id) {
+                this.resetForm();
+            } else {
+                this.fetchData();
+            }
         }
+    },
+    async created() {
+        await this.fetchData();
     },
     methods: {
         validate() {
@@ -115,54 +121,73 @@ export default {
             this.errors = {
                 deliverer: '',
                 address: '',
-                import_date: ''
+                date: ''
             }
-            if (this.importData.deliverer?.length > 64) {
-                this.errors.deliverer = 'Tên người giao không được vượt quá 64 ký tự.';
+            if (this.importData.deliverer?.length > 255) {
+                this.errors.deliverer = 'Tên người giao không được vượt quá 255 ký tự.';
                 isValid = false;
             }
             if (this.importData.address?.length > 255) {
                 this.errors.address = 'Địa chỉ không được vượt quá 255 ký tự.';
                 isValid = false;
             }
-            if (!this.importData.import_date) {
-                this.errors.import_date = 'Ngày nhập không được để trống.';
+            if (!this.importData.date) {
+                this.errors.date = 'Ngày nhập không được để trống.';
                 isValid = false;
             }
             return isValid;
         },
         async fetchData() {
             try {
-                const res = await handleApiCall(() => this.$request.get(apiService.imports.view(this.$route.params.id)));
-                this.importData = res;
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async fetchInitialData() {
-            try {
-                const [suppliers, products] = await Promise.all([
-                    handleApiCall(() => this.$request.get(apiService.suppliers.get({}, false, true))),
-                    handleApiCall(() => this.$request.get(apiService.products.get({}, false, true))),
-                ]);
-                this.suppliers = suppliers.data;
-                this.products = products.data;
+                const req = [
+                    apiService.suppliers.getAll(),
+                    apiService.products.getAll(),
+                ];
+
+                if (this.$route.params.id) {
+                    req.push(
+                        apiService.imports.getOne(this.$route.params.id)
+                    );
+                }
+
+                const res = await this.$swal.withLoading(Promise.all(req));
+
+                this.suppliers = res[0].data.data;
+                this.products = res[1].data.data;
+                if (this.$route.params.id) this.importData = res[2].data;
             } catch (error) {
                 console.error(error);
             }
         },
         async save() {
             if (!this.validate()) return;
+            const data = this.cleanData(this.importData);
 
-            if (this.importData.id) {
-                await handleApiCall(() => this.$request.put(apiService.imports.update(this.importData.id), this.importData));
-                await swalFire("Cập nhật thành công!", "Thông tin về phiếu nhập đã được cập nhật!", "success");
+            try {
+                if (this.importData.id) {
+                    await apiService.imports.update(this.importData.id, data);
+                    await this.$swal.fire("Cập nhật thành công!", "Thông tin về phiếu nhập đã được cập nhật!", "success")
+                }
+                else {
+                    await apiService.imports.create(data);
+                    await this.$swal.fire("Thêm thành công!", "Phiếu nhập mới đã được thêm vào hệ thống!", "success")
+                }
+                this.$router.push({ name: 'admin.imports' });
+            } catch (error) {
+                console.error(error);
             }
-            else {
-                await handleApiCall(() => this.$request.post(apiService.imports.create(), this.importData));
-                await swalFire("Thêm thành công!", "Phiếu nhập mới đã được thêm vào hệ thống!", "success");
+        },
+        cleanData(importData) {
+            const data = { ...importData };
+            if (data.details) {
+                data.details = data.details.filter(detail => 
+                    detail.product_id && 
+                    Number(detail.quantity) > 0 && 
+                    Number(detail.price) > 0
+                );
             }
-            this.$router.push({ name: 'admin.imports' });
+            
+            return data;
         },
         addImportDetail() {
             const newDetail = {
@@ -171,19 +196,30 @@ export default {
                 price: 0
             };
             
-            if (!this.importData.import_details) {
-                this.importData.import_details = [];
+            if (!this.importData.details) {
+                this.importData.details = [];
             }
             
-            this.importData.import_details.push(newDetail);
+            this.importData.details.push(newDetail);
         },
         removeImportDetail(index) {
-            this.importData.import_details.splice(index, 1);
+            this.importData.details.splice(index, 1);
         
-            if (this.importData.import_details.length === 0) {
+            if (this.importData.details.length === 0) {
                 this.addImportDetail();
             }
-        }
+        },
+        resetForm() {
+            this.importData = {
+                deliverer: '',
+                address: '',
+            };
+            this.errors = {
+                deliverer: '',
+                address: '',
+                date: ''
+            };
+        },
     }
 }
 </script>

@@ -4,31 +4,42 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Article;
+use App\Models\User;
 use Faker\Factory as Faker;
 use Illuminate\Support\Str;
 
 class ArticleSeeder extends Seeder
 {
+    private function generateArticleContent($faker): string
+    {
+        $content = '<p>' . $faker->paragraph(5) . '</p>';
+        $content .= '<h2>' . $faker->sentence(3) . '</h2>';
+        $content .= '<p>' . $faker->paragraph(8) . '</p>';
+        $content .= '<p><img src="' . $faker->imageUrl(800, 400) . '" alt="' . $faker->sentence(2) . '"></p>';
+        $content .= '<p>' . $faker->paragraph(6) . '</p>';
+        $content .= '<h3>' . $faker->sentence(4) . '</h3>';
+        $content .= '<p>' . $faker->paragraph(7) . '</p>';
+        
+        return $content;
+    }
+
     public function run(): void
     {
         $faker = Faker::create('vi_VN');
+        $userIds = User::pluck('id')->toArray();
 
-        foreach (range(1, 20) as $index) {
-            $title = $faker->sentence($nbWords = 8, $variableNbWords = true);
+        for ($i = 0; $i < 25; $i++) {
+            $title = $faker->sentence(6);
             $slug = Str::slug($title);
-            $highlight = $faker->text(64);
-            $author = $faker->name;
-            $publish_date = $faker->dateTimeThisYear()->format('Y-m-d H:i:s');
-            $content = $faker->paragraphs($nb = 5, $asText = true);
-
+            
             Article::create([
                 'title' => $title,
                 'slug' => $slug,
-                'highlight' => $highlight,
-                'author' => $author,
-                'publish_date' => $publish_date,
-                'content' => $content,
-                'status' => $faker->randomElement([0, 1]),
+                'highlight' => $faker->optional(0.6)->sentence,
+                'author' => $faker->optional()->randomElement($userIds),
+                'approved_by' => $faker->optional(0.5)->randomElement($userIds),
+                'publish_date' => $faker->dateTimeBetween('-6 months', '+1 week')->format('Y-m-d'),
+                'content' => $this->generateArticleContent($faker),
             ]);
         }
     }

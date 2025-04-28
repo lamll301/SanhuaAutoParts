@@ -10,9 +10,9 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 64);
-            $table->string('type', 32)->nullable();
-            $table->string('slug', 66)->unique();
+            $table->string('name');
+            $table->string('type')->nullable();
+            $table->string('slug')->unique();
             $table->string('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
@@ -20,17 +20,17 @@ return new class extends Migration
         
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 128);
-            $table->string('slug', 130)->unique();
+            $table->string('name');
+            $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->unsignedInteger('original_price');
             $table->unsignedInteger('price');
             $table->unsignedInteger('quantity')->default(0);
-            $table->string('dimensions', 64)->nullable();  // kich thuoc
-            $table->string('weight', 32)->nullable();     // trong luong
-            $table->string('color', 32)->nullable();      // mau sac
-            $table->string('material', 64)->nullable();   // chat lieu
-            $table->string('compatibility', 128)->nullable();      // tuong thich
+            $table->string('dimensions')->nullable();  // kich thuoc
+            $table->string('weight')->nullable();     // trong luong
+            $table->string('color')->nullable();      // mau sac
+            $table->string('material')->nullable();   // chat lieu
+            $table->string('compatibility')->nullable();      // tuong thich
 
             $table->unsignedBigInteger('promotion_id')->nullable();
             $table->unsignedBigInteger('unit_id')->nullable();

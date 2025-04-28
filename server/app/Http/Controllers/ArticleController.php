@@ -7,20 +7,24 @@ use App\Models\Article;
 
 class ArticleController extends Controller
 {
-    private const SEARCH_FIELDS = ['id', 'title', 'author'];
-    private const FILTER_FIELDS = [
-        'filterByStatus' => ['column' => 'status'],
-    ];
+    private const SEARCH_FIELDS = ['title'];
+    private const FILTER_FIELDS = [];
     protected const STATUS_DRAFT = 0;
     protected const STATUS_PUBLISHED = 1;
 
     public function index(Request $request) {
-        $query = Article::with('images');
+        $query = Article::with([
+            'images',
+            'creator:id,name',
+        ]);
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
 
     public function trashed(Request $request) {
-        $query = Article::onlyTrashed()->with('images');
+        $query = Article::onlyTrashed()->with([
+            'images',
+            'creator:id,name',
+        ]);
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
 
@@ -37,7 +41,7 @@ class ArticleController extends Controller
         if ($request->has('selectedThumbnail')) {
             $this->setThumbnail($article, $request->input('selectedThumbnail'));
         }
-        return response()->json(['message' => 'Article created']);
+        return response()->json(['message' => 'success'], 201);
     }
 
     public function update(Request $request, string $id) {
@@ -52,26 +56,26 @@ class ArticleController extends Controller
         if ($request->has('selectedThumbnail')) {
             $this->setThumbnail($article, $request->input('selectedThumbnail'));
         }
-        return response()->json(['message' => 'Article updated']);
+        return response()->json(['message' => 'success'], 200);
     }
 
     public function destroy(string $id) {
         $article = Article::findOrFail($id);
         $article->delete();
-        return response()->json(['message' => 'Article deleted']);
+        return response()->json(['message' => 'success'], 200);
     }
 
     public function restore(string $id) {
         $article = Article::onlyTrashed()->findOrFail($id);
         $article->restore();
-        return response()->json(['message' => 'Article restored']);
+        return response()->json(['message' => 'success'], 200);
     }
 
     public function forceDelete(string $id) {
         $article = Article::onlyTrashed()->findOrFail($id);
         $this->deleteFolder($article);
         $article->forceDelete();
-        return response()->json(['message' => 'Article permanently deleted']);
+        return response()->json(['message' => 'success'], 204);
     }
 
     public function handleFormActions(Request $request) {
@@ -81,16 +85,13 @@ class ArticleController extends Controller
         switch ($action) {
             case 'delete':
                 Article::destroy($ids);
-                return response()->json(['message' => 'Articles deleted']);
+                return response()->json(['message' => 'success'], 200);
             case 'restore':
                 Article::onlyTrashed()->whereIn('id', $ids)->restore();
-                return response()->json(['message' => 'Articles restored']);
+                return response()->json(['message' => 'success'], 200);
             case 'forceDelete':
                 Article::onlyTrashed()->whereIn('id', $ids)->forceDelete();
-                return response()->json(['message' => 'Articles permanently deleted']);
-            case 'setStatus':
-                Article::whereIn('id', $ids)->update(['status' => $targetId]);
-                return response()->json(['message' => 'Status updated successfully']);
+                return response()->json(['message' => 'success'], 204);
             default:
                 return response()->json(['message' => 'Action is invalid'], 400);
         }

@@ -33,7 +33,7 @@ class RoleController extends Controller
         if ($request->has('addedIds')) {
             $this->addIds($role, $request->input('addedIds'), 'permissions');
         }
-        return response()->json(['message' => 'Role created']);
+        return response()->json(['message' => 'success'], 201);
     }
     public function update(RoleRequest $request, string $id) {
         $role = Role::findOrFail($id);
@@ -44,22 +44,22 @@ class RoleController extends Controller
         if ($request->has('deletedIds')) {
             $this->removeIds($role, $request->input('deletedIds'), 'permissions');
         }
-        return response()->json(['message' => 'Role updated']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function destroy(string $id) {
         $role = Role::findOrFail($id);
         $role->delete();
-        return response()->json(['message' => 'Role deleted']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function restore(string $id) {
         $role = Role::onlyTrashed()->findOrFail($id);
         $role->restore();
-        return response()->json(['message' => 'Role restored']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function forceDelete(string $id) {
         $role = Role::onlyTrashed()->findOrFail($id);
         $role->forceDelete();
-        return response()->json(['message' => 'Role permanently deleted']);
+        return response()->json(['message' => 'success'], 204);
     }
     public function handleFormActions(Request $request) {
         $action = $request->input('action');
@@ -69,13 +69,13 @@ class RoleController extends Controller
         switch ($action) {
             case 'delete':
                 Role::destroy($ids);
-                return response()->json(['message' => 'Roles deleted']);
+                return response()->json(['message' => 'success'], 200);
             case 'restore':
                 Role::onlyTrashed()->whereIn('id', $ids)->restore();
-                return response()->json(['message' => 'Roles restored']);
+                return response()->json(['message' => 'success'], 200);
             case 'forceDelete':
                 Role::onlyTrashed()->whereIn('id', $ids)->forceDelete();
-                return response()->json(['message' => 'Roles permanently deleted']);
+                return response()->json(['message' => 'success'], 204);
             case 'addPermission':
                 if (!$targetId) {
                     return response()->json(['message' => 'Permission ID is required'], 400);
@@ -84,7 +84,7 @@ class RoleController extends Controller
                 foreach ($roles as $role) {
                     $role->permissions()->syncWithoutDetaching([$targetId]);
                 }
-                return response()->json(['message' => 'Permissions added to roles']);
+                return response()->json(['message' => 'success'], 200);
             case 'removePermission':
                 if (!$targetId) {
                     return response()->json(['message' => 'Permission ID is required'], 400);
@@ -93,7 +93,7 @@ class RoleController extends Controller
                 foreach ($roles as $role) {
                     $role->permissions()->detach($targetId);
                 }
-                return response()->json(['message' => 'Permissions removed from roles']);
+                return response()->json(['message' => 'success'], 200);
             default:
                 return response()->json(['message' => 'Action is invalid'], 400);
         }

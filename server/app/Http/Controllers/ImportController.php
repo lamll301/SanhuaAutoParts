@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class ImportController extends Controller
 {
-    private const SEARCH_FIELDS = ['id', 'deliverer'];
+    private const SEARCH_FIELDS = ['deliverer'];
     private const FILTER_FIELDS = [
         'filterBySupplier' => ['column' => 'supplier_id'],
     ];
@@ -23,14 +23,14 @@ class ImportController extends Controller
     }
 
     public function show(string $id) {
-        $import = Import::with('importDetails')->findOrFail($id);
+        $import = Import::with('details')->findOrFail($id);
         return response()->json($import);
     }
 
     public function store(Request $request) {
         $import = Import::create($request->all());
         if ($request->has('import_details')) {
-            $this->saveDetails($import, $request->input('import_details'), 'importDetails');
+            $this->saveDetails($import, $request->input('import_details'), 'details');
             
             $totalAmount = $this->calculateTotalAmount($request->input('import_details'));
             $import->update(['total_amount' => $totalAmount]);
@@ -42,7 +42,7 @@ class ImportController extends Controller
         $import = Import::findOrFail($id);
         $import->update($request->all());
         if ($request->has('import_details')) {
-            $this->saveDetails($import, $request->input('import_details'), 'importDetails');
+            $this->saveDetails($import, $request->input('import_details'), 'details');
             
             $totalAmount = $this->calculateTotalAmount($request->input('import_details'));
             $import->update(['total_amount' => $totalAmount]);

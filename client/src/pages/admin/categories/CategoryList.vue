@@ -1,13 +1,6 @@
 <template>
     <div class="admin-page">
-        <div v-show="isLoading" class="loading-overlay">
-            <div class="loader">
-                <svg class="circular" viewBox="25 25 50 50">
-                    <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10"/>
-                </svg>
-            </div>
-        </div>
-        <div class="admin-content" :class="{ 'loading-blur': isLoading }">
+        <div class="admin-content">
             <div class="admin-content__heading">
                 <h3 v-show="!isTrashRoute">Quản lý danh mục</h3>
                 <h3 v-show="isTrashRoute">Quản lý thùng rác</h3>
@@ -115,10 +108,8 @@
 import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
-import { swalFire, swalConfirm } from '@/utils/swal';
 import { formatDate } from '@/utils/formatter';
 import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
 
 export default {
     components: {
@@ -129,7 +120,6 @@ export default {
             deletedCount: 0,
             sort: {}, totalPages: 0, currentPage: 1,
             selectedIds: [],
-            isLoading: false,
             categories: [],
         }
     },
@@ -147,63 +137,87 @@ export default {
     },
     methods: {
         async fetchData() {
-            this.isLoading = true;
             try {
-                const responseData = await handleApiCall(() => 
-                    this.$request.get(apiService.categories.get(this.$route.query, this.isTrashRoute))
-                );
-    
-                this.categories = responseData.data;
-                this.totalPages = Math.ceil(responseData.pagination.total / responseData.pagination.per_page);
-                this.currentPage = responseData.pagination.current_page;
-                this.sort = responseData._sort;
+                const req = [
+                    this.isTrashRoute
+                        ? apiService.categories.getTrashed(this.$route.query)
+                        : apiService.categories.get(this.$route.query)
+                ];
+
+                if (!this.isTrashRoute) {
+                    req.push(
+                        apiService.categories.getTrashed(),
+                    );
+                }
+                
+                const res = await this.$swal.withLoading(Promise.all(req))
+
+                this.categories = res[0].data.data;
+                this.totalPages = Math.ceil(res[0].data.pagination.total / res[0].data.pagination.per_page);
+                this.currentPage = res[0].data.pagination.current_page;
+                this.sort = res[0].data._sort;
     
                 if (!this.isTrashRoute) {
-                    const resDeleted = await handleApiCall(() => 
-                        this.$request.get(apiService.categories.get({}, true))
-                    );
-                    this.deletedCount = resDeleted?.pagination?.total || 0;
+                    this.deletedCount = res[1].data?.pagination?.total || 0;
                 }
             } catch (error) {
                 console.error(error);
-            } finally {
-                this.isLoading = false;
             }
         },
         async onDelete(id) {
-            await handleApiCall(() => this.$request.delete(apiService.categories.delete(id)));
-            await swalFire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success");
-            await this.fetchData();
+            try {
+                await apiService.categories.delete(id)
+                await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success")
+                await this.fetchData()
+            } catch (error) {
+                console.error(error)
+            }
         },
         async onRestore(id) {
-            await handleApiCall(() => this.$request.patch(apiService.categories.restore(id)));
-            await swalFire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success");
-            await this.fetchData();
+            try {
+                await apiService.categories.restore(id)
+                await this.$swal.fire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success")
+                await this.fetchData()
+            } catch (error) {
+                console.error(error)
+            }
         },
         async onForceDelete(id) {
-            const result = await swalConfirm("Bạn chắc chắn?", "Bạn sẽ không thể khôi phục lại dữ liệu!", "warning", "Có, tôi muốn xóa!");
+            const result = await this.$swal.fire("Bạn chắc chắn?", "Bạn sẽ không thể khôi phục lại dữ liệu!", "warning", {
+                showCancelButton: true,
+                confirmButtonText: "Có, tôi muốn xóa!",
+                cancelButtonText: "Hủy"
+            })
             if (!result.isConfirmed) return;
-            await handleApiCall(() => this.$request.delete(apiService.categories.forceDelete(id)));
-            await swalFire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success");
-            await this.fetchData();
+            try {
+                await apiService.categories.forceDelete(id);
+                await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success")
+                await this.fetchData();
+            } catch (error) {
+                console.error(error)
+            }
         },
         async handleFormActions() {
             const action = this.$refs.selectCheckboxAction.value;
             if (!action) {
-                swalFire("Lỗi!", "Vui lòng chọn hành động.", "error");
+                this.$swal.fire("Lỗi!", "Vui lòng chọn hành động.", "error");
                 return;
             }
             if (this.selectedIds.length === 0) {
-                swalFire("Lỗi!", "Vui lòng chọn ít nhất 1 bản ghi để thực hiện hành động.", "error");
+                this.$swal.fire("Lỗi!", "Vui lòng chọn ít nhất 1 bản ghi để thực hiện hành động.", "error");
                 return;
             }
-            await handleApiCall(() => this.$request.post(apiService.categories.handleActions(), {
-                action,
-                selectedIds: this.selectedIds,
-            }));
-            await swalFire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success");
-            await this.fetchData();
-            await this.$refs.checkboxTable.resetCheckboxAll();
+            try {
+                await apiService.categories.handleFormActions({
+                    action,
+                    selectedIds: this.selectedIds,
+                })
+                await this.$swal.fire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success")
+                await this.fetchData()
+                await this.$refs.checkboxTable.resetCheckboxAll()
+            } catch (error) {
+                console.error(error)
+            }
         },
         handleUpdateIds(ids) {
             this.selectedIds = ids;

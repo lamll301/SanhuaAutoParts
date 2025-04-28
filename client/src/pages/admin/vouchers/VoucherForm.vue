@@ -3,6 +3,9 @@
         <div class="admin-content">
             <div class="admin-content__heading">
                 <h3>Quản lý voucher</h3>
+                <router-link v-show="this.$route.params.id" to="/admin/voucher/create" class="admin-content__create">
+                    Thêm voucher
+                </router-link>
             </div>
             <div class="admin-content__container">
                 <div class="admin-content__form">
@@ -46,7 +49,7 @@
                             <div class="mb-20">
                                 <h3 class="admin-content__form-text">Ngày bắt đầu</h3>
                                 <div class="valid-elm input-group">
-                                    <input type="datetime-local" class="fs-16 form-control" v-model="voucher.start_date"
+                                    <input type="date" class="fs-16 form-control" v-model="voucher.start_date"
                                     v-bind:class="{'is-invalid': errors.start_date}" @blur="validate()">
                                     <div class="invalid-feedback" v-if="errors.start_date">{{ errors.start_date }}</div>
                                 </div>
@@ -54,7 +57,7 @@
                             <div class="mb-20">
                                 <h3 class="admin-content__form-text">Ngày kết thúc</h3>
                                 <div class="valid-elm input-group">
-                                    <input type="datetime-local" class="fs-16 form-control" v-model="voucher.end_date"
+                                    <input type="date" class="fs-16 form-control" v-model="voucher.end_date"
                                     v-bind:class="{'is-invalid': errors.end_date}" @blur="validate()">
                                     <div class="invalid-feedback" v-if="errors.end_date">{{ errors.end_date }}</div>
 
@@ -84,9 +87,7 @@
 </template>
 
 <script>
-import { swalFire } from '@/utils/swal.js';
 import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
 import { statusService } from '@/utils/statusService';
 
 export default {
@@ -105,10 +106,17 @@ export default {
             },
         }
     },
-    async created() {
-        if (this.$route.params.id) {
-            await this.fetchData();
+    watch: {
+        '$route'(to, from) {
+            if (from.params.id && !to.params.id) {
+                this.resetForm();
+            } else {
+                this.fetchData();
+            }
         }
+    },
+    async created() {
+        await this.fetchData();
     },
     methods: {
         validate() {
@@ -123,8 +131,8 @@ export default {
             if (!this.voucher.code) {
                 this.errors.code = 'Code voucher không được để trống.';
                 isValid = false;
-            } else if (this.voucher.code.length > 16) {
-                this.errors.code = 'Code voucher không được vượt quá 16 ký tự.';
+            } else if (this.voucher.code.length > 255) {
+                this.errors.code = 'Code voucher không được vượt quá 255 ký tự.';
                 isValid = false;
             }
             if (!this.voucher.value) {
@@ -156,28 +164,44 @@ export default {
         },
         async fetchData() {
             try {
-                const res = await handleApiCall(() => this.$request.get(apiService.vouchers.view(this.$route.params.id)));
-                this.voucher = res;
+                if (this.$route.params.id) {
+                    const res = await this.$swal.withLoading(apiService.vouchers.getOne(this.$route.params.id));
+                    this.voucher = res.data;
+                }
             } catch (error) {
                 console.error(error);
             }
         },
         async save() {
             if (!this.validate()) return;
-            const payload = Object.fromEntries(
-                Object.entries(this.voucher).filter(([, value]) => 
-                    value !== null && value !== undefined && value !== ''
-                )
-            );
-            if (this.voucher.id) {
-                await handleApiCall(() => this.$request.put(apiService.vouchers.update(this.voucher.id), payload));
-                await swalFire("Cập nhật thành công!", "Thông tin về voucher đã được cập nhật!", "success");
+            try {
+                if (this.voucher.id) {
+                    await apiService.vouchers.update(this.voucher.id, this.voucher);
+                    await this.$swal.fire("Cập nhật thành công!", "Thông tin về voucher đã được cập nhật!", "success");
+                }
+                else {
+                    await apiService.vouchers.create(this.voucher);
+                    await this.$swal.fire("Thêm thành công!", "Voucher mới đã được thêm vào hệ thống!", "success");
+                }
+                this.$router.push({ name: 'admin.vouchers' });
+            } catch (error) {
+                console.error(error)
             }
-            else {
-                await handleApiCall(() => this.$request.post(apiService.vouchers.create(), payload));
-                await swalFire("Thêm thành công!", "Voucher mới đã được thêm vào hệ thống!", "success");
-            }
-            this.$router.push({ name: 'admin.vouchers' });
+        },
+        resetForm() {
+            this.voucher = {
+                value: '',
+                code: '',
+                usage_limit: '',
+                status: '',
+            };
+            this.errors = {
+                value: '',
+                code: '',
+                usage_limit: '',
+                start_date: '',
+                end_date: '',
+            };
         },
     }
 }

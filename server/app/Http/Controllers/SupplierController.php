@@ -7,7 +7,7 @@ use App\Models\Supplier;
 
 class SupplierController extends Controller
 {
-    private const SEARCH_FIELDS = ['id', 'name'];
+    private const SEARCH_FIELDS = ['name'];
 
     public function index(Request $request) {
         $query = Supplier::query();
@@ -23,27 +23,27 @@ class SupplierController extends Controller
     }
     public function store(Request $request) {
         Supplier::create($request->all());
-        return response()->json(['message' => 'Supplier created']);
+        return response()->json(['message' => 'success'], 201);
     }
     public function update(Request $request, string $id) {
         $supplier = Supplier::findOrFail($id);
         $supplier->update($request->all());
-        return response()->json(['message' => 'Supplier updated']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function destroy(string $id) {
         $supplier = Supplier::findOrFail($id);
         $supplier->delete();
-        return response()->json(['message' => 'Supplier deleted']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function restore(string $id) {
         $supplier = Supplier::onlyTrashed()->findOrFail($id);
         $supplier->restore();
-        return response()->json(['message' => 'Supplier restored']);
+        return response()->json(['message' => 'success'], 200);
     }
     public function forceDelete(string $id) {
         $supplier = Supplier::onlyTrashed()->findOrFail($id);
         $supplier->forceDelete();
-        return response()->json(['message' => 'Supplier permanently deleted']);
+        return response()->json(['message' => 'success'], 204);
     }
     public function handleFormActions(Request $request) {
         $action = $request->input('action');
@@ -51,13 +51,13 @@ class SupplierController extends Controller
         switch ($action) {
             case 'delete':
                 Supplier::destroy($ids);
-                return response()->json(['message' => 'Suppliers deleted']);
+                return response()->json(['message' => 'success'], 200);
             case 'restore':
                 Supplier::onlyTrashed()->whereIn('id', $ids)->restore();
-                return response()->json(['message' => 'Suppliers restored']);
+                return response()->json(['message' => 'success'], 200);
             case 'forceDelete':
                 Supplier::onlyTrashed()->whereIn('id', $ids)->forceDelete();
-                return response()->json(['message' => 'Suppliers permanently deleted']);
+                return response()->json(['message' => 'success'], 204);
             default:
                 return response()->json(['message' => 'Action is invalid'], 400);
         }

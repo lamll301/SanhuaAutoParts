@@ -4,21 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Promotion extends Model
 {
     use SoftDeletes;
 
-    const STATUS_INACTIVE = 0;  // chua kich hoat (ban nhap)
-    const STATUS_ACTIVE = 1;    // dang ap dung
-    const STATUS_SCHEDULED = 2; // len lich (chua den thoi gian bat dau)
-    const STATUS_EXPIRED = 3;   // het han
-    const STATUS_CANCELLED = 4; // da huy (da bat dau nhung khong ap dung nua)
-    
-    /* Luong su kien: 
-        0 => 2 => 1 => 3
-        2 + => 4
-    */
+    const STATUS_SCHEDULED = 0;
+    const STATUS_ACTIVE = 1;
+    const STATUS_EXPIRED = 2;
 
     protected $fillable = [
         'name',
@@ -28,4 +22,22 @@ class Promotion extends Model
         'end_date',
         'status'
     ];
+
+    protected $casts = [
+        'start_date' => 'date:Y-m-d',
+        'end_date' => 'date:Y-m-d',
+        'status' => 'integer',
+        'discount_percent' => 'integer',
+        'max_discount_amount' => 'integer',
+    ];
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
 }

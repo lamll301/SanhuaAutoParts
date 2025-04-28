@@ -3,6 +3,9 @@
         <div class="admin-content">
             <div class="admin-content__heading">
                 <h3>Quản lý sản phẩm</h3>
+                <router-link v-show="this.$route.params.id" to="/admin/product/create" class="admin-content__create">
+                    Thêm  sản phẩm
+                </router-link>
             </div>
             <div class="admin-content__container">
                 <div class="admin-content__form">
@@ -194,10 +197,7 @@
 </template>
 
 <script>
-/* eslint-disable */
-import { swalFire } from '@/utils/swal.js';
 import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
 import ImagePreview from '@/components/ImagePreview.vue';
 import { statusService } from '@/utils/statusService';
 import ItemDashboard from '@/components/ItemDashboard.vue';
@@ -221,11 +221,17 @@ export default {
     components: {
         ImagePreview, ItemDashboard
     },
-    async created() {
-        await this.fetchInitialData();
-        if (this.$route.params.id) {
-            await this.fetchData();
+    watch: {
+        '$route'(to, from) {
+            if (from.params.id && !to.params.id) {
+                this.resetForm();
+            } else {
+                this.fetchData();
+            }
         }
+    },
+    async created() {
+        await this.fetchData();
     },
     methods: {
         validate() {
@@ -271,52 +277,58 @@ export default {
         },
         async fetchData() {
             try {
-                const res = await handleApiCall(() => this.$request.get(apiService.products.view(this.$route.params.id)));
-                this.product = res;
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        async fetchInitialData() {
-            try {
-                const [promotions, suppliers, units, categories] = await Promise.all([
-                    handleApiCall(() => this.$request.get(apiService.promotions.get({}, false, true))),
-                    handleApiCall(() => this.$request.get(apiService.suppliers.get({}, false, true))),
-                    handleApiCall(() => this.$request.get(apiService.units.get({}, false, true))),
-                    handleApiCall(() => this.$request.get(apiService.categories.get({}, false, true))),
-                ]);
-                this.promotions = promotions.data;
-                this.suppliers = suppliers.data;
-                this.units = units.data;
-                this.categories = categories.data;
+                const req = [
+                    apiService.promotions.getAll(),
+                    apiService.suppliers.getAll(),
+                    apiService.units.getAll(),
+                    apiService.categories.getAll(),
+                ];
+
+                if (this.$route.params.id) {
+                    req.push(
+                        apiService.products.getOne(this.$route.params.id)
+                    );
+                }
+
+                const res = await this.$swal.withLoading(Promise.all(req));
+
+                this.promotions = res[0].data.data;
+                this.suppliers = res[1].data.data;
+                this.units = res[2].data.data;
+                this.categories = res[3].data.data;
+
+                if (this.$route.params.id) this.product = res[4].data;
             } catch (error) {
                 console.error(error);
             }
         },
         async save() {
             if (!this.validate()) return;
+            const data = this.cleanData(this.product);
 
-            const formData = this.prepareFormData();
-
-            if (this.product.id) {
-                await handleApiCall(() => this.$request.post(apiService.products.update(this.product.id), formData));
-                await swalFire("Cập nhật thành công!", "Thông tin về sản phẩm đã được cập nhật!", "success");
+            try {
+                if (this.product.id) {
+                    await apiService.products.updateWithImages(this.product.id, data);
+                    await this.$swal.fire("Cập nhật thành công!", "Thông tin về sản phẩm đã được cập nhật!", "success")
+                }
+                else {
+                    await apiService.products.create(data);
+                    await this.$swal.fire("Thêm thành công!", "Sản phẩm mới đã được thêm vào hệ thống!", "success")
+                }
+                this.$router.push({ name: 'admin.products' });
+            } catch (error) {
+                console.error(error);
             }
-            else {
-                await handleApiCall(() => this.$request.post(apiService.products.create(), formData));
-                await swalFire("Thêm thành công!", "Sản phẩm mới đã được thêm vào hệ thống!", "success");
-            }
-            this.$router.push({ name: 'admin.products' });
         },
-        prepareFormData() {
+        cleanData(product) {
             const formData = new FormData();
             const images = this.$refs.imagePreview.tempImages;
             const selectedThumbnail = this.$refs.imagePreview.selectedThumbnail;
             const deletedImageIds = this.$refs.imagePreview.deletedImageIds;
             const { addedIds, deletedIds } = this.$refs.itemDashboard.getIds();
 
-            Object.entries(this.product).forEach(([key, value]) => {
-                if (value !== null && value !== undefined && value !== '') {
+            Object.entries(product).forEach(([key, value]) => {
+                if (value !== null && value !== undefined) {
                     formData.append(key, value);
                 }
             });
@@ -333,7 +345,7 @@ export default {
                 formData.append('addedIds', JSON.stringify(addedIds));
             }
 
-            if (this.product.id) {
+            if (product.id) {
                 formData.append('_method', 'PUT');
                 if (deletedImageIds.length > 0) {
                     formData.append('deletedImageIds', JSON.stringify(deletedImageIds));
@@ -353,6 +365,14 @@ export default {
         removeCategory(id) {
             this.product.categories = this.product.categories.filter(category => category.id !== id);
         },
+        resetForm() {
+            this.product = {
+                name: '', original_price: '', dimensions: '', weight: '', color: '', material: '', compatibility: '', status: '',
+            };
+            this.errors = {
+                name: '', original_price: '', dimensions: '', weight: '', color: '', material: '', compatibility: ''
+            };
+        }
     }
 }
 </script>

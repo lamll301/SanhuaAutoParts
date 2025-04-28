@@ -6,8 +6,11 @@ import 'sweetalert2/dist/sweetalert2.min.css';
 import axios from "axios";
 import VueAxios from 'vue-axios';
 
+import sweetalert from './plugins/sweetalert';
+
 const app = createApp(App);
 app.use(router);
 app.use(VueSweetalert2);
 app.use(VueAxios, { $request: axios });
+app.use(sweetalert)
 app.mount('#app');

@@ -27,9 +27,7 @@ class DatabaseSeeder extends Seeder
             ArticleSeeder::class,
             CategorySeeder::class,
             ProductSeeder::class,
-            ImportSeeder::class,
-            ExportSeeder::class,
-            InventorySeeder::class,
+            WarehouseSeeder::class,
         ]);
 
         $productIds = Product::pluck('id')->toArray();

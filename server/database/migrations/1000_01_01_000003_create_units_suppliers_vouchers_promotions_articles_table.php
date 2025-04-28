@@ -10,56 +10,60 @@ return new class extends Migration
     {
         Schema::create('units', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 32)->unique();
-            $table->string('description', 128)->nullable();
+            $table->string('name')->unique();
+            $table->string('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
 
         Schema::create('suppliers', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 128);
+            $table->string('name');
             $table->string('address');
-            $table->string('email', 128)->unique();
-            $table->string('phone', 16);
+            $table->string('email')->unique();
+            $table->string('phone');
             $table->timestamps();
             $table->softDeletes();
         });
 
         Schema::create('vouchers', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 16)->unique();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('code')->unique();
             $table->unsignedInteger('value');
             $table->unsignedInteger('usage_limit');
             $table->unsignedInteger('used_count')->default(0);
-            $table->dateTime('start_date')->index();
-            $table->dateTime('end_date')->index();
-            $table->tinyInteger('status')->default(0);
+            $table->date('start_date')->index();
+            $table->date('end_date')->index();
+            $table->tinyInteger('status')->nullable();  // lên lịch, đang hoạt động, hết hạn
             $table->timestamps();
             $table->softDeletes();
         });
 
         Schema::create('promotions', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 128);
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('name');
             $table->unsignedInteger('discount_percent');
             $table->unsignedInteger('max_discount_amount')->nullable();
             $table->date('start_date')->index();
             $table->date('end_date')->index();
-            $table->tinyInteger('status')->default(0);
+            $table->tinyInteger('status')->nullable();  //  lên lịch, đang hoạt động, hết hạn
             $table->timestamps();
             $table->softDeletes();
         });
 
         Schema::create('articles', function (Blueprint $table) {
             $table->id();
-            $table->string('title', 128);
-            $table->string('slug', 130)->unique();
-            $table->string('highlight', 64)->nullable();
-            $table->string('author', 64);
-            $table->dateTime('publish_date')->nullable()->index();
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('title');
+            $table->string('slug')->unique();
+            $table->string('highlight')->nullable();
+            $table->foreignId('author')->nullable()->constrained('users')->nullOnDelete();
+            $table->date('publish_date')->nullable()->index();
             $table->longText('content')->nullable();
-            $table->tinyInteger('status')->default(0);
             $table->timestamps();
             $table->softDeletes();
         });

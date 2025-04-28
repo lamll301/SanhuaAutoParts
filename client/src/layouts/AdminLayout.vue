@@ -159,6 +159,19 @@
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
+                        <i class="fa-solid fa-map header-admin__dropdown-icon"></i>
+                        Quản lý vị trí kho
+                    </div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <ul class="header-admin__dropdown-menu">
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/location">Tất cả vị trí kho</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/location/create">Thêm vị trí kho</router-link></li>
+                </ul>
+            </div>
+            <div class="header-admin__dropdown">
+                <div class="header-admin__dropdown-content">
+                    <div class="header-admin__dropdown-content-text">
                         <i class="fa-solid fa-boxes-stacked header-admin__dropdown-icon"></i>
                         Quản lý hàng tồn kho
                     </div>
@@ -167,6 +180,19 @@
                 <ul class="header-admin__dropdown-menu">
                     <li class="header-admin__dropdown-item"><router-link to="/admin/inventory">Tất cả hàng tồn kho</router-link></li>
                     <li class="header-admin__dropdown-item"><router-link to="/admin/inventory/create">Thêm hàng tồn kho</router-link></li>
+                </ul>
+            </div>
+            <div class="header-admin__dropdown">
+                <div class="header-admin__dropdown-content">
+                    <div class="header-admin__dropdown-content-text">
+                        <i class="fa-solid fa-scale-balanced header-admin__dropdown-icon"></i>
+                        Quản lý đơn vị tính
+                    </div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <ul class="header-admin__dropdown-menu">
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/unit">Tất cả đơn vị tính</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/unit/create">Thêm đơn vị tính</router-link></li>
                 </ul>
             </div>
             <div class="header-admin__dropdown">
@@ -198,14 +224,40 @@
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-scale-balanced header-admin__dropdown-icon"></i>
-                        Quản lý đơn vị tính
+                        <i class="fa-solid fa-file-alt header-admin__dropdown-icon"></i>
+                        Quản lý phiếu kiểm kê
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <ul class="header-admin__dropdown-menu">
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/unit">Tất cả đơn vị tính</router-link></li>
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/unit/create">Thêm đơn vị tính</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/check">Tất cả phiếu kiểm kê</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/check/create">Thêm phiếu kiểm kê</router-link></li>
+                </ul>
+            </div>
+            <div class="header-admin__dropdown">
+                <div class="header-admin__dropdown-content">
+                    <div class="header-admin__dropdown-content-text">
+                        <i class="fa-solid fa-recycle header-admin__dropdown-icon"></i>
+                        Quản lý phiếu thanh lý
+                    </div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <ul class="header-admin__dropdown-menu">
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/disposal">Tất cả phiếu thanh lý</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/disposal/create">Thêm phiếu thanh lý</router-link></li>
+                </ul>
+            </div>
+            <div class="header-admin__dropdown">
+                <div class="header-admin__dropdown-content">
+                    <div class="header-admin__dropdown-content-text">
+                        <i class="fa-solid fa-minus-circle header-admin__dropdown-icon"></i>
+                        Quản lý phiếu hủy
+                    </div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <ul class="header-admin__dropdown-menu">
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/cancel">Tất cả phiếu hủy</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/cancel/create">Thêm phiếu hủy</router-link></li>
                 </ul>
             </div>
         </header>
@@ -338,6 +390,7 @@ export default {
         search(event) {
             const key = event.target.value
             const params = new URLSearchParams(this.$route.query)
+            params.delete('page')
             if (key) {
                 params.set('key', key)
             } else {

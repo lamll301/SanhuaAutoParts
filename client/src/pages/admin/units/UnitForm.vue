@@ -3,6 +3,9 @@
         <div class="admin-content">
             <div class="admin-content__heading">
                 <h3>Quản lý đơn vị tính</h3>
+                <router-link v-show="this.$route.params.id" to="/admin/unit/create" class="admin-content__create">
+                    Thêm đơn vị tính
+                </router-link>
             </div>
             <div class="admin-content__container">
                 <div class="admin-content__form">
@@ -46,9 +49,7 @@
 </template>
 
 <script>
-import { swalFire } from '@/utils/swal.js';
 import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
 
 export default {
     data() {
@@ -59,50 +60,74 @@ export default {
             },
         }
     },
-    async created() {
-        if (this.$route.params.id) {
-            await this.fetchData();
+    watch: {
+        '$route'(to, from) {
+            if (from.params.id && !to.params.id) {
+                this.resetForm();
+            } else {
+                this.fetchData();
+            }
         }
+    },
+    async created() {
+        await this.fetchData();
     },
     methods: {
         validate() {
             let isValid = true;
             this.errors = {
-                name: '', description: ''
-            }
-            if (!this.unit.name) {
-                this.errors.name = 'Tên đơn vị tính không được để trống.';
+                name: '',
+                description: '',
+            };
+            
+            if (!this.unit.name || this.unit.name.trim() === '') {
+                this.errors.name = 'Tên đơn vị là bắt buộc';
                 isValid = false;
-            } else if (this.unit.name.length > 32) {
-                this.errors.name = 'Tên đơn vị tính không được vượt quá 32 ký tự.';
-                isValid = false;
-            }
-            if (this.unit.description?.length > 128) {
-                this.errors.description = 'Mô tả đơn vị tính không được vượt quá 128 ký tự.';
+            } else if (this.unit.name.length > 255) {
+                this.errors.name = 'Tên đơn vị không được vượt quá 255 ký tự';
                 isValid = false;
             }
+            
+            if (this.unit.description && this.unit.description.length > 255) {
+                this.errors.description = 'Mô tả không được vượt quá 255 ký tự';
+                isValid = false;
+            }
+            
             return isValid;
         },
         async fetchData() {
             try {
-                const res = await handleApiCall(() => this.$request.get(apiService.units.view(this.$route.params.id)));
-                this.unit = res;
+                if (this.$route.params.id) {
+                    const res = await this.$swal.withLoading(apiService.units.getOne(this.$route.params.id));
+                    this.unit = res.data;
+                }
             } catch (error) {
                 console.error(error);
             }
         },
         async save() {
             if (!this.validate()) return;
-
-            if (this.unit.id) {
-                await handleApiCall(() => this.$request.put(apiService.units.update(this.unit.id), this.unit));
-                await swalFire("Cập nhật thành công!", "Thông tin về đơn vị tính đã được cập nhật!", "success");
+            try {
+                if (this.unit.id) {
+                    await apiService.units.update(this.unit.id, this.unit);
+                    await this.$swal.fire("Cập nhật thành công!", "Thông tin về đơn vị tính đã được cập nhật!", "success");
+                }
+                else {
+                    await apiService.units.create(this.unit);
+                    await this.$swal.fire("Thêm thành công!", "Đơn vị tính mới đã được thêm vào hệ thống!", "success");
+                }
+                this.$router.push({ name: 'admin.units' });
+            } catch (error) {
+                console.error(error)
             }
-            else {
-                await handleApiCall(() => this.$request.post(apiService.units.create(), this.unit));
-                await swalFire("Thêm thành công!", "Đơn vị tính mới đã được thêm vào hệ thống!", "success");
-            }
-            this.$router.push({ name: 'admin.units' });
+        },
+        resetForm() {
+            this.unit = {
+                name: '', description: ''
+            };
+            this.errors = {
+                name: '', description: ''
+            };
         },
     }
 }

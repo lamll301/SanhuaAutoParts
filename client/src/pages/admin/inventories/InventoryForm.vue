@@ -3,6 +3,9 @@
         <div class="admin-content">
             <div class="admin-content__heading">
                 <h3>Quản lý hàng tồn kho</h3>
+                <router-link v-show="this.$route.params.id" to="/admin/inventory/create" class="admin-content__create">
+                    Thêm hàng tồn kho
+                </router-link>
             </div>
             <div class="admin-content__container">
                 <div class="admin-content__form">
@@ -21,22 +24,25 @@
                         <div class="admin-content__form-divided">
                             <div class="mb-20">
                                 <h3 class="admin-content__form-text">Sản phẩm</h3>
-                                <div class="input-group">
-                                    <select class="valid-elm form-select" v-model="inventory.product_id">
-                                        <option disabled value="">Chọn sản phẩm</option>
+                                <div class="input-group valid-elm">
+                                    <select class="valid-elm form-select" v-model="inventory.product_id"
+                                    v-bind:class="{'is-invalid': errors.product_id}" @change="validate()">
+                                        <option disabled value="" selected>Chọn sản phẩm</option>
                                         <option v-for="product in products" :key="product.id" :value="product.id">
                                             {{ product.name }}
                                         </option>
                                     </select>
+                                    <div class="invalid-feedback" v-if="errors.product_id">{{ errors.product_id }}</div>
                                 </div>
                             </div>
                             <div class="mb-20">
                                 <h3 class="admin-content__form-text">Phiếu nhập</h3>
                                 <div class="input-group">
                                     <select class="valid-elm form-select" v-model="inventory.import_id">
-                                        <option disabled value="">Chọn phiếu nhập</option>
-                                        <option v-for="importReceipt in imports" :key="importReceipt.id" :value="importReceipt.id">
-                                            {{ importReceipt.id }}
+                                        <option disabled value="" selected>Chọn phiếu nhập</option>
+                                        <option :value="null">Không có phiếu nhập</option>
+                                        <option v-for="receipt in imports" :key="receipt.id" :value="receipt.id">
+                                            {{ receipt?.supplier?.name }} - {{ receipt.date }}
                                         </option>
                                     </select>
                                 </div>
@@ -52,11 +58,18 @@
                         </div>
                         <div class="mb-20">
                             <h3 class="admin-content__form-text">Vị trí</h3>
-                            <div class="valid-elm input-group">
-                                <input type="text" class="fs-16 form-control" placeholder="Nhập vị trí" v-model="inventory.location"
-                                v-bind:class="{'is-invalid': errors.location}" @blur="validate()">
-                                <div class="invalid-feedback" v-if="errors.location">{{ errors.location }}</div>
-                            </div>
+                            <ItemDashboard
+                                ref="itemDashboard"
+                                :items="inventory.locations"
+                                :options="locations"
+                                :display="(location) => 
+                                    `Khu ${location.zone} > Dãy ${location.aisle} > Kệ ${location.rack} > Tầng ${location.shelf} > Ngăn ${location.bin}` 
+                                    + (location.category?.name ? ` - ${location.category.name}` : '')"
+                                :inputFields="[
+                                    { text: 'Số lượng', key: 'quantity', type: 'number' },
+                                ]"
+                                @remove="removeLocation"
+                            />
                         </div>
                         <div class="mb-20">
                             <h3 class="admin-content__form-text">Số lượng</h3>
@@ -70,13 +83,17 @@
                             <div class="mb-20">
                                 <h3 class="admin-content__form-text">Ngày sản xuất</h3>
                                 <div class="valid-elm input-group">
-                                    <input type="date" class="fs-16 form-control" v-model="inventory.manufacture_date">
+                                    <input type="date" class="fs-16 form-control" v-model="inventory.manufacture_date"
+                                    v-bind:class="{'is-invalid': errors.manufacture_date}" @blur="validate()">
+                                    <div class="invalid-feedback" v-if="errors.manufacture_date">{{ errors.manufacture_date }}</div>
                                 </div>
                             </div>
                             <div class="mb-20">
                                 <h3 class="admin-content__form-text">Ngày hết hạn</h3>
                                 <div class="valid-elm input-group">
-                                    <input type="date" class="fs-16 form-control" v-model="inventory.expiry_date">
+                                    <input type="date" class="fs-16 form-control" v-model="inventory.expiry_date"
+                                    v-bind:class="{'is-invalid': errors.expiry_date}" @blur="validate()">
+                                    <div class="invalid-feedback" v-if="errors.expiry_date">{{ errors.expiry_date }}</div>
                                 </div>
                             </div>
                         </div>
@@ -92,86 +109,141 @@
 </template>
 
 <script>
-import { swalFire } from '@/utils/swal.js';
+import ItemDashboard from '@/components/ItemDashboard.vue';
 import apiService from '@/utils/apiService';
-import { handleApiCall } from '@/utils/errorHandler';
 
 export default {
+    components: {
+        ItemDashboard
+    },
     data() {
         return {
-            products: [], imports: [],
+            products: [], imports: [], locations: [],
             inventory: {
                 product_id: '', import_id: ''
             },
             errors: {
-                quantity: '', batch_number: '', location: ''
+                quantity: '', batch_number: '', manufacture_date: '', expiry_date: '', product_id: ''
             },
         }
     },
-    async created() {
-        await this.fetchInitialData();
-        if (this.$route.params.id) {
-            await this.fetchData();
+    watch: {
+        '$route'(to, from) {
+            if (from.params.id && !to.params.id) {
+                this.resetForm();
+            }
         }
     },
+    async created() {
+        await this.fetchData();
+    },
     methods: {
-        validate() {
-            let isValid = true;
-            this.errors = {
-                quantity: '', batch_number: '', location: ''
-            }
-            if (this.inventory.quantity < 0) {
-                this.errors.quantity = 'Số lượng hàng tồn phải lớn hơn hoặc bằng 0.';
-                isValid = false;
-            }
-            if (!this.inventory.batch_number) {
-                this.errors.batch_number = 'Số lô không được để trống.';
-                isValid = false;
-            }
-            if (!this.inventory.location) {
-                this.errors.location = 'Vị trí không được để trống.';
-                isValid = false;
-            }
-            return isValid;
-        },
-        async fetchInitialData() {
-            try {
-                const [products, imports] = await Promise.all([
-                    handleApiCall(() => this.$request.get(apiService.products.get({}, false, true))),
-                    handleApiCall(() => this.$request.get(apiService.imports.get({}, false, true))),
-                ]);
-                this.products = products.data;
-                this.imports = imports.data;
-            } catch (error) {
-                console.error(error);
-            }
-        },
         async fetchData() {
             try {
-                const res = await handleApiCall(() => this.$request.get(apiService.inventories.view(this.$route.params.id)));
-                this.inventory = res;
+                const req = [
+                    apiService.products.getAll(),
+                    apiService.imports.getAll(),
+                    apiService.locations.getAll(),
+                ];
+
+                if (this.$route.params.id) {
+                    req.push(
+                        apiService.inventories.getOne(this.$route.params.id)
+                    );
+                }
+
+                const res = await this.$swal.withLoading(Promise.all(req));
+
+                this.products = res[0].data.data;
+                this.imports = res[1].data.data;
+                this.locations = res[2].data.data;
+                if (this.$route.params.id) this.inventory = res[3].data;
             } catch (error) {
                 console.error(error);
+            }
+        },
+        cleanData(inventory) {
+            const data = { ...inventory }
+            const { addedIdsWithAttributes, updatedIdsWithAttributes } = this.$refs.itemDashboard.getFieldValue()
+            const { deletedIds } = this.$refs.itemDashboard.getIds()
+            
+            return {
+                ...data,
+                addedIdsWithAttributes,
+                updatedIdsWithAttributes,
+                deletedIds
             }
         },
         async save() {
             if (!this.validate()) return;
-
-            const payload = Object.fromEntries(
-                Object.entries(this.promotion).filter(([, value]) => 
-                    value !== null && value !== undefined && value !== ''
-                )
-            );
-
-            if (this.inventory.id) {
-                await handleApiCall(() => this.$request.put(apiService.inventories.update(this.inventory.id), payload));
-                await swalFire("Cập nhật thành công!", "Thông tin về hàng tồn kho đã được cập nhật!", "success");
+            const data = this.cleanData(this.inventory);
+            
+            try {
+                if (this.inventory.id) {
+                    await apiService.inventories.update(this.inventory.id, data);
+                    await this.$swal.fire("Cập nhật thành công!", "Thông tin về hàng tồn kho đã được cập nhật!", "success");
+                }
+                else {
+                    await apiService.inventories.create(data);
+                    await this.$swal.fire("Thêm thành công!", "Hàng tồn kho mới đã được thêm vào hệ thống!", "success");
+                }
+                this.$router.push({ name: 'admin.inventories' });
+            } catch (error) {
+                console.error(error);
             }
-            else {
-                await handleApiCall(() => this.$request.post(apiService.inventories.create(), payload));
-                await swalFire("Thêm thành công!", "Hàng tồn kho mới đã được thêm vào hệ thống!", "success");
+        },
+        removeLocation(id) {
+            this.inventory.locations = this.inventory.locations.filter(location => location.id !== id);
+        },
+        resetForm() {
+            this.inventory = {
+                batch_number: '', quantity: '', manufacture_date: '', expiry_date: '', product_id: '', import_id: ''
+            };
+            this.errors = {
+                quantity: '', batch_number: '', manufacture_date: '', expiry_date: '', product_id: ''
+            };
+        },
+        validate() {
+            let isValid = true;
+            this.errors = {
+                quantity: '', batch_number: '', manufacture_date: '', expiry_date: '', product_id: ''
+            };
+
+            if (this.inventory.quantity === null || this.inventory.quantity === undefined || this.inventory.quantity === '') {
+                this.errors.quantity = 'Số lượng không được để trống.';
+                isValid = false;
+            } else if (this.inventory.quantity < 0) {
+                this.errors.quantity = 'Số lượng hàng tồn phải lớn hơn hoặc bằng 0.';
+                isValid = false;
+            } else if (!Number.isInteger(Number(this.inventory.quantity))) {
+                this.errors.quantity = 'Số lượng phải là số nguyên.';
+                isValid = false;
             }
-            this.$router.push({ name: 'admin.inventories' });
+
+            if (!this.inventory.batch_number || this.inventory.batch_number.trim() === '') {
+                this.errors.batch_number = 'Số lô không được để trống.';
+                isValid = false;
+            }
+
+            if (!this.inventory.manufacture_date) {
+                this.errors.manufacture_date = 'Ngày sản xuất không được để trống.';
+                isValid = false;
+            }
+
+            if (!this.inventory.expiry_date) {
+                this.errors.expiry_date = 'Ngày hết hạn không được để trống.';
+                isValid = false;
+            } else if (this.inventory.manufacture_date && new Date(this.inventory.expiry_date) <= new Date(this.inventory.manufacture_date)) {
+                this.errors.expiry_date = 'Ngày hết hạn phải sau ngày sản xuất.';
+                isValid = false;
+            }
+
+            if (!this.inventory.product_id) {
+                this.errors.product_id = 'Sản phẩm không được để trống.';
+                isValid = false;
+            }
+
+            return isValid;
         },
     }
 }
