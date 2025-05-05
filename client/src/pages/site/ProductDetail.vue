@@ -4,568 +4,485 @@
             <div class="product-detail">
                 <div class="product-left">
                     <div class="product-left-img-container">
-                        <div class="product-list-img">
-                            <img class="product-list-img-content--active product-list-img-content" :src="autoPart.images[0]" alt="">
-                            <div v-for="image in autoPart.images.slice(1)" :key="image">
-                                <img :src="image" alt="" class="product-list-img-content">
+                        <template v-if="isLoading">
+                            <div class="product-list-img">
+                                <div v-for="i in 6" :key="i">
+                                    <SkeletonLoading height="100%" width="120px" class="product-list-img-content" style="overflow: hidden;" />
+                                </div>
                             </div>
-                        </div>
-                        <ZoomImage 
-                            :imageSrc="autoPart.images[0]" 
-                            containerClass="product-img-container" 
-                            imageClass="product-img"
-                        />
+                            <SkeletonLoading height="100%" width="732px" style="width: 732px !important;" class="product-img-container" />
+                        </template>
+                        <template v-else>
+                            <div class="product-list-img">
+                                <!-- <img class="product-list-img-content--active product-list-img-content" :src="getImageUrl(product?.images[0]?.path)" alt=""> -->
+                                <div v-for="image in product?.images" :key="image" @click="selectImage(image)">
+                                    <img :src="getImageUrl(image.path)" alt="" class="product-list-img-content"
+                                        :class="{'product-list-img-content--active': selectedImage?.path === image.path}">
+                                </div>
+                            </div>
+                            <ZoomImage 
+                                :imageSrc="getImageUrl(selectedImage?.path)" 
+                                containerClass="product-img-container" 
+                                imageClass="product-img"
+                            />
+                        </template>
                     </div>
                     <div class="product-similar">
                         <h2 class="product-similar-text">
                             Sản phẩm liên quan
                         </h2>
                         <div class="product-similar-grid">
-                            <router-link v-for="autoPart in similarAutoParts.slice(0, 8)" :key="autoPart" :to="'/san-pham/' + autoPart.id" class="category-product">
-                                <img :src="autoPart.image" alt="" class="category-product-img">
-                                <div class="category-product-content">
-                                    <h2 class="category-product-name">
-                                        {{ autoPart.name }}
-                                    </h2>
-                                    <div class="category-product-rating">
-                                        <i class="fa-solid fa-star"></i>
-                                        <span class="category-product-rate">{{ autoPart.rating }}</span>
-                                        <span class="category-product-sold">Đã bán {{ autoPart.sold }}</span>
-                                    </div>
-                                    <div class="category-product-price">
-                                        <span v-if="autoPart.discount" class="category-product-price-new">
-                                            {{ formatPrice(autoPart.price * (1 - autoPart.discount * 0.01)) }}<sup>đ</sup>
-                                        </span>
-                                        <span v-else class="category-product-price-new">
-                                            {{ formatPrice(autoPart.price) }}<sup>đ</sup>
-                                        </span>
-                                        <span v-if="autoPart.discount" class="category-product-price-old">
-                                            {{ formatPrice(autoPart.price) }}<sup>đ</sup>
-                                        </span>
+                            <template v-if="isLoading">
+                                <div v-for="i in 8" :key="i" class="category-product skeleton-product">
+                                    <SkeletonLoading height="200px" width="100%" />
+                                    <div class="category-product-content">
+                                        <div class="category-product-name">
+                                            <SkeletonLoading height="18px" width="90%" marginBottom="8px" />
+                                        </div>
+                                        <div class="category-product-rating">
+                                            <SkeletonLoading height="16px" width="60%" marginBottom="8px" />
+                                        </div>
+                                        <div class="category-product-price">
+                                            <SkeletonLoading height="20px" width="40%" />
+                                        </div>
                                     </div>
                                 </div>
-                                <span v-if="autoPart.discount" class="category-onsale">
-                                    -{{ autoPart.discount }}%
-                                </span>
-                            </router-link>
+                            </template>
+                            <template v-else>
+                                <router-link v-for="product in similarProducts" :key="product" :to="'/san-pham/' + product.slug" class="category-product">
+                                    <img :src="getImageUrl(product?.images[0]?.path)" alt="" class="category-product-img">
+                                    <div class="category-product-content">
+                                        <h2 class="category-product-name">
+                                            {{ product.name }}
+                                        </h2>
+                                        <div class="category-product-rating">
+                                            <i class="fa-solid fa-star"></i>
+                                            <span class="category-product-rate">{{ product.rate }}</span>
+                                            <span class="category-product-sold">Đã bán {{ product.sold }} {{ product?.unit?.name }}</span>
+                                        </div>
+                                        <div class="category-product-price">
+                                            <span class="category-product-price-new">
+                                                {{ formatPrice(product.price) }}<sup>đ</sup>
+                                            </span>
+                                            <span v-if="product.price !== product.original_price" class="category-product-price-old">
+                                                {{ formatPrice(product.original_price) }}<sup>đ</sup>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <span v-if="product.price !== product.original_price" class="category-onsale">
+                                        -{{ product?.promotion?.discount_percent }}%
+                                    </span>
+                                </router-link>
+                            </template>
                         </div>
                     </div>
                 </div>
                 <div class="product-right">
-                    <span class="product-name">
-                        {{ autoPart.name }}
-                    </span>
-                    <div class="product-rate">
-                        <span class="product-id">
-                            Mã: {{ autoPart.id }}
+                    <template v-if="isLoading">
+                        <SkeletonLoading height="24px" width="80%" marginBottom="16px" class="product-name" />
+                        <div class="product-rate">
+                            <SkeletonLoading height="16px" width="120px" marginBottom="0" />
+                        </div>
+                        <div class="product-price">
+                            <SkeletonLoading height="28px" width="50%" marginBottom="16px" class="product-price-current" />
+                        </div>
+                        <div class="product-desc">
+                            <SkeletonLoading height="14px" width="100%" marginBottom="8px" />
+                            <SkeletonLoading height="14px" width="90%" marginBottom="8px" />
+                            <SkeletonLoading height="14px" width="80%" marginBottom="16px" />
+                        </div>
+                        <div class="product-type">
+                            <SkeletonLoading height="16px" width="40px" marginBottom="8px" />
+                            <div class="product-type-content">
+                                <ul class="product-type-list">
+                                    <li v-for="i in 2" :key="i" class="product-type-item">
+                                        <SkeletonLoading height="40px" width="80px" />
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="product-quantity">
+                            <SkeletonLoading height="16px" width="70px" marginBottom="8px" />
+                            <SkeletonLoading height="36px" width="120px" marginBottom="8px" />
+                            <SkeletonLoading height="16px" width="150px" marginBottom="16px" />
+                        </div>
+                        <div class="product-buttons">
+                            <SkeletonLoading height="48px" width="100%" marginBottom="16px" />
+                            <SkeletonLoading height="48px" width="100%" marginBottom="16px" />
+                        </div>
+                        <div class="product-labels">
+                            <div v-for="i in 3" :key="i" class="product-label">
+                                <SkeletonLoading height="60px" marginBottom="12px" />
+                                <SkeletonLoading height="12px" width="80%" />
+                                <SkeletonLoading height="12px" width="60%" marginBottom="0" />
+                            </div>
+                        </div>
+                        <div class="product-specifications">
+                            <SkeletonLoading height="14px" />
+                            <SkeletonLoading height="14px" width="90%" />
+                            <SkeletonLoading height="14px" width="80%" />
+                            <SkeletonLoading height="14px" width="70%" />
+                            <SkeletonLoading height="14px" width="60%" />
+                        </div>
+                    </template>
+                    <template v-else>
+                        <span class="product-name">
+                            {{ product.name }}
                         </span>
-                        <div class="product-rating">
-                            <RatingStars :rating="autoPart.rating" starClass="product-star" />
-                            <span class="product-evaluate">
-                                ({{ autoPart.reviewCount }} đánh giá)
+                        <div class="product-rate">
+                            <span class="product-id">
+                                Mã: {{ product.id }}
+                            </span>
+                            <div class="product-rating">
+                                <RatingStars :rating="product.rate" starClass="product-star" />
+                                <span class="product-evaluate">
+                                    ({{ total }} đánh giá)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="product-price">
+                            <span class="product-price-current">
+                                {{ formatPrice(product.price) }}đ
+                            </span>
+                            <div v-if="product.price !== product.original_price" class="product-price-right">
+                                <h6 class="product-price-discount">
+                                    (Giảm {{ product.promotion.discount_percent }}%)
+                                </h6>
+                                <span class="product-price-old">
+                                    {{ formatPrice(product.original_price) }}đ
+                                </span>
+                            </div>
+                        </div>
+                        <span class="product-desc">
+                            {{ product.description }}
+                        </span>
+                        <div class="product-type">
+                            <span class="product-quantity-text">
+                                Loại:
+                            </span>
+                            <div class="product-type-content">
+                                <ul class="product-type-list">
+                                    <li v-for="category in product.categories" :key="category" class="product-type-item">
+                                        <router-link 
+                                            :to="'/danh-muc/' + category.slug"
+                                            class="product-type-btn default-router-link"
+                                        >
+                                            <img :src="getImageUrl(category?.images[0]?.path)" alt="" class="product-type-img">
+                                            <span class="product-type-text">
+                                                {{ category.name }}
+                                            </span>
+                                        </router-link>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="product-quantity">
+                            <span class="product-quantity-text">
+                                Số lượng:
+                            </span>
+                            <input type="number" class="product-quantity-input" v-model.number="quantity">
+                            <span class="product-quantity-stock">
+                                {{ product.quantity }} sản phẩm có sẵn
                             </span>
                         </div>
-                    </div>
-                    <div class="product-price">
-                        <span v-if="autoPart.discount" class="product-price-current">
-                            {{ formatPrice(autoPart.price * (1 - autoPart.discount * 0.01)) }}đ
-                        </span>
-                        <span v-else class="product-price-current">
-                            {{ formatPrice(autoPart.price) }}đ
-                        </span>
-                        <div v-if="autoPart.discount" class="product-price-right">
-                            <h6 class="product-price-discount">
-                                (Giảm {{ autoPart.discount }}%)
-                            </h6>
-                            <span class="product-price-old">
-                                {{ formatPrice(autoPart.price) }}đ
-                            </span>
+                        <router-link to="/don-hang" class="product-btn-buy product-btn button">
+                            Mua ngay
+                        </router-link>
+                        <button @click="addToCart(product.id)" class="button product-btn-add-to-cart product-btn"
+                            style="width: 100%;">
+                            Thêm vào giỏ hàng
+                        </button>
+                        <div class="product-labels">
+                            <div class="product-label">
+                                <img src="../../assets/images/delivery-truck-2-150x150.png" alt="" class="product-label-img">
+                                <span class="product-label-text">
+                                    Giao hàng trong 1-4 ngày
+                                </span>
+                            </div>
+                            <div class="product-label">
+                                <img src="../../assets/images/medal-150x150.png" alt="" class="product-label-img">
+                                <span class="product-label-text">
+                                    100% hàng chính hãng và chất lượng
+                                </span>
+                            </div>
+                            <div class="product-label">
+                                <img src="../../assets/images/shield-150x150.png" alt="" class="product-label-img">
+                                <span class="product-label-text">
+                                    Bảo hành mở rộng
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                    <span class="product-desc">
-                        {{ autoPart.description }}
-                    </span>
-                    <div class="product-type">
-                        <span class="product-quantity-text">
-                            Loại:
-                        </span>
-                        <div class="product-type-content">
-                            <ul class="product-type-list">
-                                <li v-for="type in autoPart.types" :key="type" class="product-type-item">
-                                    <button class="product-type-btn">
-                                        <img :src="type.image" alt="" class="product-type-img">
-                                        <span class="product-type-text">
-                                            {{ type.name }}
-                                        </span>
-                                    </button>
+                        <div class="product-specifications">
+                            <ul class="product-specifications-list">
+                                <li class="product-specifications-item" v-if="product.dimensions">
+                                    <div class="product-specifications-title">
+                                        Kích thước:
+                                    </div>
+                                    <div class="product-specifications-content">
+                                        <ReadMoreButton> 
+                                            <slot>
+                                               {{ product.dimensions }}
+                                            </slot>
+                                        </ReadMoreButton>
+                                    </div>
+                                </li>
+                                <li class="product-specifications-item" v-if="product.weight">
+                                    <div class="product-specifications-title">
+                                        Trọng lượng:
+                                    </div>
+                                    <div class="product-specifications-content">
+                                        <ReadMoreButton> 
+                                            <slot>
+                                               {{ product.weight }}
+                                            </slot>
+                                        </ReadMoreButton>
+                                    </div>
+                                </li>
+                                <li class="product-specifications-item" v-if="product.color">
+                                    <div class="product-specifications-title">
+                                        Màu sắc:
+                                    </div>
+                                    <div class="product-specifications-content">
+                                        <ReadMoreButton> 
+                                            <slot>
+                                               {{ product.color }}
+                                            </slot>
+                                        </ReadMoreButton>
+                                    </div>
+                                </li>
+                                <li class="product-specifications-item" v-if="product.material">
+                                    <div class="product-specifications-title">
+                                        Chất liệu:
+                                    </div>
+                                    <div class="product-specifications-content">
+                                        <ReadMoreButton> 
+                                            <slot>
+                                               {{ product.material }}
+                                            </slot>
+                                        </ReadMoreButton>
+                                    </div>
+                                </li>
+                                <li class="product-specifications-item" v-if="product.compatibility">
+                                    <div class="product-specifications-title">
+                                        Tương thích:
+                                    </div>
+                                    <div class="product-specifications-content">
+                                        <ReadMoreButton> 
+                                            <slot>
+                                               {{ product.compatibility }}
+                                            </slot>
+                                        </ReadMoreButton>
+                                    </div>
                                 </li>
                             </ul>
                         </div>
-                    </div>
-                    <div class="product-quantity">
-                        <span class="product-quantity-text">
-                            Số lượng:
-                        </span>
-                        <input type="number" class="product-quantity-input">
-                        <span class="product-quantity-stock">
-                            {{ autoPart.quantity }} sản phẩm có sẵn
-                        </span>
-                    </div>
-                    <router-link to="/don-hang" class="product-btn-buy product-btn button">
-                        Mua ngay
-                    </router-link>
-                    <router-link to="/gio-hang" class="product-btn-add-to-cart product-btn button">
-                        Thêm vào giỏ hàng
-                    </router-link>
-                    <div class="product-labels">
-                        <div class="product-label">
-                            <img src="../../assets/images/delivery-truck-2-150x150.png" alt="" class="product-label-img">
-                            <span class="product-label-text">
-                                Giao hàng trong 1-4 ngày
-                            </span>
-                        </div>
-                        <div class="product-label">
-                            <img src="../../assets/images/medal-150x150.png" alt="" class="product-label-img">
-                            <span class="product-label-text">
-                                100% hàng chính hãng và chất lượng
-                            </span>
-                        </div>
-                        <div class="product-label">
-                            <img src="../../assets/images/shield-150x150.png" alt="" class="product-label-img">
-                            <span class="product-label-text">
-                                Bảo hành mở rộng
-                            </span>
-                        </div>
-                    </div>
-                    <div class="product-specifications">
-                        <ul class="product-specifications-list">
-                            <li v-for="specification in autoPart.specifications" :key="specification" class="product-specifications-item">
-                                <div class="product-specifications-title">
-                                    {{ specification.name }}:
-                                </div>
-                                <div class="product-specifications-content">
-                                    <ReadMoreButton> 
-                                        <slot>
-                                           {{ specification.content }}
-                                        </slot>
-                                    </ReadMoreButton>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
+                    </template>
                 </div>
             </div>
             <div class="product-ratings">
                 <h2 class="product-similar-text product-ratings-text">
                     Đánh giá sản phẩm
                 </h2>
-                <div class="product-rating-detail">
-                    <div class="product-rating-sum">
-                        <div class="product-rating-scores">
-                            <p class="product-rating-score">
-                                {{ autoPart.rating }}
-                            </p>
-                            <span class="product-rating-score-max">/5</span>
+                <template v-if="isLoading">
+                    <div class="product-rating-detail">
+                        <div class="product-rating-sum">
+                            <SkeletonLoading class="product-rating-scores" width="60px" height="60px"/>
+                            <SkeletonLoading width="120px" />
+                            <SkeletonLoading width="80px" />
                         </div>
-                        <div class="product-rating-star">
-                            <RatingStars :rating="autoPart.rating" starClass="product-rating-icon" />
-                        </div>
-                        <span class="product-rating-total">
-                            {{ autoPart.reviewCount }} đánh giá
-                        </span>
-                    </div>
-                    <div class="product-rating-histogram">
-                        <ul class="product-rating-histogram-list">
-                            <li v-for="star in autoPart.starCount" :key="star" class="product-rating-histogram-item">
-                                <div class="product-rating-histogram-item-l">
-                                    <i class="product-rating-icon fa-solid fa-star"></i>
-                                    <span class="product-rating-histogram-item-l-star">
-                                        {{ star.stars }}
-                                    </span>
-                                </div>
-                                <div>
-                                    <div class="product-rating-histogram-item-c">
-                                        <div class="product-rating-histogram-item-c-bar" 
-                                            :style="{
-                                                width: (star.count / autoPart.reviewCount) * 100 + '%'
-                                            }"
-                                        ></div>
-                                    </div>
-                                </div>
-                                <div class="product-rating-histogram-item-r">
-                                    {{ star.count }}
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="product-comment-list">
-                    <div v-for="(comment, index) in comments" :key="index" class="product-comment-item">
-                        <img :src="comment.avatar" alt="" class="product-comment-img">
-                        <div class="product-comment-text">
-                            <div class="product-comment-top">
-                                <div class="product-comment-star">
-                                    <RatingStars :rating="comment.rating" />
-                                </div>
-                                <span class="product-comment-name">
-                                    {{ comment.name }}
-                                </span>
-                                <span class="product-comment-time">
-                                    - {{ comment.time }}
-                                </span>
-                            </div>
-                            <p class="product-comment-content">
-                                {{ comment.content }}
-                            </p>
-                            <ul class="product-comment-img-list">
-                                <li v-for="image in comment.images" :key="image" class="product-comment-img-item">
-                                    <img alt="" class="product-comment-sub-img"
-                                        :class="'product-comment-sub-img_' + index"
-                                        :src="image"
-                                    >
+                        <div class="product-rating-histogram">
+                            <ul class="product-rating-histogram-list">
+                                <li v-for="i in 5" :key="i" class="product-rating-histogram-item">
+                                    <SkeletonLoading height="12px" width="500px" />
                                 </li>
                             </ul>
-                            <img :class="'product-comment-main-img_' + index" src="" alt="" class="product-comment-main-img">
                         </div>
                     </div>
-                </div>
-                <SitePagination :totalPages="10" :currentPage="1"/>
+                    <div class="product-comment-list">
+                        <div v-for="i in 10" :key="i" class="product-comment-item">
+                            <div style="width: 80px;">
+                                <SkeletonLoading height="60px" width="60px" class="product-comment-img" />
+                            </div>
+                            <div class="product-comment-text" style="width: 100%;">
+                                <SkeletonLoading height="12px" width="20%" marginBottom="8px" />
+                                <SkeletonLoading height="12px" width="80%" marginBottom="8px" />
+                                <ul class="product-comment-img-list">
+                                    <li v-for="i in 5" :key="i" class="product-comment-img-item">
+                                        <SkeletonLoading height="72px" width="72px" marginBottom="8px" />
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="pagination category-pagination">
+                        <li v-for="i in 8" :key="i" class="page-item category-page-item">
+                            <SkeletonLoading height="40px" width="40px" borderRadius="50%" />
+                        </li>
+                    </ul>
+                </template>
+                <template v-else>
+                    <div class="product-rating-detail">
+                        <div class="product-rating-sum">
+                            <div class="product-rating-scores">
+                                <p class="product-rating-score">
+                                    {{ product.rate }}
+                                </p>
+                                <span class="product-rating-score-max">/5</span>
+                            </div>
+                            <div class="product-rating-star">
+                                <RatingStars :rating="product.rate" starClass="product-rating-icon" />
+                            </div>
+                            <span class="product-rating-total">
+                                {{ total }} đánh giá
+                            </span>
+                        </div>
+                        <div class="product-rating-histogram">
+                            <ul class="product-rating-histogram-list">
+                                <li v-for="(count, stars) in ratingCounts" :key="stars" class="product-rating-histogram-item">
+                                    <div class="product-rating-histogram-item-l">
+                                        <i class="product-rating-icon fa-solid fa-star"></i>
+                                        <span class="product-rating-histogram-item-l-star">
+                                            {{ stars }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <div class="product-rating-histogram-item-c">
+                                            <div class="product-rating-histogram-item-c-bar" 
+                                                :style="{
+                                                    width: (count / total) * 100 + '%'
+                                                }"
+                                            ></div>
+                                        </div>
+                                    </div>
+                                    <div class="product-rating-histogram-item-r">
+                                        {{ count }}
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="product-comment-list">
+                        <div v-for="comment in comments" :key="comment.id" class="product-comment-item">
+                            <img :src="getImageUrl(comment.user.avatar.path)" alt="" class="product-comment-img">
+                            <div class="product-comment-text">
+                                <div class="product-comment-top">
+                                    <div class="product-comment-star">
+                                        <RatingStars :rating="comment.rating" />
+                                    </div>
+                                    <span class="product-comment-name">
+                                        {{ comment.user.name }}
+                                    </span>
+                                    <span class="product-comment-time">
+                                        - {{ formatDate(comment.updated_at) }}
+                                    </span>
+                                </div>
+                                <p class="product-comment-content">
+                                    {{ comment.comment }}
+                                </p>
+                                <ul class="product-comment-img-list">
+                                    <li v-for="image in comment.images" :key="image" class="product-comment-img-item">
+                                        <img alt="" class="product-comment-sub-img"
+                                            :src="getImageUrl(image.path)"
+                                            @click="toggleMainImage(comment.id, image.path)"
+                                            :class="{ 'product-list-img-content--active': selectedCommentImage === image.path }"
+                                        >
+                                    </li>
+                                </ul>
+                                <img :src="selectedCommentImage ? getImageUrl(selectedCommentImage) : ''" alt="" class="product-comment-main-img"
+                                    v-if="selectedCommentId === comment.id"
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <SitePagination :totalPages="totalPages" :currentPage="currentPage"/>
+                </template>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import { formatPrice } from '@/helpers/helpers.js'
+import { formatDate, formatPrice, getImageUrl } from '@/utils/helpers';
+import apiService from '@/utils/apiService';
 import SitePagination from '@/components/SitePagination.vue'
 import ReadMoreButton from '@/components/ReadMoreButton.vue';
 import ZoomImage from '@/components/ZoomImage.vue';
 import RatingStars from '@/components/RatingStars.vue';
-import useImageGallery from '@/composables/useImageGallery.js';
+import SkeletonLoading from '@/components/SkeletonLoading.vue';
 
 export default {
     name: 'ProductDetail',
     data() {
         return {
-            autoPart: {
-                id: 1,
-                name: "Mâm Xe Hợp Kim Nhôm Cao Cấp - Hiệu Suất Tối Ưu",
-                rating: 4.5,
-                description: "Mâm xe hợp kim nhôm cao cấp với thiết kế hiện đại, độ bền vượt trội và khả năng chịu lực tối ưu. Giúp xe vận hành mượt mà, ổn định và nâng cao tính thẩm mỹ.",
-                price: 3200000,
-                discount: 15,
-                quantity: 1200,
-                reviewCount: 487,
-                starCount: [
-                    {
-                        stars: 5,
-                        count: 300
-                    },
-                    {
-                        stars: 4,
-                        count: 120
-                    },
-                    {
-                        stars: 3,
-                        count: 50
-                    },
-                    {
-                        stars: 2,
-                        count: 10
-                    },
-                    {
-                        stars: 1,
-                        count: 7
-                    }
-                ],
-                types: [
-                    {
-                        name: "17 inch - Màu Đen",
-                        image: "https://example.com/mamxe_black_17.jpg"
-                    },
-                    {
-                        name: "18 inch - Màu Bạc",
-                        image: "https://example.com/mamxe_silver_18.jpg"
-                    },
-                    {
-                        name: "19 inch - Màu Vàng Đồng",
-                        image: "https://example.com/mamxe_gold_19.jpg"
-                    }
-                ],
-                images: [
-                    "https://bacnam.vn/wp-content/uploads/2024/07/Mam-Duc-Lazang-O-to-The-Thao-1.png",
-                    "https://lopxebinhduong.com/upload/news/a-mam3-9654.jpg",
-                    "https://www.lopxeviet.vn/uploads/source/tin-tuc-thang-5/mam-o-to/tat-ca-thong-tin-ve-mam-o-to-bang-gia-loai-mam-thong-so-(4).jpg",
-                    "https://daiphatvienthong.vn/upload/sanpham/thumbs/11226-thay-mam-20-inch-cho-xe-o-to-audi-a7-dang-cap.jpg",
-                    "https://www.lopxeviet.vn/uploads/source/tin-tuc-thang-5/bao-gia-mam-xe-o-to-18-inch/bao-gia-mam-xe-o-to-18-inch-7.webp",
-                    "https://www.lopxeviet.vn/uploads/source/tin-tuc-thang-5/bao-gia-mam-xe-o-to-18-inch/bao-gia-mam-xe-o-to-18-inch-7.webp"
-                ],
-                specifications: [
-                    {
-                        name: "Tình trạng",
-                        content: "Mới 100% - Sản phẩm nguyên hộp, chưa qua sử dụng, đảm bảo chất lượng chính hãng."
-                    },
-                    {
-                        name: "Mã sản phẩm",
-                        content: "MXA-2025: Mã sản phẩm giúp nhận diện dòng mâm xe hợp kim nhôm thế hệ mới."
-                    },
-                    {
-                        name: "Kích thước",
-                        content: "Có sẵn kích thước 17 inch, 18 inch, 19 inch - Phù hợp với nhiều dòng xe khác nhau."
-                    },
-                    {
-                        name: "Chất liệu",
-                        content: "Hợp kim nhôm cao cấp, trọng lượng nhẹ nhưng độ bền cực cao, giúp giảm trọng lượng tổng thể của xe."
-                    },
-                    {
-                        name: "Màu sắc",
-                        content: "Đen, bạc, vàng đồng - Được sơn tĩnh điện chống trầy xước và ăn mòn."
-                    },
-                    {
-                        name: "Tải trọng tối đa",
-                        content: "Có thể chịu tải lên đến 900kg/mâm, đảm bảo an toàn khi vận hành trên mọi địa hình."
-                    },
-                    {
-                        name: "Tương thích",
-                        content: "Phù hợp với hầu hết các dòng xe sedan, SUV và bán tải có đường kính bánh xe từ 17 đến 19 inch."
-                    },
-                    {
-                        name: "Bảo hành",
-                        content: "Bảo hành 24 tháng đối với lỗi kỹ thuật từ nhà sản xuất."
-                    },
-                    {
-                        name: "Hướng dẫn lắp đặt",
-                        content: "Lắp đặt đơn giản, có thể thực hiện tại các trung tâm bảo dưỡng hoặc garage ô tô."
-                    },
-                    {
-                        name: "Độ bền và bảo vệ môi trường",
-                        content: "Sử dụng công nghệ sản xuất hiện đại, giúp tăng tuổi thọ mâm xe và giảm tác động tiêu cực đến môi trường."
-                    }
-                ]
-            },
-            similarAutoParts: [
-                {
-                    image: "https://asset.menu.starbucks.co.jp/public/sku_images/4524785000018/4524785000018_11_s.jpg",
-                    name: "Sữa rửa mặt Hatomugi Sữa rửa mặt Hatomugi Sữa rửa mặt Hatomugi 120g Hada Labo Gokujyun",
-                    rating: 4.9,
-                    sold: 100,
-                    price: 100000000,
-                    discount: 15
-                },
-                {
-                    image: "https://content-prod-live.cert.starbucks.com/binary/v2/asset/137-95715.jpg",
-                    name: "Sữa rửa mặt Hatomugi 120g - Hada Labo Gokujyun",
-                    rating: 4.9,
-                    sold: 100,
-                    price: 1000000,
-                    discount: 99
-                },
-                {
-                    image: "https://asset.menu.starbucks.co.jp/public/sku_images/4524785000018/4524785000018_11_s.jpg",
-                    name: "Sữa rửa mặt Hatomugi Sữa rửa mặt Hatomugi Sữa rửa mặt Hatomugi 120g Hada Labo Gokujyun",
-                    rating: 4.9,
-                    sold: 100,
-                    price: 100000000,
-                    discount: 1
-                },
-                {
-                    image: "https://content-prod-live.cert.starbucks.com/binary/v2/asset/137-95715.jpg",
-                    name: "Sữa rửa mặt Hatomugi 120g - Hada Labo Gokujyun",
-                    rating: 4.9,
-                    sold: 100,
-                    price: 1000000,
-                    discount: 0
-                },
-                {
-                    image: "https://asset.menu.starbucks.co.jp/public/sku_images/4524785000018/4524785000018_11_s.jpg",
-                    name: "Sữa rửa mặt Hatomugi Sữa rửa mặt Hatomugi Sữa rửa mặt Hatomugi 120g Hada Labo Gokujyun",
-                    rating: 4.9,
-                    sold: 100,
-                    price: 100000000,
-                    discount: 15
-                },
-                {
-                    image: "https://content-prod-live.cert.starbucks.com/binary/v2/asset/137-95715.jpg",
-                    name: "Sữa rửa mặt Hatomugi 120g - Hada Labo Gokujyun",
-                    rating: 4.9,
-                    sold: 100,
-                    price: 1000000,
-                    discount: 99
-                },
-                {
-                    image: "https://asset.menu.starbucks.co.jp/public/sku_images/4524785000018/4524785000018_11_s.jpg",
-                    name: "Sữa rửa mặt Hatomugi Sữa rửa mặt Hatomugi Sữa rửa mặt Hatomugi 120g Hada Labo Gokujyun",
-                    rating: 4.9,
-                    sold: 100,
-                    price: 100000000,
-                    discount: 1
-                },
-                {
-                    image: "https://content-prod-live.cert.starbucks.com/binary/v2/asset/137-95715.jpg",
-                    name: "Sữa rửa mặt Hatomugi 120g - Hada Labo Gokujyun",
-                    rating: 4.9,
-                    sold: 100,
-                    price: 1000000,
-                    discount: 0
-                },
-                {
-                    image: "https://asset.menu.starbucks.co.jp/public/sku_images/4524785000018/4524785000018_11_s.jpg",
-                    name: "Sữa rửa mặt Hatomugi Sữa rửa mặt Hatomugi Sữa rửa mặt Hatomugi 120g Hada Labo Gokujyun",
-                    rating: 4.9,
-                    sold: 100,
-                    price: 100000000,
-                    discount: 15
-                },
-                {
-                    image: "https://content-prod-live.cert.starbucks.com/binary/v2/asset/137-95715.jpg",
-                    name: "Sữa rửa mặt Hatomugi 120g - Hada Labo Gokujyun",
-                    rating: 4.9,
-                    sold: 100,
-                    price: 1000000,
-                    discount: 99
-                },
-                {
-                    image: "https://asset.menu.starbucks.co.jp/public/sku_images/4524785000018/4524785000018_11_s.jpg",
-                    name: "Sữa rửa mặt Hatomugi Sữa rửa mặt Hatomugi Sữa rửa mặt Hatomugi 120g Hada Labo Gokujyun",
-                    rating: 4.9,
-                    sold: 100,
-                    price: 100000000,
-                    discount: 1
-                },
-                {
-                    image: "https://content-prod-live.cert.starbucks.com/binary/v2/asset/137-95715.jpg",
-                    name: "Sữa rửa mặt Hatomugi 120g - Hada Labo Gokujyun",
-                    rating: 4.9,
-                    sold: 100,
-                    price: 1000000,
-                    discount: 0
-                }
-            ],
-            comments: [
-                {
-                    id: 1,
-                    avatar: "https://images.gr-assets.com/photos/1375466820p8/817846.jpg",
-                    name: "Nguyễn Văn A",
-                    time: "15/01/2025",
-                    rating: 5,
-                    content: "Tôi rất hài lòng với sản phẩm này. Chất lượng vượt mong đợi, thiết kế đẹp và rất tiện dụng. Dịch vụ giao hàng cũng rất nhanh chóng và chuyên nghiệp. Tôi chắc chắn sẽ mua thêm và giới thiệu cho bạn bè!",
-                    images: [
-                        "https://lopxebinhduong.com/upload/filemanager/files/trucly-2010/MAM-XE-O-TO/MAM-XE10.jpg",
-                        "https://lopxebinhduong.com/upload/filemanager/files/trucly-2010/MAM-XE-O-TO/MAM-XE10.jpg",
-                        "https://broauto.vn/uploads/source/chia-se/mam-xe-o-to/mam-xe-o-to-18.jpg"
-                    ]
-                },
-                {
-                    id: 2,
-                    avatar: "https://images.gr-assets.com/authors/1673611182p5/3565.jpg",
-                    name: "Trần Thị B",
-                    time: "10/01/2025",
-                    rating: 4,
-                    content: "Giao hàng nhanh, sản phẩm đúng như mô tả. Tuy nhiên, hộp đóng gói hơi móp, điều này làm tôi hơi thất vọng. Nhưng nhìn chung, sản phẩm bên trong vẫn nguyên vẹn và hoạt động tốt.",
-                    images: [
-                        "https://linhkienauto.com/upload_file/avatar/rK3ENXDydm7Pdx50VhUpjMzB7kXe4ha0clZX5kle.webpg",
-                        "https://linhkienauto.com/upload_file/avatar/rK3ENXDydm7Pdx50VhUpjMzB7kXe4ha0clZX5kle.webp"
-                    ]
-                },
-                {
-                    id: 3,
-                    avatar: "https://images.gr-assets.com/authors/1696236573p5/22302.jpg",
-                    name: "Lê Minh C",
-                    time: "08/01/2025",
-                    rating: 3,
-                    content: "Sản phẩm có chất lượng trung bình. Thiết kế không như kỳ vọng, và một số chi tiết chưa được gia công tỉ mỉ. Nếu cải thiện những điểm này, tôi tin sản phẩm sẽ được yêu thích hơn.",
-                    images: []
-                },
-                {
-                    id: 4,
-                    avatar: "https://images.gr-assets.com/authors/1198518558p5/23924.jpg",
-                    name: "Phạm Thị D",
-                    time: "05/01/2025",
-                    rating: 5,
-                    content: "Đây là sản phẩm tốt nhất mà tôi từng mua trên trang này. Thiết kế đẹp mắt, chất liệu cao cấp, và cách đóng gói rất cẩn thận. Dịch vụ hỗ trợ khách hàng rất nhiệt tình và nhanh chóng. Tôi rất khuyến khích mọi người nên thử.",
-                    images: [
-                        "https://images.gr-assets.com/authors/1233458107p5/1943477.jpg",
-                        "https://images.gr-assets.com/photos/1314296949p8/326680.jpg",
-                        "https://images.gr-assets.com/photos/1314296973p8/326684.jpg"
-                    ]
-                },
-                {
-                    id: 5,
-                    avatar: "https://images.gr-assets.com/photos/1375466820p8/817846.jpg",
-                    name: "Đặng Hữu E",
-                    time: "01/01/2025",
-                    rating: 4,
-                    content: "Giá cả hợp lý, sản phẩm phù hợp với nhu cầu sử dụng. Tôi nghĩ rằng đây là lựa chọn tốt cho những ai đang tìm kiếm một sản phẩm tương tự. Tuy nhiên, việc giao hàng cần được cải thiện về tốc độ.",
-                    images: [
-                        "https://images.gr-assets.com/authors/1429114964p5/9810.jpg",
-                        "https://images.gr-assets.com/authors/1337988298p5/1050.jpg"
-                    ]
-                },
-                {
-                    id: 6,
-                    avatar: "",
-                    name: "Vũ Hoàng F",
-                    time: "30/12/2024",
-                    rating: 2,
-                    content: "Tôi không hài lòng với sản phẩm này. Chất lượng không tốt như quảng cáo, và sản phẩm bị lỗi ngay từ khi nhận. Tôi đã liên hệ để đổi trả nhưng quá trình xử lý rất chậm.",
-                    images: []
-                },
-                {
-                    id: 7,
-                    avatar: "https://images.gr-assets.com/authors/1233458107p5/1943477.jpg",
-                    name: "Hoàng Thị G",
-                    time: "25/12/2024",
-                    rating: 5,
-                    content: "Mình mua sản phẩm này để làm quà tặng, và người nhận rất hài lòng. Thiết kế sang trọng, hộp đựng đẹp mắt và chất lượng sản phẩm cực kỳ tốt. Đây là món quà tuyệt vời cho mọi dịp.",
-                    images: [
-                        "https://images.gr-assets.com/photos/1314296949p8/326680.jpg",
-                        "https://images.gr-assets.com/photos/1314296973p8/326684.jpg",
-                        "https://images.gr-assets.com/authors/1233458107p5/1943477.jpg"
-                    ]
-                },
-                {
-                    id: 8,
-                    avatar: "https://images.gr-assets.com/authors/1337988298p5/1050.jpg",
-                    name: "Phan Văn H",
-                    time: "20/12/2024",
-                    rating: 4,
-                    content: "Sản phẩm sử dụng tốt, nhưng đóng gói không được chắc chắn. Nếu cải thiện vấn đề này, tôi nghĩ sản phẩm sẽ hoàn hảo hơn.",
-                    images: [
-                        "https://images.gr-assets.com/authors/1429114964p5/9810.jpg"
-                    ]
-                },
-                {
-                    id: 9,
-                    avatar: "https://images.gr-assets.com/photos/1314296949p8/326680.jpg",
-                    name: "Ngô Thị I",
-                    time: "15/12/2024",
-                    rating: 5,
-                    content: "Tôi cực kỳ ấn tượng với chất lượng của sản phẩm này. Từ thiết kế đến tính năng, mọi thứ đều rất hoàn hảo. Tôi chắc chắn sẽ quay lại mua thêm trong tương lai.",
-                    images: [
-                        "https://images.gr-assets.com/photos/1314296973p8/326684.jpg",
-                        "https://images.gr-assets.com/authors/1233458107p5/1943477.jpg"
-                    ]
-                },
-                {
-                    id: 10,
-                    avatar: "",
-                    name: "Đỗ Minh J",
-                    time: "10/12/2024",
-                    rating: 3,
-                    content: "Sản phẩm tạm được, không quá xuất sắc nhưng cũng không quá tệ. Tôi hy vọng lần sau sẽ có trải nghiệm tốt hơn.",
-                    images: []
-                }
-            ]
+            totalPages: 0, currentPage: 1, total: 0, ratingCounts: {},
+            product: {},
+            similarProducts: [],
+            comments: [],
+            isLoading: true, selectedImage: null, selectedCommentImage: null, selectedCommentId: null,
+            quantity: 1
         }
     },
-    methods: {
-        formatPrice,
+    computed: {
+        slug() {
+            return this.$route.params.slug;
+        }
     },
-    setup() {
-        useImageGallery();
+    watch: {
+        '$route': {
+            handler: 'fetchData',
+            immediate: true,
+            deep: true,
+        },
+    },
+    methods: {
+        async fetchData() {
+            this.isLoading = true;
+            try {
+                const slug = this.slug || '';
+                const req = [
+                    apiService.products.getBySlug(slug),
+                    apiService.reviews.getByProductSlug(slug, { page: this.$route.query.page }),
+                ];
+
+                const res = await Promise.all(req)
+
+                this.product = res[0].data.data;
+                this.similarProducts = res[0].data.related
+                this.selectedImage = this.product.images[0];
+                this.ratingCounts = res[0].data.ratingCounts;
+                this.comments = res[1].data.data
+                this.totalPages = Math.ceil(res[1].data.pagination.total / res[1].data.pagination.per_page);
+                this.currentPage = res[1].data.pagination.current_page;
+                this.total = res[1].data.pagination.total;
+            } catch (error) {
+                console.error(error);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        async addToCart(productId) {
+            if (this.quantity < 1 || this.quantity > this.product.quantity) {
+                this.$swal.fire("Số lượng không hợp lệ!", `Số lượng sản phẩm tối đa là ${this.product.quantity}`, "error")
+                return;
+            }
+            try {
+                await apiService.carts.addToCart(productId, this.quantity);
+                this.$router.push('/gio-hang');
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        selectImage(image) {
+            this.selectedImage = image;
+        },
+        toggleMainImage(commentId, path) {
+            this.selectedCommentId = commentId;
+            this.selectedCommentImage = this.selectedCommentImage === path ? null : path;
+        },
+        formatPrice, formatDate, getImageUrl
     },
     components: {
-        SitePagination, ReadMoreButton, ZoomImage, RatingStars
+        SitePagination, ReadMoreButton, ZoomImage, RatingStars, SkeletonLoading
     },
 }
 

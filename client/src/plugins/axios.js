@@ -51,9 +51,7 @@ apiClient.interceptors.response.use(
                     break
                 case 404:
                     console.error('Không tìm thấy tài nguyên:', response.data)
-                    swal.fire('Không tìm thấy', 'Tài nguyên bạn yêu cầu không tồn tại hoặc đã bị xóa.', 'error').then(() => {
-                        router.replace({ name: "NotFound" })
-                    })
+                    router.replace({ name: "NotFound" })
                     break
                 case 422: {
                     console.error('Lỗi validation:', response.data)

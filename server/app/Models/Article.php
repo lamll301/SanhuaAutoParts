@@ -22,7 +22,7 @@ class Article extends Model
     ];
 
     protected $casts = [
-        'publish_date' => 'date',
+        'publish_date' => 'date:Y-m-d',
     ];
     
     protected function slugSourceField(): string 

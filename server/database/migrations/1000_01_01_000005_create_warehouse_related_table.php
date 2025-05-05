@@ -26,7 +26,7 @@ return new class extends Migration
             $table->foreignId('import_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedInteger('quantity');        // so luong
-            $table->unsignedInteger('actual_quantity')->nullable();     // thuc nhap
+            // $table->unsignedInteger('actual_quantity')->nullable();     // thuc nhap
             $table->unsignedInteger('price');       // don gia
             $table->timestamps();
         });
@@ -84,7 +84,7 @@ return new class extends Migration
             $table->foreignId('export_id')->constrained()->cascadeOnDelete();
             $table->foreignId('inventory_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedInteger('quantity');                        // so luong
-            $table->unsignedInteger('actual_quantity')->nullable();     // thuc xuat
+            // $table->unsignedInteger('actual_quantity')->nullable();     // thuc xuat
             $table->unsignedInteger('price');                           // don gia
             $table->timestamps();
         });
@@ -95,7 +95,6 @@ return new class extends Migration
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->date('date');
             $table->string('reason')->nullable();
-            $table->string('method')->nullable();    // phuong thuc thanh ly: huy, ban, tang, ...
             $table->unsignedInteger('total_amount')->default(0);
             $table->timestamps();
             $table->softDeletes();
@@ -106,8 +105,9 @@ return new class extends Migration
             $table->foreignId('disposal_id')->constrained()->cascadeOnDelete();
             $table->foreignId('inventory_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedInteger('quantity');
-            $table->unsignedInteger('actual_quantity')->nullable();
+            // $table->unsignedInteger('actual_quantity')->nullable();
             $table->unsignedInteger('price');
+            $table->string('method')->nullable();
             $table->timestamps();
         });
         // phiếu kiểm kê
@@ -127,7 +127,7 @@ return new class extends Migration
             $table->foreignId('inventory_id')->nullable()->constrained()->nullOnDelete();
             $table->enum('quality', ['Còn tốt 100%', 'Kém phẩm chất', 'Mất phẩm chất'])->nullable();
             $table->unsignedInteger('quantity');                        // so luong theo so sach
-            $table->unsignedInteger('actual_quantity')->nullable();                 // so luong theo kiem ke
+            // $table->unsignedInteger('actual_quantity')->nullable();                 // so luong theo kiem ke
             $table->unsignedInteger('price');                           // don gia
             $table->timestamps();
         });
@@ -138,7 +138,6 @@ return new class extends Migration
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->date('date');
             $table->string('reason')->nullable();
-            $table->string('method')->nullable();
             $table->unsignedInteger('total_amount')->default(0);
             $table->timestamps();
             $table->softDeletes();
@@ -150,6 +149,7 @@ return new class extends Migration
             $table->foreignId('inventory_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedInteger('quantity');
             $table->unsignedInteger('price');
+            $table->string('method')->nullable();
             $table->timestamps();
         });
     }

@@ -219,16 +219,16 @@
                         <li v-for="cartDetail in cartDetails" :key="cartDetail" class="cart-item">
                             <div class="cart-item-content">
                                 <div class="cart-item-left">
-                                    <img :src="cartDetail.image" alt="" class="cart-item-img order-product-img">
+                                    <img :src="getImageUrl(cartDetail.product.images[0].path)" alt="" class="cart-item-img order-product-img">
                                     <div class="cart-item-product">
                                         <a href="" class="order-product-name cart-item-name">
-                                            {{ cartDetail.name }}
+                                            {{ cartDetail.product.name }}
                                         </a>
                                         <p class="order-product-price-curr cart-item-price-curr">
-                                            {{ formatPrice(cartDetail.price * (1 - cartDetail.discount * 0.01)) }}<sup>đ</sup>
+                                            {{ formatPrice(cartDetail.product.price) }}<sup>đ</sup>
                                         </p>
-                                        <p class="cart-item-price-old">
-                                            {{ formatPrice(cartDetail.price) }}<sup>đ</sup>
+                                        <p class="cart-item-price-old" v-show="cartDetail.product.original_price !== cartDetail.product.price">
+                                            {{ formatPrice(cartDetail.product.original_price) }}<sup>đ</sup>
                                         </p>
                                     </div>
                                 </div>
@@ -237,13 +237,10 @@
                                         <span class="order-product-quantity">
                                             Số lượng: {{ cartDetail.quantity }}
                                         </span>
-                                        <p class="order-product-type cart-item-type">
-                                            Loại: {{ cartDetail.type }}
-                                        </p>
                                     </div>
                                     <div class="cart-item-price">
                                         <p class="order-product-price-total cart-item-price-total">
-                                            {{ formatPrice(cartDetail.total) }}<sup>đ</sup>
+                                            {{ formatPrice(cartDetail.subtotal) }}<sup>đ</sup>
                                         </p>
                                     </div>
                                 </div>
@@ -251,34 +248,34 @@
                         </li>
                     </ul>
                 </div>
-                <div class="order-right cart-right">
+                <div class="order-right cart-right" style="width: 522px;">
                     <span class="order-summary-text">
                         Tóm tắt đơn hàng
                     </span>
                     <div class="order-summary-item-total cart-summary-line-item">
                         <span>Các mặt hàng ({{ cartDetails.length }})</span>
                         <span>
-                            {{ formatPrice(cart.subTotal) }}<sup>đ</sup>
+                            {{ formatPrice(subtotal) }}<sup>đ</sup>
                         </span>
                     </div>
                     <div class="cart-summary-line-item">
                         <span>Phí vận chuyển</span>
                         <span>
-                            {{ formatPrice(cart.shippingFee) }}<sup>đ</sup>
+                            {{ formatPrice(shippingFee) }}<sup>đ</sup>
                         </span>
                     </div>
-                    <div class="cart-summary-line-item">
+                    <!-- <div class="cart-summary-line-item">
                         <span>
                             Thuế (VAT)
                         </span>
                         <span>
                             {{ formatPrice(cart.subTotal * 0.1) }}<sup>đ</sup>
                         </span>
-                    </div>
+                    </div> -->
                     <div class="cart-total cart-summary-line-item">
                         <span>Tổng cộng</span>
                         <span>
-                            {{ formatPrice(cart.totalAmount) }}<sup>đ</sup>
+                            {{ formatPrice(total) }}<sup>đ</sup>
                         </span>
                     </div>
                     <div class="order-user-agreement">
@@ -307,11 +304,16 @@
 </template>
 
 <script>
-import { formatPrice } from '@/helpers/helpers.js'
-import { swalFire } from '@/helpers/swal.js'
+import { getImageUrl, formatPrice } from '@/utils/helpers';
+import apiService from '@/utils/apiService';
 
 export default {
     name: 'OrderForm',
+    computed: {
+        total() {
+            return this.subtotal + this.shippingFee - this.voucherValue;
+        },
+    },
     data() {
         return {
             order: {},
@@ -333,50 +335,7 @@ export default {
                 { name: 'ZaloPay', image: 'https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-ZaloPay-Square.png' },
                 { name: 'Viettel Money', image: 'https://inkythuatso.com/uploads/thumbnails/800/2021/12/logo-viettelpay-inkythuatso-3-14-09-02-46.jpg' }
             ],
-            // nếu chưa tạo đơn hàng
-            cartDetails: [
-                {
-                    autoPartId: 1,
-                    name: "Lọc dầu động cơ xe ô tô",
-                    image: "https://danchoioto.vn/wp-content/uploads/2021/03/loc-dau-o-to-3.jpg.webp",
-                    price: 500000,
-                    discount: 10,
-                    rating: 5,
-                    quantity: 1,
-                    total: 450000,
-                    type: "Phụ tùng động cơ",
-                    stockQuantity: 10
-                },
-                {
-                    autoPartId: 2,
-                    name: "Bố thắng (má phanh) xe hơi",
-                    image: "https://phutungotovietnam.com.vn/datafiles/img_data/images/07gmcenvoyfrontwheelbearings00007_5575.jpg",
-                    price: 1200000,
-                    discount: 15,
-                    rating: 4,
-                    quantity: 2,
-                    total: 2040000,
-                    type: "Hệ thống phanh",
-                    stockQuantity: 5
-                },
-                {
-                    autoPartId: 3,
-                    name: "Bugi đánh lửa Denso Iridium",
-                    image: "https://pos.nvncdn.com/7e21ec-18050/ps/20180730_AW3ScpJ42xPgNg7WU120dn7b.jpg",
-                    price: 300000,
-                    discount: 8,
-                    rating: 5,
-                    quantity: 4,
-                    total: 1104000,
-                    type: "Hệ thống đánh lửa",
-                    stockQuantity: 20
-                }
-            ],
-            cart: {
-                subTotal: 3590000,
-                shippingFee: 50000,
-                totalAmount: 3999000
-            },
+            cartDetails: [], subtotal: 0, shippingFee: 50000, voucherValue: 0,
             cities: [], selectedCity: '',
             districts: [], selectedDistrict: '',
             wards: [], selectedWard: '',
@@ -384,7 +343,7 @@ export default {
         }
     },
     created() {
-        this.fetchCities();
+        this.fetchData();
         this.fetchLastPaymentSuccess();
     },
     watch: {
@@ -399,28 +358,37 @@ export default {
         }
     },
     methods: {
-        async fetchCities() {
+        getImageUrl, formatPrice,
+        async fetchData() {
             try {
-                const response = await this.$request.get('https://provinces.open-api.vn/api/p/');
-                this.cities = response.data;
-            } catch (error) {
-                console.error(error);
+                const req = [
+                    apiService.provinces.getProvinces(),
+                    apiService.carts.getCart(),
+                    // apiService.users.getUserInfo(),
+                ]
+                const res = await Promise.all(req);
+                this.cities = res[0].data;
+                this.cartDetails = res[1].data.details.filter(detail => detail.product.quantity > 0)
+                this.subtotal = res[1].data.total
+                console.log(this.cartDetails)
+            } catch (err) {
+                console.error(err);
             }
         },
         async fetchDistricts() {
             try {
-                const response = await this.$request.get(`https://provinces.open-api.vn/api/p/${this.selectedCity}?depth=2`);
-                this.districts = response.data.districts;
-            } catch (error) {
-                console.error(error);
+                const res = await apiService.provinces.getProvinceWithDistricts(this.selectedCity);
+                this.districts = res.data.districts;
+            } catch (err) {
+                console.error(err);
             }
         },
         async fetchWards() {
             try {
-                const response = await this.$request.get(`https://provinces.open-api.vn/api/d/${this.selectedDistrict}?depth=2`);
-                this.wards = response.data.wards;
-            } catch (error) {
-                console.error(error);
+                const res = await apiService.provinces.getDistrictWithWards(this.selectedDistrict);
+                this.wards = res.data.wards;
+            } catch (err) {
+                console.error(err);
             }
         },
         async fetchLastPaymentSuccess() {
@@ -505,7 +473,7 @@ export default {
             this.order.id = 999
             if (this.selectedPaymentMethod === 'qrcode') {
                 if (this.payment.qrcode) {
-                    swalFire('Thông báo', 'Vui lòng quét mã để hoàn tất giao dịch.', 'info')
+                    this.$swal.fire('Thông báo', 'Vui lòng quét mã để hoàn tất giao dịch.', 'info')
                     return;
                 }
                 this.$swal({
@@ -523,10 +491,10 @@ export default {
                         return;
                     }
                     await this.fetchPaymentQR();
-                    swalFire('Thành công', 'Mã QR đã được tạo thành công. Vui lòng quét mã để hoàn tất giao dịch.', 'success')
+                    this.$swal.fire('Thành công', 'Mã QR đã được tạo thành công. Vui lòng quét mã để hoàn tất giao dịch.', 'success')
                 } catch (error) {
                     console.error(error);
-                    swalFire('Lỗi', 'Đã xảy ra lỗi khi tạo mã QR. Vui lòng thử lại.', 'error')
+                    this.$swal.fire('Lỗi', 'Đã xảy ra lỗi khi tạo mã QR. Vui lòng thử lại.', 'error')
                 }
             }
         },
@@ -540,7 +508,7 @@ export default {
                     if (status === 'success') {
                         clearInterval(this.paymentCheckInterval);
                         clearInterval(this.countdownInterval);
-                        swalFire('Thanh toán hoàn tất!', 'Cảm ơn bạn đã mua hàng. Chúng tôi đã nhận được thanh toán của bạn.', 'success');
+                        this.$swal.fire('Thanh toán hoàn tất!', 'Cảm ơn bạn đã mua hàng. Chúng tôi đã nhận được thanh toán của bạn.', 'success');
                         // chuyển hướng người dùng đến trang theo dõi đơn
                         return;
                     }
@@ -557,13 +525,12 @@ export default {
         onEWalletSelect(eWalletName) {
             this.selectedEWallet = eWalletName;
         },
-        formatPrice, swalFire,
         startCountdown() {
             let time = 15 * 60;
             this.countdownInterval = setInterval(() => {
                 if (time <= 0) {
                     clearInterval(this.countdownInterval);
-                    swalFire('Hết thời gian', 'Thời gian quét mã QR đã hết. Vui lòng thử lại.', 'error');
+                    this.$swal.fire('Hết thời gian', 'Thời gian quét mã QR đã hết. Vui lòng thử lại.', 'error');
                     this.payment.qrcode = null;
                     this.selectedPaymentMethod = '';
                     this.countdown = '15:00';

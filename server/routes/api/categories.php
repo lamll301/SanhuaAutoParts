@@ -5,6 +5,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Middleware\SortMiddleware;
 
 Route::prefix('categories')->group(function () {
+    Route::get('/by-slug/{slug}', [CategoryController::class, 'getBySlug']);
     Route::get('/trashed', [CategoryController::class, 'trashed'])->middleware(SortMiddleware::class);
     Route::patch('/{id}/restore', [CategoryController::class, 'restore']);
     Route::delete('/{id}/force-delete', [CategoryController::class, 'forceDelete']);

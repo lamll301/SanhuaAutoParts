@@ -9,6 +9,19 @@ class CategoryController extends Controller
 {
     private const SEARCH_FIELDS = ['name', 'type'];
 
+    public function getBySlug(string $slug) {
+        $category = Category::where('slug', $slug)->first();
+        if (!$category) {
+            return response()->json(['message' => 'Category not found'], 404);
+        }
+        $related = Category::where('type', $category->type)->where('id', '!=', $category->id) ->get();
+        
+        return response()->json([
+            'data' => $category,
+            'related' => $related
+        ]);
+    }
+
     public function index(Request $request) {
         $query = Category::with('images');
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS);

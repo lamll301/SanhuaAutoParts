@@ -3,23 +3,36 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Article;
 use App\Models\User;
+use App\Models\Image;
 use Faker\Factory as Faker;
 use Illuminate\Support\Str;
 
 class ArticleSeeder extends Seeder
 {
-    private function generateArticleContent($faker): string
+    private function generateArticleContent($faker, array $files): string
     {
-        $content = '<p>' . $faker->paragraph(5) . '</p>';
-        $content .= '<h2>' . $faker->sentence(3) . '</h2>';
-        $content .= '<p>' . $faker->paragraph(8) . '</p>';
-        $content .= '<p><img src="' . $faker->imageUrl(800, 400) . '" alt="' . $faker->sentence(2) . '"></p>';
-        $content .= '<p>' . $faker->paragraph(6) . '</p>';
-        $content .= '<h3>' . $faker->sentence(4) . '</h3>';
-        $content .= '<p>' . $faker->paragraph(7) . '</p>';
-        
+        $content = '';
+        $j = 0;
+
+        for ($section = 0; $section < 3; $section++) {
+            $content .= '<div><b>' . $faker->sentence(10) . '</b></div>';
+
+            $numSentences = rand(3, 6);
+            for ($i = 0; $i < $numSentences; $i++) {
+                $content .= '<p>' . $faker->sentence(rand(8, 15)) . '</p>';
+            }
+            $randomImages = collect($files)->shuffle()->take(2);
+            foreach ($randomImages as $image) {
+                $filename = $j;
+                $path = basename($image);
+                $content .= '<img alt="' . $filename . '" src="/storage/default/Images/' . $path . '">';
+                $j++;
+            }
+        }
+
         return $content;
     }
 
@@ -27,20 +40,49 @@ class ArticleSeeder extends Seeder
     {
         $faker = Faker::create('vi_VN');
         $userIds = User::pluck('id')->toArray();
+        
+        $files = collect(Storage::disk('public')->allFiles('default/Images'))
+            ->filter(function ($file) {
+                return preg_match('/\.(jpg|jpeg|png|gif)$/i', $file);
+            })->values()->all();
 
         for ($i = 0; $i < 25; $i++) {
             $title = $faker->sentence(6);
             $slug = Str::slug($title);
             
-            Article::create([
-                'title' => $title,
+            $article = Article::create([
+                'title' => $title,  
                 'slug' => $slug,
-                'highlight' => $faker->optional(0.6)->sentence,
-                'author' => $faker->optional()->randomElement($userIds),
-                'approved_by' => $faker->optional(0.5)->randomElement($userIds),
+                'highlight' => $faker->sentence,
+                'author' => $faker->randomElement($userIds),
+                'approved_by' => $faker->randomElement($userIds),
                 'publish_date' => $faker->dateTimeBetween('-6 months', '+1 week')->format('Y-m-d'),
-                'content' => $this->generateArticleContent($faker),
+                'content' => $this->generateArticleContent($faker, $files),
             ]);
+
+            Image::create([
+                'article_id' => $article->id,
+                'filename' => 7,
+                'path' => '/storage/' . $faker->randomElement($files),
+                'is_thumbnail' => true,
+                'size' => rand(100000, 800000),
+                'mime_type' => 'image/jpeg',
+            ]);
+
+            $images = [];
+            for ($j = 0; $j < 7; $j++) {
+                $images[] = [
+                    'article_id' => $article->id,
+                    'filename' => $j,
+                    'path' => '/storage/' . $faker->randomElement($files),
+                    'is_thumbnail' => false,
+                    'size' => rand(100000, 800000),
+                    'mime_type' => 'image/jpeg',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            Image::insert($images);
         }
     }
 }

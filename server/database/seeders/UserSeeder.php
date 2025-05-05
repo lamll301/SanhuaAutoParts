@@ -5,8 +5,10 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\Image;
 use Faker\Factory as Faker;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class UserSeeder extends Seeder
 {
@@ -16,18 +18,32 @@ class UserSeeder extends Seeder
         $faker = Faker::create('vi_VN');
         $roleIds = Role::pluck('id')->toArray();
 
-        for ($i = 0; $i < 10; $i++) {
+        $files = collect(Storage::disk('public')->allFiles('default/Images'))
+            ->filter(function ($file) {
+                return preg_match('/\.(jpg|jpeg|png|gif)$/i', $file);
+            })->values()->all();
+
+        for ($i = 0; $i < 50; $i++) {
             $name = $faker->lastName . ' ' . $faker->firstName;
             $email = Str::slug($name, '.') . $i . '@gmail.com';
 
+            $avatar = Image::create([
+                'filename' => 'thumbnail_' . Str::random(5),
+                'path' => '/storage/' . $faker->randomElement($files),
+                'is_thumbnail' => true,
+                'size' => rand(100000, 800000),
+                'mime_type' => 'image/jpeg',
+            ]);
+
             User::create([
                 'username' => $faker->unique()->userName,
-                'password' => bcrypt('password123'),
+                'password' => bcrypt('matkhau123'),
                 'name' => $name,
                 'email' => strtolower($email),
                 'phone' => $faker->randomElement($prefixes) . $faker->numberBetween(1000000, 9999999),
                 'date_of_birth' => $faker->dateTimeBetween('-40 years', '-18 years')->format('Y-m-d'),
                 'role_id' => $faker->randomElement($roleIds),
+                'avatar_id' => $avatar->id,
             ]);
         }
     }

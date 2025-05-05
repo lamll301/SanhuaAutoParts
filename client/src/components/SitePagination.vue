@@ -10,12 +10,8 @@
                 <span v-if="page === '...'" class="page-link category-page-link">
                     {{ page }}
                 </span>
-                <router-link
-                    v-else
-                    class="page-link category-page-link"
-                    :to="pagination.selectPage(page)"
-                    :class="{ active: page === currentPage }"
-                >
+                <router-link v-else class="page-link category-page-link" 
+                :to="pagination.selectPage(page)" :class="{ active: page === Math.min(Math.max(currentPage, 1), totalPages) || totalPages === 0}">
                     {{ page }}
                 </router-link>
             </li>
@@ -29,6 +25,7 @@
 </template>
 
 <script>
+import { watchEffect, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import usePagination from '@/composables/usePagination.js';
 
@@ -39,8 +36,12 @@ export default {
     },
     setup(props) {
         const route = useRoute();
-        const pagination = usePagination(props.currentPage, props.totalPages, route);
+        const pagination = ref(null);
 
+        watchEffect(() => {
+            pagination.value = usePagination(props.currentPage, props.totalPages, route);
+        });
+        
         return {
             pagination,
         };

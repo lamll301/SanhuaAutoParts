@@ -252,9 +252,7 @@ export default {
         handleUpdateIds(ids) {
             this.selectedIds = ids;
         },
-        formatDate(date) {
-            return formatDate(date);
-        },
+        formatDate,
     }
 }
 </script>

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('password');
             $table->tinyInteger('status')->default(1);
 
+            $table->unsignedBigInteger('avatar_id')->nullable();
             $table->string('name')->nullable();
             $table->string('email')->unique()->nullable();
             $table->string('phone')->nullable();

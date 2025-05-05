@@ -15,4 +15,7 @@ Route::group([], base_path('routes/api/products.php'));
 Route::group([], base_path('routes/api/inventories.php'));
 Route::group([], base_path('routes/api/locations.php'));
 Route::group([], base_path('routes/api/warehouse_receipt.php'));
+Route::group([], base_path('routes/api/reviews.php'));
+Route::group([], base_path('routes/api/carts.php'));
+
 

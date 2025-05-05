@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\Review;
 
 class ProductController extends Controller
 {
@@ -19,6 +20,93 @@ class ProductController extends Controller
         'filterByStatus' => ['column' => 'status'],
     ];
 
+    public function getBySlug(string $slug) {
+        $product = Product::with([
+            'images:id,path,product_id',
+            'unit:id,name',
+            'promotion:id,discount_percent',
+            'categories:id,name,slug',
+            'categories.images' => function($query) {
+                $query->select('id', 'path', 'category_id')
+                ->where('is_thumbnail', true)->limit(1);
+            },
+        ])->select('id', 'name', 'slug', 'description', 'price', 'original_price',
+            'quantity', 'dimensions', 'weight', 'color', 'material', 'compatibility', 'unit_id', 'supplier_id', 'promotion_id')
+        ->where('slug', $slug)->firstOrFail();
+
+        $related = Product::with([
+            'images' => function($query) {
+                $query->where('is_thumbnail', true)->select('id', 'path', 'product_id');
+            },
+            'unit:id,name',
+            'promotion:id,discount_percent'
+        ])->select('id', 'name', 'slug', 'price', 'original_price', 'unit_id', 'supplier_id', 'promotion_id')
+        ->whereHas('categories', function($query) use ($product) {
+            $query->whereIn('categories.id', $product->categories->pluck('id'));
+        })
+        ->where('id', '!=', $product->id)
+        ->take(8)
+        ->get();
+
+        $ratingCounts = Review::where('product_id', $product->id)
+        ->selectRaw('rating, COUNT(*) as count')
+        ->groupBy('rating')
+        ->pluck('count', 'rating')
+        ->toArray();
+
+        return response()->json([
+            'data' => $product,
+            'related' => $related,
+            'ratingCounts' => $ratingCounts
+        ]);
+    }
+
+    public function getByCategorySlug(Request $request, ?string $slug = null) {
+        $query = Product::with([
+            'images' => function($query) {
+                $query->where('is_thumbnail', true)->select('id', 'path', 'product_id');
+            }, 
+            'unit:id,name',
+            'promotion:id,discount_percent'
+        ]);
+
+        if ($slug !== null) {
+            $query->whereHas('categories', function($q) use ($slug) {
+                $q->where('slug', $slug);
+            });
+        } else if ($request->has('sort_by')) {
+            $sortBy = $request->input('sort_by');
+            switch ($sortBy) {
+                case 'on_sale':
+                    $query->whereColumn('price', '!=', 'original_price');
+                    break;
+            }
+        }
+
+        if ($request->has('price_range')) {
+            $priceRange = $request->input('price_range');
+            switch ($priceRange) {
+                case 'under_500k':
+                    $query->where('price', '<', 500000);
+                    break;
+                case '500k_2m':
+                    $query->whereBetween('price', [500000, 2000000]);
+                    break;
+                case '2m_5m':
+                    $query->whereBetween('price', [2000000, 5000000]);
+                    break;
+                case '5m_10m':
+                    $query->whereBetween('price', [5000000, 10000000]);
+                    break;
+                case 'above_10m':
+                    $query->where('price', '>', 10000000);
+                    break;
+            }
+        }
+        
+        return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS, 20);
+    }
+
     public function index(Request $request) {
         $query = Product::with('images')->with('categories')->with('unit')->with('supplier')->with('promotion');
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
@@ -30,7 +118,14 @@ class ProductController extends Controller
     }
 
     public function show(string $id) {
-        $product = Product::with('images')->with('categories')->findOrFail($id);
+        // $product = Product::with('images')->with('categories')->findOrFail($id);
+        $product = Product::with([
+            'images',
+            'categories:id,name',
+            'unit:id,name',
+            'supplier:id,name',
+            'promotion:id,discount_percent'
+        ])->findOrFail($id);
         return response()->json($product);
     }
 

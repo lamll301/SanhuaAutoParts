@@ -54,7 +54,7 @@ const site = [
                 component: () => import('../pages/site/ProductCategories.vue'),
             },
             {
-                path: 'san-pham/:id',
+                path: 'san-pham/:slug',
                 name: 'productDetail',
                 component: () => import('../pages/site/ProductDetail.vue'),
             },

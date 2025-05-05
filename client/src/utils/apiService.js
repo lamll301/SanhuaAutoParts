@@ -4,13 +4,13 @@ const crudEndpoints = [
     'permissions', 'roles', 'users', 'units',
     'suppliers', 'vouchers', 'promotions', 'articles', 'categories', 'products',
     'locations', 'inventories', 'imports', 'exports', 'disposals', 'checks', 'cancels',
-    'orders', 'carts',
+    'orders', 'carts', 'reviews'
 ]
 
 const createCrudService = (endpoint) => {
-    const baseUrl = `${process.env.VUE_APP_API_BASE_URL}/api${endpoint}`
+    const baseUrl = `${process.env.VUE_APP_API_BASE_URL}/api/${endpoint}`
 
-    return {
+    const coreMethods = {
         get: (params = {}) => apiClient.get(baseUrl, { params }),
         getTrashed: (params = {}) => apiClient.get(`${baseUrl}/trashed`, { params }),
         getAll: (params = {}) => apiClient.get(baseUrl, { params: { ...params, all: true } }),
@@ -23,10 +23,42 @@ const createCrudService = (endpoint) => {
         forceDelete: (id) => apiClient.delete(`${baseUrl}/${id}/force-delete`),
         handleFormActions: (data) => apiClient.post(`${baseUrl}/handle-form-actions`, data),
     }
+
+    const endpointSpecificMethods = {
+        products: {
+            getByCategorySlug: (slug = '', params = {}) => apiClient.get(`${baseUrl}/category/${slug}`, { params }),
+            getBySlug: (slug) => apiClient.get(`${baseUrl}/by-slug/${slug}`)
+        },
+        articles: {
+            getPublished: (params = {}) => apiClient.get(`${baseUrl}/published`, { params }),
+            getBySlug: (slug) => apiClient.get(`${baseUrl}/by-slug/${slug}`)
+        },
+        categories: {
+            getBySlug: (slug) => apiClient.get(`${baseUrl}/by-slug/${slug}`)
+        },
+        reviews: {
+            getByProductSlug: (slug, params = {}) => apiClient.get(`${baseUrl}/product/${slug}`, { params })
+        },
+        carts: {
+            getCart: () => apiClient.get(`${baseUrl}`),
+            addToCart: (productId, quantity = 1) => apiClient.post(`${baseUrl}/${productId}`, { quantity }),
+            updateCart: (productId, quantity) => apiClient.patch(`${baseUrl}/${productId}`, { quantity }),
+            removeFromCart: (productId) => apiClient.delete(`${baseUrl}/${productId}`),
+            clearCart: () => apiClient.delete(`${baseUrl}/clear`),
+        },
+        users: {
+            
+        }
+    }
+
+    return {
+        ...coreMethods,
+        ...(endpointSpecificMethods[endpoint] || {})
+    }
 }
 
 const crudServices = Object.fromEntries(
-    crudEndpoints.map(name => [name, createCrudService(`/${name}`)])
+    crudEndpoints.map(name => [name, createCrudService(name)])
 )
 
 const provincesService = () => {

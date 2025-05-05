@@ -12,6 +12,30 @@ class ArticleController extends Controller
     protected const STATUS_DRAFT = 0;
     protected const STATUS_PUBLISHED = 1;
 
+    public function getBySlug(string $slug) {
+        $article = Article::where('slug', $slug)->whereNotNull('approved_by')
+        ->with([
+            'creator:id,name,avatar_id',
+            'creator.avatar:id,path',
+            'images:id,article_id,path,is_thumbnail,filename',
+        ])->firstOrFail();
+        return response()->json($article);
+    }
+
+    public function getPublished(Request $request) {
+        $query = Article::whereNotNull('approved_by')
+        ->orderBy('publish_date', 'desc')
+        ->with([
+            'creator:id,name',
+            'images' => function($query) {
+                $query->where('is_thumbnail', true)->select('id', 'path', 'article_id')->limit(1);
+            },
+        ])
+        ->select('id', 'title', 'slug', 'author', 'publish_date', 'highlight');
+
+        return $this->getListResponse($query, $request, [], [], 9);
+    }
+
     public function index(Request $request) {
         $query = Article::with([
             'images',

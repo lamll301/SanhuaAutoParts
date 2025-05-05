@@ -4,7 +4,7 @@
             <div class="admin-content__heading">
                 <h3>Quản lý sản phẩm</h3>
                 <router-link v-show="this.$route.params.id" to="/admin/product/create" class="admin-content__create">
-                    Thêm  sản phẩm
+                    Thêm sản phẩm
                 </router-link>
             </div>
             <div class="admin-content__container">
@@ -50,7 +50,7 @@
                                     <select class="valid-elm form-select" v-model="product.promotion_id">
                                         <option disabled value="null">Chọn khuyến mãi</option>
                                         <option v-for="promotion in promotions" :key="promotion.id" :value="promotion.id">
-                                            {{ promotion.name }}
+                                            {{ promotion.name }} (-{{ promotion.discount_percent }}%) 
                                         </option>
                                     </select>
                                 </div>
@@ -305,6 +305,9 @@ export default {
         async save() {
             if (!this.validate()) return;
             const data = this.cleanData(this.product);
+            // for (let [key, value] of data.entries()) {
+            //     console.log(`${key}:`, value);
+            // }
 
             try {
                 if (this.product.id) {
@@ -328,6 +331,9 @@ export default {
             const { addedIds, deletedIds } = this.$refs.itemDashboard.getIds();
 
             Object.entries(product).forEach(([key, value]) => {
+                if (key === 'status' && value === '') {
+                    return
+                }
                 if (value !== null && value !== undefined) {
                     formData.append(key, value);
                 }

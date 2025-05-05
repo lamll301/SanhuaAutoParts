@@ -32,14 +32,21 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array {
+    protected function casts(): array 
+    {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
 
-    public function role() {
+    public function role() 
+    {
         return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    public function avatar()
+    {
+        return $this->belongsTo(Image::class, 'avatar_id');
     }
 }

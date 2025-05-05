@@ -1,0 +1,100 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Cart;
+use App\Models\CartDetail;
+use App\Models\Product;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class CartController extends Controller
+{
+    public function __construct()
+    {
+        // $this->middleware('auth:sanctum');
+    }
+
+    public function index()
+    {
+        // $cart = Cart::with('details.product')->where('user_id', Auth::id())->first();
+        $cart = Cart::select('id', 'user_id')->with([
+            'details:id,cart_id,product_id,quantity',
+            'details.product:id,name,price,original_price,quantity,slug',
+            'details.product.images' => function($query) {
+                $query->where('is_thumbnail', true)->select('id', 'path', 'product_id')->limit(1);
+            },
+        ])->where('user_id', 1)->first();
+        if (!$cart) {
+            return;
+        }
+        return response()->json($cart);
+    }
+
+    public function add(Request $request, $id)
+    {
+        $request->validate(['quantity' => 'required|integer|min:1']);
+        $product = Product::find($id);
+        if (!$product) {
+            return;
+        }
+        // $cart = Cart::firstOrCreate(['user_id' => Auth::id()]);
+        $cart = Cart::firstOrCreate(['user_id' => 1]);
+        $cartDetail = CartDetail::where('cart_id', $cart->id)->where('product_id', $product->id)->first();
+        if ($cartDetail) {
+            $cartDetail->quantity += $request->quantity;
+            $cartDetail->save();
+        } else {
+            $cartDetail = CartDetail::create([
+                'cart_id' => $cart->id,
+                'product_id' => $product->id,
+                'quantity' => $request->quantity,
+            ]);
+        }
+        return response()->json(['message' => 'success'], 201);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate(['quantity' => 'required|integer|min:1']);
+        // $cart = Cart::where('user_id', Auth::id())->first();
+        $cart = Cart::where('user_id', 1)->first();
+        if (!$cart) {
+            return;
+        }
+        $cartDetail = CartDetail::where('cart_id', $cart->id)->where('id', $id)->first();
+        if (!$cartDetail) {
+            return;
+        }
+        $cartDetail->quantity = $request->quantity;
+        $cartDetail->save();
+        return response()->json(['message' => 'success'], 200);
+    }
+
+    public function remove($id)
+    {
+        // $cart = Cart::where('user_id', Auth::id())->first();
+        $cart = Cart::where('user_id', 1)->first();
+        if (!$cart) {
+            return;
+        }
+        $cartDetail = CartDetail::where('cart_id', $cart->id)->where('id', $id)->first();
+        if (!$cartDetail) {
+            return;
+        }
+        $cartDetail->delete();
+        return response()->json(['message' => 'success'], 204);
+
+    }
+
+    public function clear()
+    {
+        // $cart = Cart::where('user_id', Auth::id())->first();
+        $cart = Cart::where('user_id', 1)->first();
+        if (!$cart) {
+            return;
+        }
+        $cart->details()->delete();
+        return response()->json(['message' => 'success'], 204);
+    }
+}

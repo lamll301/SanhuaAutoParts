@@ -28,27 +28,13 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             ProductSeeder::class,
             WarehouseSeeder::class,
+            OrderSeeder::class,
         ]);
 
         $productIds = Product::pluck('id')->toArray();
         $categoryIds = Category::pluck('id')->toArray();
         $roleIds = Role::pluck('id')->toArray();
         $permissionIds = Permission::pluck('id')->toArray();
-
-        $usedProductCategory = [];
-        for ($i = 0; $i < 20; $i++) {
-            $productId = $faker->randomElement($productIds);
-            $categoryId = $faker->randomElement($categoryIds);
-            $key = "$productId-$categoryId";
-
-            if (!isset($usedProductCategory[$key])) {
-                DB::table('product_category')->insert([
-                    'product_id' => $productId,
-                    'category_id' => $categoryId,
-                ]);
-                $usedProductCategory[$key] = true;
-            }
-        }
 
         $usedRolePermission = [];
         for ($i = 0; $i < 20; $i++) {

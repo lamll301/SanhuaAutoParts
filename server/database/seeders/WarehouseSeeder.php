@@ -21,18 +21,17 @@ class WarehouseSeeder extends Seeder
         $locations = [];
         for ($i = 0; $i < 20; $i++) {
             $locations[] = Location::create([
-                'zone' => $faker->randomElement(['A', 'B', 'C']),
-                'aisle' => str_pad($faker->numberBetween(1, 5), 2, '0', STR_PAD_LEFT),
-                'rack' => str_pad($faker->numberBetween(1, 10), 2, '0', STR_PAD_LEFT),
-                'shelf' => str_pad($faker->numberBetween(1, 5), 2, '0', STR_PAD_LEFT),
-                'bin' => str_pad($faker->numberBetween(1, 5), 2, '0', STR_PAD_LEFT),
-                'status' => $faker->numberBetween(0, 3),
+                'zone' => $faker->randomElement(['A', 'B', 'C', 'D']),
+                'aisle' => $faker->numberBetween(1, 10),
+                'rack' => $faker->numberBetween(1, 5),
+                'shelf' => $faker->numberBetween(1, 5),
+                'bin' => $faker->numberBetween(1, 10),
+                'status' => $faker->numberBetween(0, 2),
                 'category_id' => $faker->randomElement($categoryIds),
             ]);
         }
 
-        // Tạo imports và import details
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 25; $i++) {
             $import = Import::create([
                 'supplier_id' => $faker->randomElement($supplierIds),
                 'created_by' => $faker->randomElement($userIds),
@@ -42,33 +41,30 @@ class WarehouseSeeder extends Seeder
                 'date' => $faker->dateTimeBetween('-3 months', 'now')->format('Y-m-d'),
                 'total_amount' => 0,
             ]);
-
+            
             $totalAmount = 0;
             for ($j = 0; $j < 5; $j++) {
                 $quantity = $faker->numberBetween(10, 100);
                 $price = $faker->numberBetween(10000, 100000);
                 $amount = $quantity * $price;
                 $totalAmount += $amount;
-
-                $importDetail = ImportDetail::create([
+                
+                ImportDetail::create([
                     'import_id' => $import->id,
                     'product_id' => $faker->randomElement($productIds),
                     'quantity' => $quantity,
-                    'actual_quantity' => $quantity,
-                    'price' => intval($price),
+                    'price' => $price,
                 ]);
-
-                // Tạo inventory
+                
                 $inventory = Inventory::create([
                     'batch_number' => strtoupper($faker->bothify('??##??##')),
                     'quantity' => $quantity,
                     'manufacture_date' => $faker->dateTimeBetween('-1 year', '-1 month')->format('Y-m-d'),
                     'expiry_date' => $faker->dateTimeBetween('+1 month', '+2 years')->format('Y-m-d'),
-                    'product_id' => $importDetail->product_id,
+                    'product_id' => $faker->randomElement($productIds),
                     'import_id' => $import->id,
                 ]);
-
-                // Gán inventory vào location
+                
                 $location = $faker->randomElement($locations);
                 DB::table('inventory_location')->insert([
                     'inventory_id' => $inventory->id,
@@ -76,142 +72,169 @@ class WarehouseSeeder extends Seeder
                     'quantity' => $quantity,
                 ]);
             }
-
-            $import->update(['total_amount' => (int) $totalAmount]);
+            
+            $import->update(['total_amount' => $totalAmount]);
         }
 
-        // Tạo exports và export details
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 20; $i++) {
             $export = Export::create([
                 'created_by' => $faker->randomElement($userIds),
                 'approved_by' => $faker->randomElement($userIds),
                 'date' => $faker->dateTimeBetween('-2 months', 'now')->format('Y-m-d'),
                 'receiver' => $faker->name,
-                'address' => $faker->address,
-                'reason' => $faker->randomElement(['Xuất sản xuất', 'Xuất bán hàng', 'Xuất nội bộ']),
+                'address' => $faker->randomElement(['Phòng Kế toán', 'Phòng Nhân sự', 'Phòng Kinh doanh', 'Phòng Kỹ thuật']),
+                'reason' => $faker->randomElement(['Sử dụng nội bộ', 'Bán hàng', 'Xuất trả nhà cung cấp']),
                 'total_amount' => 0,
             ]);
-
+            
             $totalAmount = 0;
-            $inventories = Inventory::where('quantity', '>', 0)->inRandomOrder()->limit(5)->get();
+            $inventories = Inventory::inRandomOrder()->limit(3)->get();
             
             foreach ($inventories as $inventory) {
-                $quantity = $faker->numberBetween(1, min(10, $inventory->quantity));
-                $price = $inventory->product->price;
+                $quantity = $faker->numberBetween(1, min(20, $inventory->quantity));
+                $price = $faker->numberBetween(10000, 100000);
                 $amount = $quantity * $price;
                 $totalAmount += $amount;
-
+                
                 ExportDetail::create([
                     'export_id' => $export->id,
                     'inventory_id' => $inventory->id,
                     'quantity' => $quantity,
-                    'actual_quantity' => $quantity,
-                    'price' => intval($price),
+                    'price' => $price,
                 ]);
-
+                
                 $inventory->decrement('quantity', $quantity);
+                
+                $location = DB::table('inventory_location')
+                    ->where('inventory_id', $inventory->id)
+                    ->first();
+                
+                if ($location) {
+                    DB::table('inventory_location')
+                        ->where('inventory_id', $inventory->id)
+                        ->where('location_id', $location->location_id)
+                        ->decrement('quantity', $quantity);
+                }
             }
-
-            $export->update(['total_amount' => (int) $totalAmount]);
+            
+            $export->update(['total_amount' => $totalAmount]);
         }
 
-        // Tạo disposals và disposal details
         for ($i = 0; $i < 10; $i++) {
             $disposal = Disposal::create([
                 'created_by' => $faker->randomElement($userIds),
                 'approved_by' => $faker->randomElement($userIds),
                 'date' => $faker->dateTimeBetween('-1 month', 'now')->format('Y-m-d'),
-                'reason' => $faker->randomElement(['Hết hạn', 'Hư hỏng', 'Lỗi kỹ thuật']),
-                'method' => $faker->randomElement(['Tiêu hủy', 'Bán thanh lý', 'Tặng']),
+                'reason' => $faker->randomElement(['Hết hạn sử dụng', 'Hư hỏng', 'Lỗi kỹ thuật']),
                 'total_amount' => 0,
             ]);
-
+            
             $totalAmount = 0;
-            $inventories = Inventory::where('quantity', '>', 0)->inRandomOrder()->limit(5)->get();
+            $inventories = Inventory::where('expiry_date', '<', now()->addMonth())
+                ->inRandomOrder()
+                ->limit(2)
+                ->get();
             
             foreach ($inventories as $inventory) {
-                $quantity = $faker->numberBetween(1, min(5, $inventory->quantity));
-                $price = $inventory->product->price * 0.5; // Giá thanh lý 50%
+                $quantity = $faker->numberBetween(1, min(10, $inventory->quantity));
+                $price = $faker->numberBetween(10000, 50000);
                 $amount = $quantity * $price;
                 $totalAmount += $amount;
-
+                
                 DisposalDetail::create([
                     'disposal_id' => $disposal->id,
                     'inventory_id' => $inventory->id,
                     'quantity' => $quantity,
-                    'actual_quantity' => $quantity,
-                    'price' => intval($price),
+                    'price' => $price,
+                    'method' => $faker->randomElement(['Tiêu hủy', 'Bán phế liệu', 'Tái chế']),
                 ]);
-
+                
                 $inventory->decrement('quantity', $quantity);
+                
+                $location = DB::table('inventory_location')
+                    ->where('inventory_id', $inventory->id)
+                    ->first();
+                
+                if ($location) {
+                    DB::table('inventory_location')
+                        ->where('inventory_id', $inventory->id)
+                        ->where('location_id', $location->location_id)
+                        ->decrement('quantity', $quantity);
+                }
             }
-
-            $disposal->update(['total_amount' => (int) $totalAmount]);
+            
+            $disposal->update(['total_amount' => $totalAmount]);
         }
 
-        // Tạo checks và check details
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 5; $i++) {
             $check = Check::create([
                 'created_by' => $faker->randomElement($userIds),
                 'approved_by' => $faker->randomElement($userIds),
                 'date' => $faker->dateTimeBetween('-2 weeks', 'now')->format('Y-m-d'),
                 'total_amount' => 0,
             ]);
-
+            
             $totalAmount = 0;
             $inventories = Inventory::inRandomOrder()->limit(5)->get();
             
             foreach ($inventories as $inventory) {
-                $quantity = $inventory->quantity;
-                $actualQuantity = max(0, $quantity + $faker->numberBetween(-3, 3));
-                $price = $inventory->product->price;
-                $amount = $actualQuantity * $price;
+                $price = $faker->numberBetween(10000, 100000);
+                $amount = $inventory->quantity * $price;
                 $totalAmount += $amount;
-
+                
                 CheckDetail::create([
                     'check_id' => $check->id,
                     'inventory_id' => $inventory->id,
                     'quality' => $faker->randomElement(['Còn tốt 100%', 'Kém phẩm chất', 'Mất phẩm chất']),
-                    'quantity' => $quantity,
-                    'actual_quantity' => $actualQuantity,
-                    'price' => intval($price),
+                    'quantity' => $inventory->quantity,
+                    'price' => $price,
                 ]);
             }
-
-            $check->update(['total_amount' => (int) $totalAmount]);
+            
+            $check->update(['total_amount' => $totalAmount]);
         }
 
-        // Tạo cancels và cancel details
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 5; $i++) {
             $cancel = Cancel::create([
                 'created_by' => $faker->randomElement($userIds),
                 'approved_by' => $faker->randomElement($userIds),
-                'date' => $faker->dateTimeBetween('-1 week', 'now')->format('Y-m-d'),
-                'reason' => $faker->randomElement(['Hư hỏng', 'Mất phẩm chất', 'Nhầm lẫn']),
-                'method' => $faker->randomElement(['Tiêu hủy', 'Trả lại nhà cung cấp']),
+                'date' => $faker->dateTimeBetween('-1 month', 'now')->format('Y-m-d'),
+                'reason' => $faker->randomElement(['Hư hỏng', 'Lỗi sản xuất', 'Không đạt chất lượng']),
                 'total_amount' => 0,
             ]);
-
+            
             $totalAmount = 0;
-            $inventories = Inventory::where('quantity', '>', 0)->inRandomOrder()->limit(5)->get();
+            $inventories = Inventory::inRandomOrder()->limit(2)->get();
             
             foreach ($inventories as $inventory) {
-                $quantity = $faker->numberBetween(1, min(3, $inventory->quantity));
-                $price = $inventory->product->price;
+                $quantity = $faker->numberBetween(1, min(5, $inventory->quantity));
+                $price = $faker->numberBetween(10000, 50000);
                 $amount = $quantity * $price;
                 $totalAmount += $amount;
-
+                
                 CancelDetail::create([
                     'cancel_id' => $cancel->id,
                     'inventory_id' => $inventory->id,
                     'quantity' => $quantity,
-                    'price' => intval($price),
+                    'price' => $price,
+                    'method' => $faker->randomElement(['Tiêu hủy', 'Bán phế liệu']),
                 ]);
-
+                
                 $inventory->decrement('quantity', $quantity);
+                
+                $location = DB::table('inventory_location')
+                    ->where('inventory_id', $inventory->id)
+                    ->first();
+                
+                if ($location) {
+                    DB::table('inventory_location')
+                        ->where('inventory_id', $inventory->id)
+                        ->where('location_id', $location->location_id)
+                        ->decrement('quantity', $quantity);
+                }
             }
-
-            $cancel->update(['total_amount' => (int) $totalAmount]);
+            
+            $cancel->update(['total_amount' => $totalAmount]);
         }
     }
 }

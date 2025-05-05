@@ -79,13 +79,13 @@
                                 <!-- have cart -->
                                 <ul class="header__cart-list-item">
                                     <li v-for="cartDetail in cartDetails" :key="cartDetail" class="header__cart-item">
-                                        <img :src="cartDetail.image" alt="">
+                                        <img :src="getImageUrl(cartDetail.product.images[0].path)" alt="">
                                         <div class="header__cart-item-content">
                                             <div class="header__cart-item-title">
-                                                <a href="">{{ cartDetail.name }}</a>
-                                                <h4>{{ cartDetail.quantity }} x {{ formatPrice(cartDetail.price) }}đ</h4>
+                                                <router-link :to="'/san-pham/' + cartDetail.product.slug">{{ cartDetail.product.name }}</router-link>
+                                                <h4>{{ cartDetail.quantity }} x {{ formatPrice(cartDetail.product.price) }}đ</h4>
                                             </div>
-                                            <div class="header__cart-item-delete">
+                                            <div class="header__cart-item-delete" @click="removeCart(cartDetail.id)">
                                                 <i class="fa-solid fa-x"></i>
                                             </div>
                                         </div>
@@ -94,7 +94,7 @@
                                 <div class=" header__cart-footer">
                                     <div class="header__cart-footer-total">
                                         <h4>Tổng tiền</h4>
-                                        <span>{{ formatPrice(totalPrice(cartDetails)) }}đ</span>
+                                        <span>{{ formatPrice(total) }}đ</span>
                                     </div>
                                     <div class="header__cart-btn">
                                         <router-link to="/gio-hang" class="button header__cart-btn--view-cart">Xem giỏ hàng</router-link>
@@ -114,9 +114,10 @@
                     <img src="../assets/images/logo.jpg" alt="" class="header__logo-img">
                 </router-link>
                 <div class="header__search">
-                    <input type="text" class="header__search-input" placeholder="Nhập để tìm kiếm sản phẩm">
+                    <input type="text" class="header__search-input" placeholder="Nhập để tìm kiếm sản phẩm"
+                    v-model="searchKeyword" @keyup.enter="findByKeyword">
                     <i class="header__search-icon fa-solid fa-magnifying-glass"></i>
-                    <button class="button header__search-btn">Tìm kiếm</button>
+                    <button class="button header__search-btn" @click="findByKeyword">Tìm kiếm</button>
                 </div>
             </div>
         </div>
@@ -140,20 +141,38 @@
                     <div class="header-function-bar-menu">
                         <div class="header-function-bar-menu-content">
                             <div class="header-function-bar-menu-left">
-                                <div class="header-function-bar-menu-section">
-                                    <ul class="header-function-bar-menu-list">
-                                        <li v-for="category in categories.slice(0, 9)" :key="category" class="header-function-bar-menu-item">
-                                            <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="header-function-bar-menu-section">
-                                    <ul class="header-function-bar-menu-list">
-                                        <li v-for="category in categories.slice(9, 18)" :key="category" class="header-function-bar-menu-item">
-                                            <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
-                                        </li>
-                                    </ul>
-                                </div>
+                                <template v-if="isLoading">
+                                    <div class="header-function-bar-menu-section">
+                                        <ul class="header-function-bar-menu-list">
+                                            <li v-for="i in 9" :key="i" class="header-function-bar-menu-item">
+                                                <SkeletonLoading marginBottom="18px" height="12px" width="80%" />
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="header-function-bar-menu-section">
+                                        <ul class="header-function-bar-menu-list">
+                                            <li v-for="i in 9" :key="i" class="header-function-bar-menu-item">
+                                                <SkeletonLoading marginBottom="18px" height="12px" width="80%" />
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <div class="header-function-bar-menu-section">
+                                        <ul class="header-function-bar-menu-list">
+                                            <li v-for="category in categories.slice(0, 9)" :key="category" class="header-function-bar-menu-item">
+                                                <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="header-function-bar-menu-section">
+                                        <ul class="header-function-bar-menu-list">
+                                            <li v-for="category in categories.slice(9, 18)" :key="category" class="header-function-bar-menu-item">
+                                                <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </template>
                             </div>
                             <div class="header-function-bar-menu-right">
                                 <a href="#">
@@ -170,20 +189,38 @@
                     <div class="header-function-bar-menu">
                         <div class="header-function-bar-menu-content">
                             <div class="header-function-bar-menu-left">
-                                <div class="header-function-bar-menu-section">
-                                    <ul class="header-function-bar-menu-list">
-                                        <li v-for="category in categoriesByBrand.slice(0, 9)" :key="category" class="header-function-bar-menu-item">
-                                            <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="header-function-bar-menu-section">
-                                    <ul class="header-function-bar-menu-list">
-                                        <li v-for="category in categoriesByBrand.slice(9, 18)" :key="category" class="header-function-bar-menu-item">
-                                            <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
-                                        </li>
-                                    </ul>
-                                </div>
+                                <template v-if="isLoading">
+                                    <div class="header-function-bar-menu-section">
+                                        <ul class="header-function-bar-menu-list">
+                                            <li v-for="i in 9" :key="i" class="header-function-bar-menu-item">
+                                                <SkeletonLoading marginBottom="18px" height="12px" width="80%" />
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="header-function-bar-menu-section">
+                                        <ul class="header-function-bar-menu-list">
+                                            <li v-for="i in 9" :key="i" class="header-function-bar-menu-item">
+                                                <SkeletonLoading marginBottom="18px" height="12px" width="80%" />
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <div class="header-function-bar-menu-section">
+                                        <ul class="header-function-bar-menu-list">
+                                            <li v-for="category in categoriesByBrand.slice(0, 9)" :key="category" class="header-function-bar-menu-item">
+                                                <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="header-function-bar-menu-section">
+                                        <ul class="header-function-bar-menu-list">
+                                            <li v-for="category in categoriesByBrand.slice(9, 18)" :key="category" class="header-function-bar-menu-item">
+                                                <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </template>
                             </div>
                             <div class="header-function-bar-menu-right">
                                 <a href="#">
@@ -330,110 +367,62 @@
 import { onMounted } from 'vue';
 import AuthModal from '@/components/AuthModal.vue';
 import ChatComponent from '@/components/ChatComponent.vue';
-import { formatPrice, totalPrice } from '@/helpers/helpers.js'
+import apiService from '@/utils/apiService';
+import SkeletonLoading from '@/components/SkeletonLoading.vue';
+import { getImageUrl, formatPrice } from '@/utils/helpers';
 
 export default {
     name: 'SiteLayout',
     components: {
-        AuthModal, ChatComponent
+        AuthModal, ChatComponent, SkeletonLoading
     },
     data() {
         return {
-            notifyDetails: [
-
-            ],
-            cartDetails: [
-                { 
-                    name: 'Daissy Casual Bag', 
-                    image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-3.jpg', 
-                    quantity: 1, 
-                    price: 800000,
-                    description: 'A stylish casual bag for everyday use.'
-                },
-                { 
-                    name: 'Leather Wallet', 
-                    image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-4.jpg', 
-                    quantity: 2, 
-                    price: 500000,
-                    description: 'A premium leather wallet with multiple compartments.'
-                },
-                { 
-                    name: 'Classic Watch', 
-                    image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-5.jpg', 
-                    quantity: 1, 
-                    price: 1200000,
-                    description: 'A classic watch with a leather strap.'
-                },
-                { 
-                    name: 'Daissy Casual Bag', 
-                    image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-3.jpg', 
-                    quantity: 1, 
-                    price: 800000,
-                    description: 'A stylish casual bag for everyday use.'
-                },
-                { 
-                    name: 'Leather Wallet', 
-                    image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-4.jpg', 
-                    quantity: 2, 
-                    price: 500000,
-                    description: 'A premium leather wallet with multiple compartments.'
-                },
-                { 
-                    name: 'Classic Watch', 
-                    image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-5.jpg', 
-                    quantity: 1, 
-                    price: 1200000,
-                    description: 'A classic watch with a leather strap.'
-                },
-                { 
-                    name: 'Daissy Casual Bag', 
-                    image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-3.jpg', 
-                    quantity: 1, 
-                    price: 800000,
-                    description: 'A stylish casual bag for everyday use.'
-                },
-                { 
-                    name: 'Leather Wallet', 
-                    image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-4.jpg', 
-                    quantity: 2, 
-                    price: 500000,
-                    description: 'A premium leather wallet with multiple compartments.'
-                },
-                { 
-                    name: 'Classic Watch', 
-                    image: 'https://nest-frontend-v6.netlify.app/assets/imgs/shop/thumbnail-5.jpg', 
-                    quantity: 1, 
-                    price: 1200000,
-                    description: 'A classic watch with a leather strap.'
-                },
-            ],
-            categoriesByBrand: [
-                { name: 'Toyota', slug: 'toyota' }, { name: 'Honda', slug: 'honda' }, { name: 'Ford', slug: 'ford' }, { name: 'Chevrolet', slug: 'chevrolet' }, { name: 'Nissan', slug: 'nissan' }, { name: 'BMW', slug: 'bmw' }, { name: 'Mercedes-Benz', slug: 'mercedes-benz' }, { name: 'Volkswagen', slug: 'volkswagen' }, { name: 'Audi', slug: 'audi' }, { name: 'Lexus', slug: 'lexus' }, { name: 'Hyundai', slug: 'hyundai' }, { name: 'Kia', slug: 'kia' }, { name: 'Mazda', slug: 'mazda' }, { name: 'Mitsubishi', slug: 'mitsubishi' }, { name: 'Subaru', slug: 'subaru' }, { name: 'Suzuki', slug: 'suzuki' }, { name: 'Porsche', slug: 'porsche' }, { name: 'Jaguar', slug: 'jaguar' }, { name: 'Land Rover', slug: 'land-rover' }, { name: 'Volvo', slug: 'volvo' }
-            ],
-            categories: [
-                { id: 1, name: "Phụ tùng động cơ", slug: "phu-tung-dong-co" },
-                { id: 2, name: "Phụ tùng gầm xe", slug: "phu-tung-gam-xe" },
-                { id: 3, name: "Phụ tùng thân & vỏ", slug: "phu-tung-than-vo" },
-                { id: 4, name: "Phụ tùng điện", slug: "phu-tung-dien" },
-                { id: 5, name: "Phụ tùng điều hòa", slug: "phu-tung-dieu-hoa" },
-                { id: 6, name: "Hệ thống phanh", slug: "he-thong-phanh" },
-                { id: 7, name: "Hệ thống treo", slug: "he-thong-treo" },
-                { id: 8, name: "Hệ thống làm mát", slug: "he-thong-lam-mat" },
-                { id: 9, name: "Hệ thống nhiên liệu", slug: "he-thong-nhien-lieu" },
-                { id: 10, name: "Hệ thống chiếu sáng", slug: "he-thong-chieu-sang" },
-                { id: 11, name: "Phụ tùng lốp xe", slug: "phu-tung-lop-xe" },
-                { id: 12, name: "Gương và kính xe", slug: "guong-va-kinh-xe" },
-                { id: 13, name: "Bộ ly hợp và hộp số", slug: "bo-ly-hop-va-hop-so" },
-                { id: 14, name: "Hệ thống lái", slug: "he-thong-lai" },
-                { id: 15, name: "Hệ thống xả", slug: "he-thong-xa" },
-                { id: 16, name: "Phụ kiện trang trí nội thất", slug: "phu-kien-trang-tri-noi-that" },
-                { id: 17, name: "Phụ kiện trang trí ngoại thất", slug: "phu-kien-trang-tri-ngoai-that" },
-                { id: 18, name: "Phụ kiện công nghệ và tiện ích", slug: "phu-kien-cong-nghe-va-tien-ich" }
-            ]
+            isLoading: true, searchKeyword: '',
+            notifyDetails: [],
+            cartDetails: [],
+            categoriesByBrand: [],
+            categories: [],
+            total: 0,
         }
     },
-    methods: {
-        formatPrice, totalPrice,
+    created() {
+        this.fetchData();
+    },
+    methods: { 
+        getImageUrl, formatPrice,
+        async fetchData() {
+            this.isLoading = true;
+            try {
+                const req = [
+                    apiService.categories.getAll({ key: 'part' }),
+                    apiService.categories.getAll({ key: 'brand' }),
+                    apiService.carts.getCart(),
+                ];
+                
+                const res = await Promise.all(req)
+
+                this.categories = res[0].data.data;
+                this.categoriesByBrand = res[1].data.data;
+                this.cartDetails = res[2].data.details.filter(detail => detail.product.quantity > 0);
+                this.total = res[2].data.total
+            } catch (error) {
+                console.error(error);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        removeCart(id) {
+            apiService.carts.removeFromCart(id).then(() => {
+                this.cartDetails = this.cartDetails.filter(cartDetail => cartDetail.id !== id);
+                this.total = this.cartDetails.reduce((sum, item) => sum + item.quantity * item.price, 0);
+            }).catch(err => console.error(err));
+        },
+        findByKeyword() {
+            if (this.searchKeyword.trim()) {
+                this.$router.push({ path: '/danh-muc', query: { key: this.searchKeyword.trim() } })
+            }
+        },
     },
     setup() {
         const centerHeaderMenus = () => {

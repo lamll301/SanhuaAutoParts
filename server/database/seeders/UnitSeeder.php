@@ -11,6 +11,7 @@ class UnitSeeder extends Seeder
     {
         $units = [
             ['name' => 'Cái', 'description' => 'Đơn vị từng món riêng lẻ'],
+            ['name' => 'Chiếc', 'description' => 'Đơn vị từng món, tương tự như "Cái"'],
             ['name' => 'Bộ', 'description' => 'Gồm nhiều món thành phần trong 1 gói'],
             ['name' => 'Thùng', 'description' => 'Số lượng lớn, chứa nhiều đơn vị nhỏ'],
             ['name' => 'Lít', 'description' => 'Dùng cho chất lỏng như dầu nhớt, nước làm mát'],

@@ -36,9 +36,6 @@
                 <i class="fas fa-align-right"></i>
             </button>
             <div class="tool-separator"></div>
-            <button type="button" class="tool-btn" title="Liên kết" @click="insertLink">
-                <i class="fas fa-link"></i>
-            </button>
             <button type="button" class="tool-btn" title="Hình ảnh" @click="handleImageClick">
                 <i class="fas fa-image"></i>
             </button>
@@ -118,12 +115,6 @@ export default {
             const color = event.target.value;
             this.execCommand('foreColor', color);
         },
-        insertLink() {
-            const url = prompt('Nhập URL liên kết:', 'http://');
-            if (url) {
-                this.execCommand('createLink', url);
-            }
-        },
         handleRemoveTempImage(imageName) {
             this.removeImagePlaceholder(imageName);
         },
@@ -143,26 +134,22 @@ export default {
         addImagePlaceholder(filename) {
             const imgElement = document.createElement('img');
             imgElement.alt = filename;
-            imgElement.dataset.image = filename;
-            const divElement = document.createElement('div');
-            divElement.appendChild(imgElement);
             const editor = this.$refs.editorContent;
             const selection = window.getSelection();
             if (selection.rangeCount > 0 && this.currentSelection) {
                 const range = selection.getRangeAt(0);
                 range.deleteContents();
-                range.insertNode(divElement);
+                range.insertNode(imgElement);
                 
                 const newRange = document.createRange();
-                newRange.setStartAfter(divElement);
+                newRange.setStartAfter(imgElement);
                 newRange.collapse(true);
                 selection.removeAllRanges();
                 selection.addRange(newRange);
             } else {
-                editor.appendChild(divElement);
-
+                editor.appendChild(imgElement);
                 const newRange = document.createRange();
-                newRange.setStartAfter(divElement);
+                newRange.setStartAfter(imgElement);
                 newRange.collapse(true);
                 selection.removeAllRanges();
                 selection.addRange(newRange);
@@ -172,13 +159,11 @@ export default {
         },
         removeImagePlaceholder(imageName) {
             const editor = this.$refs.editorContent;
-            const image = editor.querySelector(`img[data-image="${imageName}"]`);
-            if (image) {
-                const parentDiv = image.closest('div');
-                if (parentDiv) {
-                    parentDiv.remove();
-                } else {
-                    image.remove();
+            const images = editor.querySelectorAll('img');
+            for (const img of images) {
+                if (img.alt === imageName) {
+                    img.remove();
+                    break;
                 }
             }
         },
