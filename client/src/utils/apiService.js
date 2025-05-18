@@ -1,15 +1,13 @@
 import apiClient from "@/plugins/axios"
 
-const crudEndpoints = [
-    'permissions', 'roles', 'users', 'units',
-    'suppliers', 'vouchers', 'promotions', 'articles', 'categories', 'products',
+const endpoints = [
+    'permissions', 'roles', 'users', 'units', 'suppliers', 'vouchers', 'promotions', 'articles', 'categories', 'products',
     'locations', 'inventories', 'imports', 'exports', 'disposals', 'checks', 'cancels',
-    'orders', 'carts', 'reviews'
+    'orders', 'carts', 'reviews', 'auth', 'payments'
 ]
 
-const createCrudService = (endpoint) => {
+const createApiService = (endpoint) => {
     const baseUrl = `${process.env.VUE_APP_API_BASE_URL}/api/${endpoint}`
-
     const coreMethods = {
         get: (params = {}) => apiClient.get(baseUrl, { params }),
         getTrashed: (params = {}) => apiClient.get(`${baseUrl}/trashed`, { params }),
@@ -24,7 +22,14 @@ const createCrudService = (endpoint) => {
         handleFormActions: (data) => apiClient.post(`${baseUrl}/handle-form-actions`, data),
     }
 
-    const endpointSpecificMethods = {
+    const extraMethods = {
+        auth: {
+            login: (data) => apiClient.post(`${baseUrl}/login`, data),
+            register: (data) => apiClient.post(`${baseUrl}/register`, data),
+            logout: () => apiClient.post(`${baseUrl}/logout`),
+            me: () => apiClient.get(`${baseUrl}/me`),
+            refresh: () => apiClient.post(`${baseUrl}/refresh`),
+        },
         products: {
             getByCategorySlug: (slug = '', params = {}) => apiClient.get(`${baseUrl}/category/${slug}`, { params }),
             getBySlug: (slug) => apiClient.get(`${baseUrl}/by-slug/${slug}`)
@@ -47,34 +52,70 @@ const createCrudService = (endpoint) => {
             clearCart: () => apiClient.delete(`${baseUrl}/clear`),
         },
         users: {
-            
-        }
+            updateProfile: (data) => apiClient.post(`${baseUrl}/update-profile`, data),
+            updatePassword: (data) => apiClient.put(`${baseUrl}/update-password`, data),
+        },
+        payments: {
+            createMomoPayment: (data) => apiClient.post(`${baseUrl}/momo`, data),
+            createVNPayPayment: (data) => apiClient.post(`${baseUrl}/vnpay`, data),
+            createZaloPayPayment: (data) => apiClient.post(`${baseUrl}/zalopay`, data),
+            createCODPayment: (id) => apiClient.post(`${baseUrl}/cod`, { id }),
+        },
+        vouchers: {
+            applyCoupon: (couponCode) => apiClient.get(`${baseUrl}/apply-coupon`, { params: { couponCode } }),
+        },
+        orders: {
+            updateStatus: (id, status) => apiClient.patch(`${baseUrl}/${id}/status`, { status }),
+            view: (id) => apiClient.get(`${baseUrl}/${id}/view`),
+            viewList: (params = {}) => apiClient.get(`${baseUrl}/view`, { params }),
+        },
     }
 
     return {
         ...coreMethods,
-        ...(endpointSpecificMethods[endpoint] || {})
+        ...(extraMethods[endpoint] || {})
     }
 }
 
-const crudServices = Object.fromEntries(
-    crudEndpoints.map(name => [name, createCrudService(name)])
+const apiServices = Object.fromEntries(
+    endpoints.map(name => [name, createApiService(name)])
 )
 
 const provincesService = () => {
     const baseUrl = 'https://provinces.open-api.vn/api'
 
     return {
-        getProvinces: (params = {}) => apiClient.get(`${baseUrl}/p`, { params }),
+        getProvinces: (id = null) => apiClient.get(`${baseUrl}/p${id ? `/${id}` : ''}`),
         getProvinceWithDistricts: (id) => apiClient.get(`${baseUrl}/p/${id}`, { params: { depth: 2 } }),
-        getDistricts: (params = {}) => apiClient.get(`${baseUrl}/d`, { params }),
+        getDistricts: (id = null) => apiClient.get(`${baseUrl}/d${id ? `/${id}` : ''}`),
         getDistrictWithWards: (id) => apiClient.get(`${baseUrl}/d/${id}`, { params: { depth: 2 } }),
-        getWards: (params = {}) => apiClient.get(`${baseUrl}/w`, { params }),
+        getWards: (id = null) => apiClient.get(`${baseUrl}/w${id ? `/${id}` : ''}`),
+    }
+}
+
+const vietQRService = () => {
+    const baseUrl = 'https://api.vietqr.io/v2'
+
+    return {
+        generateQR: (orderId, amount) => apiClient.post(`${baseUrl}/generate`, {
+            accountNo: process.env.VUE_APP_BANK_ACCOUNT_NO,
+            accountName: process.env.VUE_APP_BANK_ACCOUNT_NAME,
+            acqId: process.env.VUE_APP_BANK_CODE,
+            addInfo: `Thanh toan don hang Ma ${orderId}`,
+            amount: amount.toString(),
+            template: 'qr_only',
+        }, {
+            headers: {
+                'x-client-id': process.env.VUE_APP_VIETQR_CLIENT_ID,
+                'x-api-key': process.env.VUE_APP_VIETQR_API_KEY,
+                'Content-Type': 'application/json',
+            }, 
+        }),
     }
 }
 
 export default {
-    ...crudServices,
+    ...apiServices,
     provinces: provincesService(),
-    createService: (endpoint) => createCrudService(`/${endpoint}`),
+    vietQR: vietQRService(),
 }

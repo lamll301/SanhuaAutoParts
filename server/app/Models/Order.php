@@ -9,26 +9,45 @@ class Order extends Model
 {
     use SoftDeletes;
 
+    const PAYMENT_METHOD_QR = 'Mã QR';
+    const PAYMENT_METHOD_CARD = 'Thẻ tín dụng / thẻ ghi nợ';
+    const PAYMENT_METHOD_EWALLET = 'Ví điện tử';
+    const PAYMENT_METHOD_COD = 'Thanh toán khi nhận hàng';
+    const PAYMENT_STATUS_PENDING = 0;       // chưa thanh toán
+    const PAYMENT_STATUS_PAID = 1;         // đã thanh toán
+    const STATUS_PENDING = 0;
+    const STATUS_PACKED = 1;               // đóng gói
+    const STATUS_SHIPPED = 2;              // vận chuyển
+    const STATUS_COMPLETED = 3;            // thành công
+    const STATUS_CANCELLED = 4;            // hủy bỏ
+
     protected $fillable = [
         'user_id',
+        'approved_by',
         'voucher_id',
-        'total_amount',
-        'shipping_fee',
         'status',
+        'shipping_fee',
+        'total_amount',
         'name',
         'phone',
         'city_id',
         'district_id',
         'ward_id',
-        'address_type',
         'shipping_address',
+        'address_type',
         'payment_method',
+        'payment_info',
         'payment_status',
+        'shipped_at',
+        'completed_at',
+        'cancelled_at',
+        'cancel_reason',
     ];
     
     protected $casts = [
-        'total_amount' => 'integer',
-        'shipping_fee' => 'integer',
+        'shipped_at' => 'datetime',
+        'completed_at' => 'datetime',
+        'cancelled_at' => 'datetime',
     ];
     
     protected $appends = ['product_total'];
@@ -45,6 +64,11 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function voucher()
+    {
+        return $this->belongsTo(Voucher::class);
+    }
+
     public function details()
     {
         return $this->hasMany(OrderDetail::class);
@@ -53,5 +77,10 @@ class Order extends Model
     public function reviews()
     {
         return $this->hasMany(Review::class);
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 }

@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('voucher_id')->nullable()->constrained()->onDelete('set null');
             $table->tinyInteger('status')->default(0);
             $table->unsignedInteger('shipping_fee');
@@ -23,7 +24,12 @@ return new class extends Migration
             $table->string('shipping_address');
             $table->enum('address_type', ['Nhà riêng', 'Văn phòng'])->default('Nhà riêng');
             $table->enum('payment_method', ['Mã QR', 'Thẻ tín dụng / thẻ ghi nợ', 'Ví điện tử', 'Thanh toán khi nhận hàng'])->default('Thanh toán khi nhận hàng');
+            $table->string('payment_info')->nullable();
             $table->tinyInteger('payment_status')->default(0);
+            $table->timestamp('shipped_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
+            $table->string('cancel_reason')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -48,6 +54,15 @@ return new class extends Migration
             // đảm bảo user chỉ đánh giá 1 sản phẩm trong 1 đơn hàng 1 lần
             $table->unique(['user_id', 'product_id', 'order_id'], 'unique_user_product_order_review');
         });
+
+        Schema::create('voucher_usages', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('voucher_id')->constrained()->onDelete('cascade');
+            $table->foreignId('order_id')->constrained()->onDelete('cascade');
+            $table->unique(['user_id', 'voucher_id']);
+            $table->timestamps();
+        });
     }
 
     public function down(): void
@@ -55,5 +70,6 @@ return new class extends Migration
         Schema::dropIfExists('reviews');
         Schema::dropIfExists('order_details');
         Schema::dropIfExists('orders');
+        Schema::dropIfExists('voucher_usages');
     }
 };

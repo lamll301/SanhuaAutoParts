@@ -17,17 +17,18 @@
                                     Mã đơn hàng: {{ order.id }}
                                 </span>
                                 <span class="settings-order-tracking-status-text">
-                                    <span v-if="order.status === 'completed'">Hoàn thành</span>
-                                    <span v-else-if="order.status === 'canceled'">Đã hủy</span>
-                                    <span v-else-if="order.status === 'approved'">Chờ thanh toán</span>
-                                    <span v-else-if="order.status === 'shipping'">Chờ giao hàng</span>
-                                    <span v-else-if="order.status === 'returned'">Trả hàng/Hoàn tiền</span>
+                                    <span v-if="order.payment_status === 0">Chờ thanh toán</span>
+                                    <span v-else-if="!order.approved_by">Chờ duyệt</span>
+                                    <span v-else-if="order.status === 1">Đang đóng gói</span>
+                                    <span v-else-if="order.status === 2">Đang giao hàng</span>
+                                    <span v-else-if="order.status === 3">Hoàn thành</span>
+                                    <span v-else-if="order.status === 4">Đã hủy</span>
                                 </span>
                             </div>
                         </div>
                     </div>
                     <div class="settings-order-tracking-top order-tracking-detail-top-2">
-                        <div v-if="order.status !== 'canceled'" class="order-tracking-detail-stepper">
+                        <div v-if="order.status !== 4" class="order-tracking-detail-stepper">
                             <div class="order-tracking-detail-step">
                                 <div class="order-tracking-detail-step-icon order-tracking-detail-step-icon--completed">
                                     <i class="fa-regular fa-file-lines"></i>
@@ -35,73 +36,73 @@
                                 <p class="order-tracking-detail-step-text">
                                     Đơn hàng đã đặt
                                 </p>
-                                <span class="order-tracking-detail-step-text-sub">{{ order.createdAt }}</span>
+                                <span class="order-tracking-detail-step-text-sub">{{ formatDate(order.created_at) }}</span>
                             </div>
                             <div class="order-tracking-detail-step">
                                 <div class="order-tracking-detail-step-icon order-tracking-detail-step-icon--active"
                                 :class="{
-                                    'order-tracking-detail-step-icon--completed': 'approved' in statusHistoryMap
+                                    'order-tracking-detail-step-icon--completed': order.status >= 1
                                 }"    
                                 >
                                     <i class="fa-solid fa-money-check-dollar"></i>
                                 </div>
                                 <p class="order-tracking-detail-step-text">
                                     {{ 
-                                        'approved' in statusHistoryMap
+                                        order.payment_status === 1
                                         ? 'Đã xác nhận thông tin thanh toán'
                                         : 'Đơn hàng chưa được thanh toán' 
                                     }}
                                 </p>
-                                <span v-if="'approved' in statusHistoryMap" class="order-tracking-detail-step-text-sub">
-                                    {{ statusHistoryMap.approved }}
+                                <span v-if="order.payment_status === 1" class="order-tracking-detail-step-text-sub">
+                                    {{ order?.payment_info?.match(/Thời gian: ([\d:-\s]+)/)?.[1] }}
                                 </span>
                             </div>
                             <div class="order-tracking-detail-step">
                                 <div class="order-tracking-detail-step-icon"
                                 :class="{
-                                    'order-tracking-detail-step-icon--active': 'approved' in statusHistoryMap && !('shipping' in statusHistoryMap),
-                                    'order-tracking-detail-step-icon--completed': 'shipping' in statusHistoryMap
+                                    'order-tracking-detail-step-icon--active': order.status === 1,
+                                    'order-tracking-detail-step-icon--completed': order.status > 1
                                 }"
                                 >
                                     <i class="fa-solid fa-truck"></i>
                                 </div>
                                 <p class="order-tracking-detail-step-text">
                                     {{ 
-                                        'shipping' in statusHistoryMap
+                                        order.status > 1
                                         ? 'Đã giao cho đơn vị vận chuyển'
                                         : 'Đang trong quá trình đóng gói' 
                                     }}
                                 </p>
-                                <span v-if="'shipping' in statusHistoryMap" class="order-tracking-detail-step-text-sub">
-                                    {{ statusHistoryMap.shipping }}
+                                <span v-if="order.status > 1" class="order-tracking-detail-step-text-sub">
+                                    {{ order.shipped_at }}
                                 </span>
                             </div>
                             <div class="order-tracking-detail-step">
                                 <div class="order-tracking-detail-step-icon"
                                 :class="{
-                                    'order-tracking-detail-step-icon--active': 'shipping' in statusHistoryMap && !('completed' in statusHistoryMap),
-                                    'order-tracking-detail-step-icon--completed': 'completed' in statusHistoryMap
+                                    'order-tracking-detail-step-icon--active': order.status === 2,
+                                    'order-tracking-detail-step-icon--completed': order.status > 2
                                 }"
                                 >
                                     <i class="fa-solid fa-box"></i>
                                 </div>
                                 <p class="order-tracking-detail-step-text">
                                     {{ 
-                                        'completed' in statusHistoryMap
+                                        order.status > 2
                                         ? 'Đã nhận được hàng'
                                         : 'Chờ giao hàng' 
                                     }}
                                 </p>
-                                <span v-if="'completed' in statusHistoryMap" class="order-tracking-detail-step-text-sub">
-                                    {{ statusHistoryMap.completed }}
+                                <span v-if="order.status > 2" class="order-tracking-detail-step-text-sub">
+                                    {{ order.completed_at }}
                                 </span>
                             </div>
                             <div class="order-tracking-detail-step">
                                 <div class="order-tracking-detail-step-icon"
                                 :class="{
                                     'order-tracking-detail-step-icon--active': !areAllReviewed 
-                                        && 'completed' in statusHistoryMap,
-                                    'order-tracking-detail-step-icon--completed': areAllReviewed && 'completed' in statusHistoryMap
+                                        && order.status === 3,
+                                    'order-tracking-detail-step-icon--completed': areAllReviewed && order.status === 3
                                 }"
                                 >
                                     <i class="fa-regular fa-star"></i>
@@ -113,50 +114,47 @@
                                         : 'Đánh giá'
                                     }}
                                 </p>
-                                <span v-if="areAllReviewed" class="order-tracking-detail-step-text-sub">
-                                    {{ order.updatedAt }}
-                                </span>
                             </div>
                             <div class="order-tracking-detail-step-line" :style="{ '--progress-width': progressWidth + '%' }"></div>
                         </div>
                         <div v-else>
                             <p style="font-size: 2rem; color: #ee4d2d;">Đã hủy đơn hàng</p>
-                            <span style="font-size: 1.4rem;">Vào {{ order.updatedAt }}</span>
+                            <span style="font-size: 1.4rem;">Vào {{ formatDate(order.cancelled_at) }}</span>
                         </div>
                     </div>
                     <div class="settings-order-tracking-bottom">
                         <div class="settings-order-tracking-bottom-content">
                             <div class="settings-order-tracking-bottom-left">
-                                <span v-if="order.status === 'completed'">
-                                    <span v-if="isRefundable">
-                                        Nếu hàng nhận được có vấn đề, bạn có thể gửi yêu cầu Trả hàng/Hoàn tiền trước {{ order.refundDeadlineAt }}
+                                <span v-if="order.status === 3">
+                                    <span v-if="!isReturnExpired(order.completed_at)">
+                                        Nếu hàng nhận được có vấn đề, bạn có thể gửi yêu cầu Trả hàng/Hoàn tiền trước 14 ngày kể từ ngày nhận hàng
                                     </span>
                                     <span v-else>
                                         Cảm ơn bạn đã mua sắm tại Sanhua!
                                     </span>
                                 </span>
-                                <span v-else-if="order.status === 'canceled'">
+                                <span v-else-if="order.status === 4">
                                     Lý do: {{ order.note }}
                                 </span>
                             </div>
                             <div class="settings-order-tracking-bottom-right">
                                 <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
-                                    v-if="!order.status"
+                                    v-if="order.payment_status === 0"
                                 >
                                     Thanh toán
                                 </button>
                                 <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
-                                    v-if="order.status === 'approved' || !order.status"
+                                    v-if="order.status < 1"
                                 >
                                     Hủy Đơn Hàng
                                 </button>
                                 <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
-                                    v-if="order.status === 'completed' && !areAllReviewed"
+                                    v-if="order.status === 3"
                                 >
                                     Đánh giá
                                 </button>
                                 <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
-                                    v-if="order.status === 'completed' && isRefundable"
+                                    v-if="order.status === 3"
                                 >
                                     Yêu cầu Trả hàng/Hoàn tiền
                                 </button>
@@ -176,30 +174,27 @@
                             </p>
                             <p class="order-tracking-detail-address-sub">{{ order.phone }}</p>
                             <p class="order-tracking-detail-address-sub">
-                                {{ order.address }}
+                                {{ order.address_type }}
                             </p>
                         </div>
                         <ul class="settings-order-tracking-list">
-                            <li v-for="item in order.autoParts" :key="item.id" class="settings-order-tracking-item">
+                            <li v-for="detail in order.details" :key="detail.id" class="settings-order-tracking-item">
                                 <a class="settings-order-tracking-details">
                                     <div class="settings-order-tracking-left">
-                                        <img :src="item.image" alt="" class="settings-order-tracking-img">
+                                        <img :src="getImageUrl(detail.product.images[0].path)" alt="" class="settings-order-tracking-img">
                                         <div class="settings-order-tracking-left-content">
                                             <p class="settings-order-tracking-text settings-order-tracking-name">
-                                                {{ item.name }}
+                                                {{ detail.product.name }}
                                             </p>
                                             <p class="settings-order-tracking-text settings-order-tracking-type">
-                                                Phân loại hàng: {{ item.type }}
+                                                {{ detail.product.description }}
                                             </p>
-                                            <p class="settings-order-tracking-text">x{{ item.quantity }}</p>
+                                            <p class="settings-order-tracking-text">x{{ detail.quantity }}</p>
                                         </div>
                                     </div>
                                     <div class="settings-order-tracking-right">
-                                        <span class="settings-order-tracking-price-old">
-                                            <sup>đ</sup>{{ item.oldPrice.toLocaleString() }}
-                                        </span>
                                         <span class="settings-order-tracking-price-curr">
-                                            <sup>đ</sup>{{ item.price.toLocaleString() }}
+                                            <sup>đ</sup>{{ formatPrice(detail.price) }}
                                         </span>
                                     </div>
                                 </a>
@@ -210,7 +205,7 @@
                                 <p class="settings-order-tracking-total-text">
                                     Tổng tiền hàng:
                                     <span class="order-tracking-detail-bottom-right-content settings-order-tracking-price-curr">
-                                        <sup>đ</sup>35.000
+                                        <sup>đ</sup>{{ formatPrice(order.product_total) }}
                                     </span>
                                 </p>
                             </div>
@@ -218,15 +213,15 @@
                                 <p class="settings-order-tracking-total-text">
                                     Phí vận chuyển:
                                     <span class="order-tracking-detail-bottom-right-content settings-order-tracking-price-curr">
-                                        <sup>đ</sup>35.000
+                                        <sup>đ</sup>{{ formatPrice(order.shipping_fee) }}
                                     </span>
                                 </p>
                             </div>
-                            <div class="settings-order-tracking-total">
+                            <div class="settings-order-tracking-total" v-show="order.voucher">
                                 <p class="settings-order-tracking-total-text">
                                     Giảm giá:
                                     <span class="order-tracking-detail-bottom-right-content settings-order-tracking-price-curr">
-                                        <sup>đ</sup>-35.000
+                                        <sup>đ</sup>-{{ formatPrice(order.voucher?.value) }}
                                     </span>
                                 </p>
                             </div>
@@ -234,14 +229,14 @@
                                 <p class="settings-order-tracking-total-text">
                                     Thành tiền:
                                     <span class="order-tracking-detail-bottom-right-content settings-order-tracking-total-content">
-                                        <sup>đ</sup>35.000
+                                        <sup>đ</sup>{{ formatPrice(order.total_amount) }}
                                     </span>
                                 </p>
                             </div>
-                            <div class="settings-order-tracking-bottom-content">
+                            <div class="settings-order-tracking-bottom-content" v-show="order.payment_method === 'Thanh toán khi nhận hàng'">
                                 <div class="settings-order-tracking-bottom-left">
                                     <span>
-                                        Vui lòng thanh toán <sup>đ</sup>52.500 khi nhận hàng.
+                                        Vui lòng thanh toán <sup>đ</sup>{{ formatPrice(order.total_amount) }} khi nhận hàng.
                                     </span>
                                 </div>
                                 <div class="order-tracking-detail-bottom-right">
@@ -249,7 +244,7 @@
                                         <span>Phương thức Thanh toán:</span>
                                     </div>
                                     <div class="order-tracking-detail-bottom-right-content">
-                                        <span>Thanh toán khi nhận hàng</span>
+                                        <span>{{ order.payment_method }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -262,78 +257,49 @@
 </template>
 
 <script>
+import apiService from '@/utils/apiService';
+import { formatDate, formatPrice, getImageUrl, formatAddress } from '@/utils/helpers';
 
 export default {
     data() {
         return {
-            order: {
-                id: "1234",
-                name: "Lê Lý Lâm",
-                phone: "0343343434",
-                address: "Số 8 Tập thể Hanel, phường Thành Tô, quận Hải An, thành phố Hải Phòng",
-                note: "Muốn thay đổi địa chỉ giao hàng",
-                createdAt: '09:22 08-01-2022',
-                updatedAt: '12:52 30-01-2025',
-                refundDeadlineAt: '09:22 25-02-2025',   // hạn đổi trả/hoàn tiền
-                statusHistory: "canceled=09:25 08-01-2022;",
-                // phải theo thứ tự: approved=09:22 08-01-2021;shipping=09:25 08-01-2022;completed=09:25 08-01-2022;
-                // status: 'approved' // duyệt thanh toán và thông tin đơn, 'shipping', 'completed', 'canceled', 'returned'
-                status: "approved",
-                autoParts: [
-                    {
-                        id: 1,
-                        image: "https://picsum.photos/200",
-                        name: "Sách - Đắc nhân tâm",
-                        type: "Màu mẫu trắng mới, 15x50",
-                        quantity: 10,
-                        oldPrice: 100000,
-                        price: 80000,
-                        isReviewed: false,
-                    },
-                    {
-                        id: 2,
-                        image: "https://picsum.photos/200",
-                        name: "Sách - Không là sói cũng đừng là cừu",
-                        type: "Màu mẫu trắng mới, 15x21",
-                        quantity: 5,
-                        oldPrice: 35000,
-                        price: 30000,
-                        isReviewed: true,
-                    },
-                ]
-            }
+            order: {}
         }
     },
     computed: {
-        statusHistoryMap() {
-            return this.order.statusHistory.split(";").reduce((acc, pair) => {
-                if (pair.trim()) {
-                    const [key, value] = pair.split("=");
-                    if (key && value) {
-                        acc[key.trim()] = value.trim();
-                    }
-                }
-                return acc;
-            }, {});
-        },
         progressWidth() {
-            const n = Object.keys(this.statusHistoryMap).length + 1;
+            let n = this.order.status + 1;
             return (n > 4 ? 4 : n) * 25;
         },
-        areAllReviewed() {
-            return this.order.autoParts.every(part => part.isReviewed);
-        },
-        isRefundable() {
-            const completedDate = this.convertDate(this.order.refundDeadlineAt)
-            return new Date() <= completedDate;
+    },
+    beforeRouteEnter(to, from, next) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            next({ name: 'NotFound' });
+            return;
         }
+        next();
+    },
+    created() {
+        this.fetchData();
     },
     methods: {
-        convertDate(dateString) {
-            const [time, date] = dateString.split(' ');
-            const [hours, minutes] = time.split(':');
-            const [day, month, year] = date.split('-');
-            return new Date(year, month - 1, day, hours, minutes);
+        formatDate, formatPrice, getImageUrl, formatAddress,
+        async fetchData() {
+            try {
+                const response = await apiService.orders.view(this.$route.params.id);
+                this.order = response.data;
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        isReturnExpired(completedAt) {
+            if (!completedAt) return true;
+            const completedDate = new Date(completedAt * 1000);
+            const now = new Date();
+            const diffTime = now - completedDate;
+            const diffDays = diffTime / (1000 * 60 * 60 * 24);
+            return diffDays > 14;
         }
     }
 }

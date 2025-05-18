@@ -1,8 +1,5 @@
 import { format, parseISO } from 'date-fns';
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phoneRegex = /^[0-9]{9,15}$/;
-const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+import apiService from './apiService';
 
 export function formatDate(date, pattern = 'yyyy-MM-dd HH:mm:ss') {
     if (!date) return '';
@@ -19,16 +16,24 @@ export function formatPrice(price) {
     return new Intl.NumberFormat('vi-VN').format(price);
 }
 
-export function isValidEmail(email) {
-    return emailRegex.test(email.trim());
-}
+export async function formatAddress(provinceId, districtId, wardId, address) {
+    try {
+        const res = await Promise.all([
+            apiService.provinces.getProvinces(provinceId),
+            apiService.provinces.getDistricts(districtId),
+            apiService.provinces.getWards(wardId)
+        ]);
 
-export function isValidPhone(phone) {
-    return phoneRegex.test(phone.trim());
-}
+        const province = res[0].data.name
+        const district = res[1].data.name
+        const ward = res[2].data.name
 
-export function isValidPassword(password) {
-    return passwordRegex.test(password.trim());
+        return `${address}, ${ward}, ${district}, ${province}`
+    } catch (error) {
+        console.error(error);
+
+        return address || '';
+    }
 }
 
 export function getImageUrl(path) {

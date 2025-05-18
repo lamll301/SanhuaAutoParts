@@ -1,6 +1,5 @@
 # **SanhuaAutoParts**
-
-A brief description of what this project does and who it's for
+**SanhuaAutoParts** là một nền tảng thương mại điện tử chuyên cung cấp các thiết bị và phụ tùng ô tô dành cho các gara, đại lý phân phối, và người dùng cá nhân có nhu cầu mua sắm linh kiện thay thế. Website hỗ trợ quản lý sản phẩm, phân loại theo hệ thống (động cơ, điều hòa, truyền động,...), tìm kiếm nâng cao, thanh toán online qua nhiều cổng, và quản lý đơn hàng. Dự án được phát triển với mục tiêu mang lại trải nghiệm mua sắm dễ dàng, nhanh chóng và chuyên nghiệp cho khách hàng trong ngành phụ tùng ô tô.
 
 ## **Cài đặt & Chạy dự án**
 Yêu cầu: 
@@ -52,4 +51,18 @@ VUE_APP_API_KEY=
 Chạy dự án:
 ```bash
 npm run serve
+```
+### **Công cụ phát triển**
+#### **Truy cập API cục bộ bằng Ngrok**
+Cấu hình Authtoken (token lấy sau khi đăng ký tài khoản):
+```bash
+ngrok config add-authtoken <YOUR_AUTHTOKEN>
+```
+Mở terminal và chạy:
+```bash
+ngrok http 8000
+```
+Cập nhật file `.env` của backend với URL public do ngrok cung cấp:
+```bash
+https://abcd-xyz.ngrok-free.app -> http://localhost:8000
 ```

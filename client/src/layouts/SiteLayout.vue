@@ -5,7 +5,7 @@
                 <div class="header__top">
                     <ul class="header__top-list">
                         <!-- not logged -->
-                        <li class="header__top-item">Hi!
+                        <li v-if="!isAuthenticated" class="header__top-item">Hi!
                             <a role="button" class="header-link" data-bs-toggle="modal" data-bs-target="#authModal" data-form="login">
                                 Đăng nhập
                             </a>
@@ -15,14 +15,16 @@
                             </a>
                         </li>
                         <!-- logged -->
-                        <li class="header__top-item header__top-user">Hi!
-                            <span class="header__top-user-name">Lam!</span>
+                        <li v-else class="header__top-item header__top-user">Chào bạn!
+                            <span class="header__top-user-name">
+                                {{ user.username }}!
+                            </span>
                             <i class="fa-solid fa-chevron-down"></i>
                             <ul class="header__top-user-menu">
                                 <li class="header__top-user-item">
                                     <a class="header__top-user-item-info">
-                                        <img src="https://photo.znews.vn/w1200/Uploaded/mdf_eioxrd/2021_07_06/1q.jpg" alt="" class="header__top-user-item-avatar">
-                                        <p class="header__top-user-item-name">Lam Le</p>
+                                        <img :src="getImageUrl(user?.avatar?.path)" alt="" class="header__top-user-item-avatar">
+                                        <p class="header__top-user-item-name">{{ user.name }}</p>
                                     </a>
                                 </li>
                                 <li class="header__top-user-item header__top-user-item-option">
@@ -32,7 +34,7 @@
                                     <router-link to="/theo-doi-don-hang">Đơn mua</router-link>
                                 </li>
                                 <li class="header__top-user-item header__top-user-item-option">
-                                    <a href="">Đăng xuất</a>
+                                    <a @click.prevent="logout">Đăng xuất</a>
                                 </li>
                             </ul>
                         </li>
@@ -64,10 +66,10 @@
                             </div>
                         </li>
                         <li class="header__top-item header__cart">
-                            <router-link to="/gio-hang" class="header__top-icon-link">
+                            <button @click="goToCart" class="header__top-icon-link">
                                 <i class="fa-solid fa-cart-shopping fa-xl"></i>
                                 <span class="header__notice header__cart-notice">{{ cartDetails.length }}</span>
-                            </router-link>
+                            </button>
                             <!--class empty cart: header__cart-list--empty-cart-->
                             <div v-if="cartDetails.length === 0" class="header__cart-list header__cart-list--empty-cart">
                                 <img src="../assets/images/empty-cart.png" alt="" class="header__cart-list--empty-cart-img">
@@ -98,7 +100,7 @@
                                     </div>
                                     <div class="header__cart-btn">
                                         <router-link to="/gio-hang" class="button header__cart-btn--view-cart">Xem giỏ hàng</router-link>
-                                        <router-link to="/don-hang" class="button header__cart-btn--checkout">Thanh toán</router-link>
+                                        <button @click="goToCheckout" class="button header__cart-btn--checkout">Thanh toán</button>
                                     </div>
                                 </div>
                             </div>
@@ -141,38 +143,20 @@
                     <div class="header-function-bar-menu">
                         <div class="header-function-bar-menu-content">
                             <div class="header-function-bar-menu-left">
-                                <template v-if="isLoading">
-                                    <div class="header-function-bar-menu-section">
-                                        <ul class="header-function-bar-menu-list">
-                                            <li v-for="i in 9" :key="i" class="header-function-bar-menu-item">
-                                                <SkeletonLoading marginBottom="18px" height="12px" width="80%" />
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div class="header-function-bar-menu-section">
-                                        <ul class="header-function-bar-menu-list">
-                                            <li v-for="i in 9" :key="i" class="header-function-bar-menu-item">
-                                                <SkeletonLoading marginBottom="18px" height="12px" width="80%" />
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </template>
-                                <template v-else>
-                                    <div class="header-function-bar-menu-section">
-                                        <ul class="header-function-bar-menu-list">
-                                            <li v-for="category in categories.slice(0, 9)" :key="category" class="header-function-bar-menu-item">
-                                                <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div class="header-function-bar-menu-section">
-                                        <ul class="header-function-bar-menu-list">
-                                            <li v-for="category in categories.slice(9, 18)" :key="category" class="header-function-bar-menu-item">
-                                                <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </template>
+                                <div class="header-function-bar-menu-section">
+                                    <ul class="header-function-bar-menu-list">
+                                        <li v-for="category in categories.slice(0, 9)" :key="category" class="header-function-bar-menu-item">
+                                            <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="header-function-bar-menu-section">
+                                    <ul class="header-function-bar-menu-list">
+                                        <li v-for="category in categories.slice(9, 18)" :key="category" class="header-function-bar-menu-item">
+                                            <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                             <div class="header-function-bar-menu-right">
                                 <a href="#">
@@ -189,38 +173,20 @@
                     <div class="header-function-bar-menu">
                         <div class="header-function-bar-menu-content">
                             <div class="header-function-bar-menu-left">
-                                <template v-if="isLoading">
-                                    <div class="header-function-bar-menu-section">
-                                        <ul class="header-function-bar-menu-list">
-                                            <li v-for="i in 9" :key="i" class="header-function-bar-menu-item">
-                                                <SkeletonLoading marginBottom="18px" height="12px" width="80%" />
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div class="header-function-bar-menu-section">
-                                        <ul class="header-function-bar-menu-list">
-                                            <li v-for="i in 9" :key="i" class="header-function-bar-menu-item">
-                                                <SkeletonLoading marginBottom="18px" height="12px" width="80%" />
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </template>
-                                <template v-else>
-                                    <div class="header-function-bar-menu-section">
-                                        <ul class="header-function-bar-menu-list">
-                                            <li v-for="category in categoriesByBrand.slice(0, 9)" :key="category" class="header-function-bar-menu-item">
-                                                <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div class="header-function-bar-menu-section">
-                                        <ul class="header-function-bar-menu-list">
-                                            <li v-for="category in categoriesByBrand.slice(9, 18)" :key="category" class="header-function-bar-menu-item">
-                                                <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </template>
+                                <div class="header-function-bar-menu-section">
+                                    <ul class="header-function-bar-menu-list">
+                                        <li v-for="category in categoriesByBrand.slice(0, 9)" :key="category" class="header-function-bar-menu-item">
+                                            <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="header-function-bar-menu-section">
+                                    <ul class="header-function-bar-menu-list">
+                                        <li v-for="category in categoriesByBrand.slice(9, 18)" :key="category" class="header-function-bar-menu-item">
+                                            <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                             <div class="header-function-bar-menu-right">
                                 <a href="#">
@@ -359,7 +325,7 @@
             </div>
         </div>
     </footer>
-    <AuthModal />
+    <AuthModal @fetchIfAuth="fetchIfAuth" />
     <ChatComponent />
 </template>
 
@@ -368,63 +334,20 @@ import { onMounted } from 'vue';
 import AuthModal from '@/components/AuthModal.vue';
 import ChatComponent from '@/components/ChatComponent.vue';
 import apiService from '@/utils/apiService';
-import SkeletonLoading from '@/components/SkeletonLoading.vue';
 import { getImageUrl, formatPrice } from '@/utils/helpers';
+import { useCartStore } from '@/stores/cart';
+import { useAuthStore } from '@/stores/auth';
+import { useOrderStore } from '@/stores/order';
 
 export default {
     name: 'SiteLayout',
     components: {
-        AuthModal, ChatComponent, SkeletonLoading
-    },
-    data() {
-        return {
-            isLoading: true, searchKeyword: '',
-            notifyDetails: [],
-            cartDetails: [],
-            categoriesByBrand: [],
-            categories: [],
-            total: 0,
-        }
-    },
-    created() {
-        this.fetchData();
-    },
-    methods: { 
-        getImageUrl, formatPrice,
-        async fetchData() {
-            this.isLoading = true;
-            try {
-                const req = [
-                    apiService.categories.getAll({ key: 'part' }),
-                    apiService.categories.getAll({ key: 'brand' }),
-                    apiService.carts.getCart(),
-                ];
-                
-                const res = await Promise.all(req)
-
-                this.categories = res[0].data.data;
-                this.categoriesByBrand = res[1].data.data;
-                this.cartDetails = res[2].data.details.filter(detail => detail.product.quantity > 0);
-                this.total = res[2].data.total
-            } catch (error) {
-                console.error(error);
-            } finally {
-                this.isLoading = false;
-            }
-        },
-        removeCart(id) {
-            apiService.carts.removeFromCart(id).then(() => {
-                this.cartDetails = this.cartDetails.filter(cartDetail => cartDetail.id !== id);
-                this.total = this.cartDetails.reduce((sum, item) => sum + item.quantity * item.price, 0);
-            }).catch(err => console.error(err));
-        },
-        findByKeyword() {
-            if (this.searchKeyword.trim()) {
-                this.$router.push({ path: '/danh-muc', query: { key: this.searchKeyword.trim() } })
-            }
-        },
+        AuthModal, ChatComponent
     },
     setup() {
+        const cartStore = useCartStore();
+        const authStore = useAuthStore();
+        const orderStore = useOrderStore();
         const centerHeaderMenus = () => {
             const menuBlocks = document.querySelectorAll('.header-function-bar-menu-block');
             let value = -142;
@@ -442,6 +365,119 @@ export default {
         onMounted(() => {
             centerHeaderMenus();
         })
+        return {
+            cartStore, authStore, orderStore
+        }
+    },
+    data() {
+        return {
+            isLoading: true, searchKeyword: '',
+            notifyDetails: [],
+            categoriesByBrand: [],
+            categories: [],
+        }
+    },
+    computed: {
+        cartDetails() {
+            return this.cartStore.details.filter(detail => detail.product.quantity > 0);
+        },
+        total() {
+            return this.cartStore.total;
+        },
+        isAuthenticated() {
+            return this.authStore.isAuthenticated;
+        },
+        user() {
+            return this.authStore.user;
+        },
+    },
+    created() {
+        const token = localStorage.getItem('token');
+        if (token) {
+            this.authStore.setToken(token)
+            this.fetchIfAuth()
+        }
+        this.fetchData();
+    },
+    methods: { 
+        getImageUrl, formatPrice,
+        async fetchData() {
+            this.isLoading = true;
+            try {
+                const res = await Promise.all([
+                    apiService.categories.getAll({ key: 'part' }),
+                    apiService.categories.getAll({ key: 'brand' }),
+                ]);
+
+                this.categories = res[0].data.data;
+                this.categoriesByBrand = res[1].data.data;
+
+                if (this.isAuthenticated) {
+                    await this.fetchIfAuth()
+                }
+            } catch (err) {
+                console.error(err)
+            } finally {
+                this.isLoading = false
+            }
+        },
+        async fetchIfAuth() {
+            try {
+                const token = this.authStore.token
+                if (token) {
+                    const res = await Promise.all([
+                        apiService.auth.me(),
+                        apiService.carts.getCart()
+                    ])
+
+                    if (res[0].data) {
+                        this.authStore.setUser(res[0].data)
+                    }
+                    
+                    if (res[1].data?.details) {
+                        this.cartStore.setCart(res[1].data.details)
+                    }
+                }
+            } catch (err) {
+                console.error(err)
+            }
+        },
+        async logout() {
+            try {
+                await apiService.auth.logout()
+                this.cartStore.setCart([]);
+                this.authStore.removeToken();
+                this.authStore.removeUser();
+                await this.$swal.fire('Đăng xuất thành công', '', 'success', {
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 1500,
+                });
+                this.$router.push('/');
+            } catch (err) {
+                console.error(err)
+            }
+        },
+        async goToCart() {
+            if (!this.isAuthenticated) {
+                await this.$swal.fire("Vui lòng đăng nhập", "Bạn cần đăng nhập để xem giỏ hàng", "warning");
+                return;
+            }
+            this.$router.push('/gio-hang');
+        },
+        removeCart(id) {
+            this.cartStore.removeCartItem(id);
+            apiService.carts.removeFromCart(id).catch(err => console.error(err));
+        },
+        findByKeyword() {
+            if (this.searchKeyword.trim()) {
+                this.$router.push({ path: '/danh-muc', query: { key: this.searchKeyword.trim() } })
+            }
+        },
+        goToCheckout() {
+            this.orderStore.setBuyNow({});
+            this.$router.push('/don-hang')
+        }
     },
 }
 </script>

@@ -1,24 +1,24 @@
 <template>
-    <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+    <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true" ref="authModal">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-body">
                     <!-- Register form -->
-                    <form v-if="activeForm === 'register'" action="" method="post" class="form" id="form-1">
+                    <form v-if="activeForm === 'register'" @submit.prevent="register" class="form" id="form-1">
                         <div class="auth-form">
                             <div class="auth-form__container">
                                 <div class="auth-form__header">
                                     <h3 class="auth-form__heading">Đăng ký</h3>
-                                    <button type="button" class="auth-form__close-button" data-bs-dismiss="modal">X</button>
+                                    <button ref="closeButton" type="button" class="auth-form__close-button" data-bs-dismiss="modal">X</button>
                                 </div>
                                 <div class="auth-form__form">
                                     <div class="auth-form__group">
-                                        <input type="text" class="order-form-input" placeholder="Tên đăng nhập">
-                                        <span class="auth-form__msg"></span>
+                                        <input type="text" class="order-form-input" placeholder="Tên đăng nhập" v-model="username">
+                                        <span class="auth-form__msg" v-if="errors.username">{{ errors.username }}</span>
                                     </div>
                                     <div class="auth-form__group">
-                                        <input type="password" class="order-form-input" placeholder="Mật khẩu">
-                                        <span class="auth-form__msg"></span>
+                                        <input type="password" class="order-form-input" placeholder="Mật khẩu" v-model="password">
+                                        <span class="auth-form__msg" v-if="errors.password">{{ errors.password }}</span>
                                     </div>
                                 </div>
                                 <div class="auth-form__controls-1">
@@ -52,21 +52,21 @@
                         </div>
                     </form>
                     <!-- login form -->
-                    <form v-if="activeForm === 'login'" action="" method="post" class="form" id="form-2" >
+                    <form v-if="activeForm === 'login'" @submit.prevent="login" class="form" id="form-2" >
                         <div class="auth-form">
                             <div class="auth-form__container">
                                 <div class="auth-form__header">
                                     <h3 class="auth-form__heading">Đăng nhập</h3>
-                                    <button type="button" class="auth-form__close-button" data-bs-dismiss="modal">X</button>
+                                    <button ref="closeButton" type="button" class="auth-form__close-button" data-bs-dismiss="modal">X</button>
                                 </div>
                                 <div class="auth-form__form">
                                     <div class="auth-form__group">
-                                        <input type="text" class="order-form-input" placeholder="Tên đăng nhập">
-                                        <span class="auth-form__msg"></span>
+                                        <input v-model="username" type="text" class="order-form-input" placeholder="Tên đăng nhập">
+                                        <span class="auth-form__msg" v-if="errors.username">{{ errors.username }}</span>
                                     </div>
                                     <div class="auth-form__group">
-                                        <input type="password" class="order-form-input" placeholder="Mật khẩu">
-                                        <span class="auth-form__msg"></span>
+                                        <input v-model="password" type="password" class="order-form-input" placeholder="Mật khẩu">
+                                        <span class="auth-form__msg" v-if="errors.password">{{ errors.password }}</span>
                                     </div>
                                 </div>
                                 <div class="auth-form__controls-2">
@@ -106,33 +106,128 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import apiService from '@/utils/apiService';
+import { useAuthStore } from '@/stores/auth';
 
 export default {
     name: 'AuthModal',
-    setup() {
-        const activeForm = ref('register');
-
-        const switchForm = (form) => {
-            activeForm.value = form;
-        };
-
-        onMounted(() => {
-            const modalEl = document.getElementById('authModal');
-            modalEl.addEventListener('show.bs.modal', (event) => {
-                const triggerButton = event.relatedTarget;
-                if (triggerButton) {
-                    const formType = triggerButton.getAttribute('data-form');
-                    if (formType) {
-                        activeForm.value = formType;
-                    }
-                }
-            });
-        });
-
+    data() {
         return {
-            activeForm, switchForm
+            activeForm: 'register',
+            username: '',
+            password: '',
+            errors: {
+                username: '',
+                password: ''
+            }
         };
     },
+    setup() {
+        const authStore = useAuthStore();
+        return {
+            authStore
+        }
+    },
+    watch: {
+        username() {
+            this.errors.username = '';
+        },
+        password() {
+            this.errors.password = '';
+        }
+    },
+    methods: {
+        switchForm(form) {
+            this.activeForm = form;
+        },
+        validate() {
+            let isValid = true;
+            this.errors = {
+                username: '',
+                password: ''
+            }
+            if (!this.username) {
+                this.errors.username = 'Tên đăng nhập không được để trống';
+                isValid = false;
+            }
+            if (!this.password) {
+                this.errors.password = 'Mật khẩu không được để trống';
+                isValid = false;
+            } else if (this.password.length < 8) {
+                this.errors.password = 'Mật khẩu phải có ít nhất 8 ký tự';
+                isValid = false;
+            } else if (this.password.length > 15) {
+                this.errors.password = 'Mật khẩu phải có ít hơn 15 ký tự';
+                isValid = false;
+            }
+            return isValid;
+        },
+        async register() {
+            if (!this.validate()) {
+                return;
+            }
+            try {
+                const res = await apiService.auth.register({ 
+                    username: this.username, 
+                    password: this.password 
+                });
+
+                const token = res.data.access_token;
+                this.authStore.setToken(token);
+                this.$emit('fetchIfAuth');
+                
+                this.$swal.fire('Đăng ký thành công', 'Tài khoản của bạn đã được tạo!', 'success', {
+                    confirmButtonText: 'Đóng',
+                    willClose: () => {
+                        this.$refs.closeButton.click();
+                    }
+                });
+            } catch (err) {
+                console.error(err);
+                this.$swal.fire('Đăng ký thất bại', 'Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác', 'error', {
+                    confirmButtonText: 'Thử lại'
+                });
+            }
+        },
+        async login() {
+            if (!this.validate()) {
+                return;
+            }
+            try {
+                const res = await apiService.auth.login({ 
+                    username: this.username, 
+                    password: this.password 
+                });
+
+                const token = res.data.access_token;
+                this.authStore.setToken(token);
+                this.$emit('fetchIfAuth');
+                
+                this.$swal.fire('Đăng nhập thành công', 'Chào mừng bạn quay trở lại!', 'success', {
+                    confirmButtonText: 'Đóng',
+                    willClose: () => {
+                        this.$refs.closeButton.click();
+                    }
+                });
+            } catch (err) {
+                console.error(err);
+                this.$swal.fire('Đăng nhập thất bại', 'Tên đăng nhập hoặc mật khẩu không chính xác', 'error', {
+                    confirmButtonText: 'Thử lại'
+                });
+            }
+        }
+    },
+    mounted() {
+        const modalEl = document.getElementById('authModal');
+        modalEl.addEventListener('show.bs.modal', (event) => {
+            const triggerButton = event.relatedTarget;
+            if (triggerButton) {
+                const formType = triggerButton.getAttribute('data-form');
+                if (formType) {
+                    this.activeForm = formType;
+                }
+            }
+        });
+    }
 };
 </script>

@@ -28,12 +28,20 @@ class Controller
         if (empty($key)) {
             return $query;
         }
+        
+        if (is_numeric($key)) {
+            $primaryKey = $query->getModel()->getKeyName();
+            return $query->where($primaryKey, $key);
+        }
+
         $normalizedKey = $this->normalizeVietnameseString($key);
         $query->where(function ($q) use ($normalizedKey, $columns) {
             foreach ($columns as $column) {
                 if (strpos($column, '.') !== false) {
-                    list($relation, $relatedColumn) = explode('.', $column, 2);
-                    $q->orWhereHas($relation, function($subQuery) use ($normalizedKey, $relatedColumn) {
+                    $parts = explode('.', $column);
+                    $relatedColumn = array_pop($parts);
+                    $relationPath = implode('.', $parts);
+                    $q->orWhereHas($relationPath, function($subQuery) use ($normalizedKey, $relatedColumn) {
                         $subQuery->whereRaw("LOWER(UNACCENT({$relatedColumn})) LIKE ?", ["%{$normalizedKey}%"]);
                     });
                 } else {
@@ -44,21 +52,23 @@ class Controller
         return $query;
     }
     protected function sort($query, $sort) {
-        if ($sort['enabled']) {
+        if ($sort && isset($sort['enabled']) && $sort['enabled']) {
             $query->orderBy($sort['column'], $sort['type']);
         }
         return $query;
     }
     protected function filter($query, $action, $targetId, array $filters = []) {
-        if (!$action || !isset($targetId)) {
+        if (!$action || !isset($filters[$action])) {
             return $query;
         }
-        if (isset($filters[$action])) {
-            $filter = $filters[$action];
-            if (isset($filter['relation'])) {
-                $query->whereHas($filter['relation'], function ($q) use ($filter, $targetId) {
-                    $q->where($filter['column'], $targetId);
-                });
+        $filter = $filters[$action];
+        if (isset($filter['relation'])) {
+            $query->whereHas($filter['relation'], function ($q) use ($filter, $targetId) {
+                $q->where($filter['column'], $targetId);
+            });
+        } else {
+            if ($targetId === null) {
+                $query->whereNull($filter['column']);
             } else {
                 $query->where($filter['column'], $targetId);
             }

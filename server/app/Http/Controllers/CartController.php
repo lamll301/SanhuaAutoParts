@@ -10,21 +10,15 @@ use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
-    public function __construct()
-    {
-        // $this->middleware('auth:sanctum');
-    }
-
     public function index()
     {
-        // $cart = Cart::with('details.product')->where('user_id', Auth::id())->first();
         $cart = Cart::select('id', 'user_id')->with([
             'details:id,cart_id,product_id,quantity',
             'details.product:id,name,price,original_price,quantity,slug',
             'details.product.images' => function($query) {
                 $query->where('is_thumbnail', true)->select('id', 'path', 'product_id')->limit(1);
             },
-        ])->where('user_id', 1)->first();
+        ])->where('user_id', Auth::id())->first();
         if (!$cart) {
             return;
         }
@@ -38,8 +32,7 @@ class CartController extends Controller
         if (!$product) {
             return;
         }
-        // $cart = Cart::firstOrCreate(['user_id' => Auth::id()]);
-        $cart = Cart::firstOrCreate(['user_id' => 1]);
+        $cart = Cart::firstOrCreate(['user_id' => Auth::id()]);
         $cartDetail = CartDetail::where('cart_id', $cart->id)->where('product_id', $product->id)->first();
         if ($cartDetail) {
             $cartDetail->quantity += $request->quantity;
@@ -51,18 +44,22 @@ class CartController extends Controller
                 'quantity' => $request->quantity,
             ]);
         }
-        return response()->json(['message' => 'success'], 201);
+        return response()->json($cartDetail->load([
+            'product:id,name,price,original_price,quantity,slug',
+            'product.images' => function($query) {
+                $query->where('is_thumbnail', true)->select('id', 'path', 'product_id')->limit(1);
+            },
+        ]), 201);
     }
 
     public function update(Request $request, $id)
     {
         $request->validate(['quantity' => 'required|integer|min:1']);
-        // $cart = Cart::where('user_id', Auth::id())->first();
-        $cart = Cart::where('user_id', 1)->first();
+        $cart = Cart::where('user_id', Auth::id())->first();
         if (!$cart) {
             return;
         }
-        $cartDetail = CartDetail::where('cart_id', $cart->id)->where('id', $id)->first();
+        $cartDetail = CartDetail::where('cart_id', $cart->id)->where('product_id', $id)->first();
         if (!$cartDetail) {
             return;
         }
@@ -73,8 +70,7 @@ class CartController extends Controller
 
     public function remove($id)
     {
-        // $cart = Cart::where('user_id', Auth::id())->first();
-        $cart = Cart::where('user_id', 1)->first();
+        $cart = Cart::where('user_id', Auth::id())->first();
         if (!$cart) {
             return;
         }
@@ -84,13 +80,11 @@ class CartController extends Controller
         }
         $cartDetail->delete();
         return response()->json(['message' => 'success'], 204);
-
     }
 
     public function clear()
     {
-        // $cart = Cart::where('user_id', Auth::id())->first();
-        $cart = Cart::where('user_id', 1)->first();
+        $cart = Cart::where('user_id', Auth::id())->first();
         if (!$cart) {
             return;
         }

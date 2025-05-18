@@ -13,7 +13,9 @@
                                     *
                                 </span>
                             </p>
-                            <input type="text" class="order-form-input">
+                            <input type="text" class="order-form-input" v-model="name" 
+                            v-bind:class="{'is-invalid': errors.name}" @blur="validate()">
+                            <div class="invalid-feedback" v-if="errors.name">{{ errors.name }}</div>
                         </div>
                         <div class="order-form-container">
                             <p class="order-form-title">
@@ -22,7 +24,9 @@
                                     *
                                 </span>
                             </p>
-                            <input type="text" class="order-form-input">
+                            <input type="text" class="order-form-input" v-model="phone" 
+                            v-bind:class="{'is-invalid': errors.phone}" @blur="validate()">
+                            <div class="invalid-feedback" v-if="errors.phone">{{ errors.phone }}</div>
                         </div>
                     </div>
                     <div class="admin-content__form-divided-3">
@@ -33,11 +37,13 @@
                                     *
                                 </span>
                             </p>
-                            <select v-model="selectedCity" @change="fetchDistricts" class="order-form-select order-form-input">
+                            <select v-model="selectedCity" @change="fetchDistricts" class="order-form-select order-form-input"
+                            v-bind:class="{'is-invalid': errors.city}" @blur="validate()">
                                 <option v-for="city in cities" :key="city.code" :value="city.code">
                                     {{ city.name }}
                                 </option>
                             </select>
+                            <div class="invalid-feedback" v-if="errors.city">{{ errors.city }}</div>
                         </div>
                         <div class="order-form-container">
                             <p class="order-form-title">
@@ -46,11 +52,13 @@
                                     *
                                 </span>
                             </p>
-                            <select v-model="selectedDistrict" @change="fetchWards" class="order-form-select order-form-input">
+                            <select v-model="selectedDistrict" @change="fetchWards" class="order-form-select order-form-input"
+                            v-bind:class="{'is-invalid': errors.district}" @blur="validate()">
                                 <option v-for="district in districts" :key="district.code" :value="district.code">
                                     {{ district.name }}
                                 </option>
                             </select>
+                            <div class="invalid-feedback" v-if="errors.district">{{ errors.district }}</div>
                         </div>
                         <div class="order-form-container">
                             <p class="order-form-title">
@@ -59,11 +67,13 @@
                                     *
                                 </span>
                             </p>
-                            <select v-model="selectedWard" class="order-form-select order-form-input">
+                            <select v-model="selectedWard" class="order-form-select order-form-input"
+                            v-bind:class="{'is-invalid': errors.ward}" @blur="validate()">
                                 <option v-for="ward in wards" :key="ward.code" :value="ward.code">
                                     {{ ward.name }}
                                 </option>
                             </select>
+                            <div class="invalid-feedback" v-if="errors.ward">{{ errors.ward }}</div>
                         </div>
                     </div>
                     <div class="order-form-container">
@@ -73,7 +83,10 @@
                                 *
                             </span>
                         </p>
-                        <textarea class="order-form-area" rows="3"></textarea>
+                        <textarea class="order-form-area" rows="3" v-model="address" 
+                        v-bind:class="{'is-invalid': errors.address}" @blur="validate()">
+                        </textarea>
+                        <div class="invalid-feedback" v-if="errors.address">{{ errors.address }}</div>
                     </div>
                     <div class="order-form-container">
                         <p class="order-form-title">
@@ -82,9 +95,9 @@
                                 *
                             </span>
                         </p>
-                        <select value="" class="order-form-select order-form-input">
-                            <option value="1">Nhà riêng</option>
-                            <option value="2">Văn phòng</option>
+                        <select v-model="selectedAddressType" value="" class="order-form-select order-form-input">
+                            <option value="Nhà riêng">Nhà riêng</option>
+                            <option value="Văn phòng">Văn phòng</option>
                         </select>
                     </div>
                     
@@ -92,11 +105,17 @@
                         <p class="order-form-title">
                             Mã giảm giá (nếu có)
                         </p>
-                        <div class="order-form-coupon-container">
-                            <input type="text" class="order-form-coupon order-form-input">
-                            <button class="order-form-btn">
+                        <div class="order-form-coupon-container" :class="{ 'is-invalid': couponErrorMessage, 'is-valid': couponSuccessMessage }">
+                            <input type="text" class="order-form-coupon order-form-input" v-model="couponCode">
+                            <button class="order-form-btn" @click.prevent="applyCoupon">
                                 Áp dụng mã
                             </button>
+                        </div>
+                        <div class="invalid-feedback" v-if="couponErrorMessage">
+                            {{ couponErrorMessage }}
+                        </div>
+                        <div class="valid-feedback text-success" v-if="couponSuccessMessage">
+                            {{ couponSuccessMessage }}
                         </div>
                     </div>
                     <!-- payment method -->
@@ -104,14 +123,14 @@
                     <div class="order-payment">
                         <div class="order-form-radio-container">
                             <input type="radio" name="payment-method" class="order-form-radio"
-                                v-model="selectedPaymentMethod" value="qrcode"
+                                v-model="selectedPaymentMethod" value="Mã QR"
                             >
                             <span class="order-form-radio-text">
                                 Mã QR
                             </span>
                         </div>
                         <div class="payment-method-content order-form-radio-content"
-                            :class="{ 'hidden': selectedPaymentMethod !== 'qrcode' }"
+                            :class="{ 'hidden': selectedPaymentMethod !== 'Mã QR' }"
                         >
                             <div v-if="this.payment.qrcode" class="mb-16">
                                 <p class="order-form-qr-text">Quét mã QR dưới đây bằng ứng dụng Internet Banking để thanh toán</p>
@@ -122,14 +141,14 @@
                         </div>
                         <div class="order-form-radio-container">
                             <input type="radio" name="payment-method" class="order-form-radio"
-                                v-model="selectedPaymentMethod" value="creditCard"
+                                v-model="selectedPaymentMethod" value="Thẻ tín dụng / thẻ ghi nợ"
                             >
                             <span class="order-form-radio-text">
                                 Thẻ tín dụng / thẻ ghi nợ
                             </span>
                         </div>
                         <div class="payment-method-content"
-                            :class="{ 'hidden': selectedPaymentMethod !== 'creditCard' }"
+                            :class="{ 'hidden': selectedPaymentMethod !== 'Thẻ tín dụng / thẻ ghi nợ' }"
                         >
                             <div class="mb-16">
                                 <div class="order-form-container">
@@ -183,14 +202,14 @@
                         </div>
                         <div class="order-form-radio-container">
                             <input type="radio" name="payment-method" class="order-form-radio"
-                                v-model="selectedPaymentMethod" value="ewallet"
+                                v-model="selectedPaymentMethod" value="Ví điện tử"
                             >
                             <span class="order-form-radio-text">
                                 Ví điện tử
                             </span>
                         </div>
                         <div class="payment-method-content order-form-e-wallet-content"
-                            :class="{ 'hidden': selectedPaymentMethod !== 'ewallet' }"
+                            :class="{ 'hidden': selectedPaymentMethod !== 'Ví điện tử' }"
                         >
                             <div v-for="eWallet in eWallets" :key="eWallet.name" 
                                 class="order-form-e-wallet"
@@ -205,7 +224,7 @@
                         </div>
                         <div class="order-form-radio-container">
                             <input type="radio" name="payment-method" class="order-form-radio"
-                                v-model="selectedPaymentMethod" value="cash"
+                                v-model="selectedPaymentMethod" value="Thanh toán khi nhận hàng"
                             >
                             <span class="order-form-radio-text">
                                 Thanh toán khi nhận hàng
@@ -216,31 +235,31 @@
                     <!-- product -->
                     <h1 class="order-heading cart-heading">Sản phẩm</h1>
                     <ul class="cart-list">
-                        <li v-for="cartDetail in cartDetails" :key="cartDetail" class="cart-item">
+                        <li v-for="detail in details" :key="detail" class="cart-item">
                             <div class="cart-item-content">
                                 <div class="cart-item-left">
-                                    <img :src="getImageUrl(cartDetail.product.images[0].path)" alt="" class="cart-item-img order-product-img">
+                                    <img :src="getImageUrl(detail.product.images[0].path)" alt="" class="cart-item-img order-product-img">
                                     <div class="cart-item-product">
-                                        <a href="" class="order-product-name cart-item-name">
-                                            {{ cartDetail.product.name }}
-                                        </a>
+                                        <router-link :to="'/san-pham/' + detail.product.slug" class="order-product-name cart-item-name">
+                                            {{ detail.product.name }}
+                                        </router-link>
                                         <p class="order-product-price-curr cart-item-price-curr">
-                                            {{ formatPrice(cartDetail.product.price) }}<sup>đ</sup>
+                                            {{ formatPrice(detail.product.price) }}<sup>đ</sup>
                                         </p>
-                                        <p class="cart-item-price-old" v-show="cartDetail.product.original_price !== cartDetail.product.price">
-                                            {{ formatPrice(cartDetail.product.original_price) }}<sup>đ</sup>
+                                        <p class="cart-item-price-old" v-show="detail.product.original_price !== detail.product.price">
+                                            {{ formatPrice(detail.product.original_price) }}<sup>đ</sup>
                                         </p>
                                     </div>
                                 </div>
                                 <div class="cart-item-right">
                                     <div class="cart-item-quantity">
                                         <span class="order-product-quantity">
-                                            Số lượng: {{ cartDetail.quantity }}
+                                            Số lượng: {{ detail.quantity }}
                                         </span>
                                     </div>
                                     <div class="cart-item-price">
                                         <p class="order-product-price-total cart-item-price-total">
-                                            {{ formatPrice(cartDetail.subtotal) }}<sup>đ</sup>
+                                            {{ formatPrice(detail.subtotal) }}<sup>đ</sup>
                                         </p>
                                     </div>
                                 </div>
@@ -253,7 +272,7 @@
                         Tóm tắt đơn hàng
                     </span>
                     <div class="order-summary-item-total cart-summary-line-item">
-                        <span>Các mặt hàng ({{ cartDetails.length }})</span>
+                        <span>Các mặt hàng ({{ details.length }})</span>
                         <span>
                             {{ formatPrice(subtotal) }}<sup>đ</sup>
                         </span>
@@ -264,14 +283,12 @@
                             {{ formatPrice(shippingFee) }}<sup>đ</sup>
                         </span>
                     </div>
-                    <!-- <div class="cart-summary-line-item">
+                    <div class="cart-summary-line-item" v-if="voucherValue > 0">
+                        <span>Giảm giá (mã {{ voucherCode }})</span>
                         <span>
-                            Thuế (VAT)
+                            -{{ formatPrice(voucherValue) }}<sup>đ</sup>
                         </span>
-                        <span>
-                            {{ formatPrice(cart.subTotal * 0.1) }}<sup>đ</sup>
-                        </span>
-                    </div> -->
+                    </div>
                     <div class="cart-total cart-summary-line-item">
                         <span>Tổng cộng</span>
                         <span>
@@ -306,16 +323,60 @@
 <script>
 import { getImageUrl, formatPrice } from '@/utils/helpers';
 import apiService from '@/utils/apiService';
+import { useOrderStore } from '@/stores/order';
+import { useCartStore } from '@/stores/cart';
+import { useAuthStore } from '@/stores/auth';
 
 export default {
     name: 'OrderForm',
+    setup() {
+        const orderStore = useOrderStore();
+        const cartStore = useCartStore();
+        const authStore = useAuthStore();
+        return {
+            orderStore,
+            cartStore,
+            authStore
+        }
+    },
+    beforeRouteEnter(to, from, next) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            next({ name: 'NotFound' });
+            return;
+        }
+        next();
+    },
     computed: {
         total() {
             return this.subtotal + this.shippingFee - this.voucherValue;
         },
+        details() {
+            const buyNow = this.orderStore.buyNow;
+            const reorder = this.orderStore.reorder;
+            if (Object.keys(buyNow).length === 0 && reorder.length === 0) {
+                return this.cartStore.details.filter(detail => detail.product.quantity > 0)
+            }
+            if (Object.keys(buyNow).length > 0) {
+                return [buyNow];
+            }
+            return reorder;
+        },
+        subtotal() {
+            const buyNow = this.orderStore.buyNow;
+            const reorder = this.orderStore.reorder;
+            if (Object.keys(buyNow).length === 0 && reorder.length === 0) {
+                return this.cartStore.total
+            }
+            if (Object.keys(buyNow).length > 0) {
+                return buyNow.subtotal;
+            }
+            return reorder.reduce((acc, detail) => acc + detail.subtotal, 0);
+        },
     },
     data() {
         return {
+            name: '', phone: '', address: '', couponCode: '', couponSuccessMessage: '', voucherId: '', couponErrorMessage: '', voucherCode: '',
             order: {},
             payment: {
                 creditCard: {
@@ -326,25 +387,31 @@ export default {
                     postalCode: ""
                 },
             },
+            selectedAddressType: 'Nhà riêng',
             selectedPaymentMethod: '',
             selectedEWallet: '', 
             eWallets: [
                 { name: 'MOMO', image: 'https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-MoMo-Square.png' },
                 { name: 'VN-Pay', image: 'https://vinadesign.vn/uploads/thumbnails/800/2023/05/vnpay-logo-vinadesign-25-12-59-16.jpg' },
-                { name: 'ShopeePay', image: 'https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-ShopeePay-V.png' },
                 { name: 'ZaloPay', image: 'https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-ZaloPay-Square.png' },
-                { name: 'Viettel Money', image: 'https://inkythuatso.com/uploads/thumbnails/800/2021/12/logo-viettelpay-inkythuatso-3-14-09-02-46.jpg' }
             ],
-            cartDetails: [], subtotal: 0, shippingFee: 50000, voucherValue: 0,
+            shippingFee: 50000, voucherValue: 0,
             cities: [], selectedCity: '',
             districts: [], selectedDistrict: '',
             wards: [], selectedWard: '',
             countdown: '15:00',
+            errors: {
+                name: '',
+                phone: '',
+                city: '',
+                district: '',
+                ward: '',
+                address: '',
+            },
         }
     },
     created() {
         this.fetchData();
-        this.fetchLastPaymentSuccess();
     },
     watch: {
         selectedCity() {
@@ -361,16 +428,8 @@ export default {
         getImageUrl, formatPrice,
         async fetchData() {
             try {
-                const req = [
-                    apiService.provinces.getProvinces(),
-                    apiService.carts.getCart(),
-                    // apiService.users.getUserInfo(),
-                ]
-                const res = await Promise.all(req);
-                this.cities = res[0].data;
-                this.cartDetails = res[1].data.details.filter(detail => detail.product.quantity > 0)
-                this.subtotal = res[1].data.total
-                console.log(this.cartDetails)
+                const res = await apiService.provinces.getProvinces()
+                this.cities = res.data;
             } catch (err) {
                 console.error(err);
             }
@@ -391,136 +450,174 @@ export default {
                 console.error(err);
             }
         },
-        async fetchLastPaymentSuccess() {
-            try {
-                const response = await new Promise((resolve) => {
-                    setTimeout(() => {
-                        const data = {
-                            id: 2,
-                            orderId: 1002,
-                            amount: 100.50,
-                            currency: "VND",
-                            payment_date: "2025-01-22T10:00:00Z",
-                            status: "Pending",
-                            transaction_id: "TXN0987654321",
-                            notes: "Awaiting confirmation from the bank",
-                            method: 'creditCard', // qrcode | creditCard | ewallet | cash
-
-                            creditCard: {
-                                token: "fake-token-123456",
-                                cardNumber: "4111111111111111",
-                                cvv: "123",
-                                expiryDate: "2025-12",
-                                cardholderName: "Lam Le",
-                                postalCode: "100000"
-                            },
-                            // qrcode: {
-                            //     image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/330px-QR_code_for_mobile_English_Wikipedia.svg.png',
-                            // },
-                            // ewallet: {
-                            //     provider: "ShopeePay",   // MOMO | VN-Pay | ShopeePay | ZaloPay | Viettel Money
-                            //     walletId: "",
-                            // },
-                        };
-                        resolve(data);
-                    }, 1000);
-                });
-                this.payment = { ...this.payment, ...response };
-                if (this.payment.method) {
-                    this.selectedPaymentMethod = this.payment.method;
-                    if (this.payment.ewallet) {
-                        this.selectedEWallet = this.payment.ewallet.provider;
-                    }
-                }
-            }
-            catch (error) {
-                console.error(error);
-            }
-        },
         async fetchPaymentQR() {
             try {
-                const account_no = '9998886661';
-                const amount = this.cart.totalAmount;
-                const description = `Thanh toan don hang Ma ${this.order.id}`;
-                const response = await this.$request.post(
-                    'https://api.vietqr.io/v2/generate', 
-                    {
-                        accountNo: account_no,
-                        accountName: 'LE LY LAM',
-                        acqId: 970407,  // TCB
-                        addInfo: description,
-                        amount: amount.toString(),
-                        template: 'qr_only',
-                    },
-                    {
-                        headers: {
-                            'x-client-id': process.env.VUE_APP_CLIENT_ID,
-                            'x-api-key': process.env.VUE_APP_API_KEY,
-                            'Content-Type': 'application/json',
-                        },
-                    },
-                );
+                const response = await apiService.vietQR.generateQR(this.order.id, this.order.total_amount);
                 this.payment.qrcode = {
                     image: response.data.data.qrDataURL,
                 };
                 this.startCountdown();
-                this.checkPaymentStatus();
+            } catch (error) {
+                console.log(error);
+                this.$swal.fire('Lỗi', 'Đã xảy ra lỗi khi tạo mã QR. Vui lòng thử lại.', 'error')
+            }
+        },
+        async createMomoPayment() {
+            try {
+                const response = await apiService.payments.createMomoPayment(this.order);
+                const momo = response.data;
+                if (momo.resultCode === 0) {
+                    window.location.href = momo.payUrl;
+                } else {
+                    this.$swal.fire('Lỗi', momo.message, 'error');
+                }
             } catch (error) {
                 console.log(error);
             }
         },
-        async save() {
-            this.order.id = 999
-            if (this.selectedPaymentMethod === 'qrcode') {
-                if (this.payment.qrcode) {
-                    this.$swal.fire('Thông báo', 'Vui lòng quét mã để hoàn tất giao dịch.', 'info')
-                    return;
+        async createVNPayPayment() {
+            try {
+                const response = await apiService.payments.createVNPayPayment(this.order);
+                const vnpay = response.data;
+                if (vnpay.message === "success") {
+                    window.location.href = vnpay.data;
+                } else {
+                    this.$swal.fire('Lỗi', vnpay.message, 'error');
                 }
-                this.$swal({
-                    title: 'Đang xử lý...',
-                    text: 'Vui lòng đợi trong giây lát khi chúng tôi đang lấy dữ liệu.',
-                    icon: 'info',
-                    showConfirmButton: false,
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        this.$swal.showLoading();
-                    },
-                });
-                try {
-                    if (!this.order.id) {
-                        return;
-                    }
-                    await this.fetchPaymentQR();
-                    this.$swal.fire('Thành công', 'Mã QR đã được tạo thành công. Vui lòng quét mã để hoàn tất giao dịch.', 'success')
-                } catch (error) {
-                    console.error(error);
-                    this.$swal.fire('Lỗi', 'Đã xảy ra lỗi khi tạo mã QR. Vui lòng thử lại.', 'error')
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        async createZaloPayPayment() {
+            try {
+                const response = await apiService.payments.createZaloPayPayment(this.order);
+                const zaloPay = response.data;
+                if (zaloPay.return_code === 1) {
+                    window.location.href = zaloPay.order_url;
+                } else {
+                    this.$swal.fire(zaloPay.return_message, zaloPay.sub_return_message, 'error');
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        async createCODPayment() {
+            try {
+                const response = await apiService.payments.createCODPayment(this.order.id);
+                if (response.data.message === "success") {
+                    window.location.href = '/theo-doi-don-hang/' + this.order.id;
+                } else {
+                    this.$swal.fire('Lỗi', 'Đã xảy ra lỗi khi tạo thanh toán COD', 'error');
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        async applyCoupon() {
+            if (!this.couponCode || this.couponCode.trim() === '') {
+                this.couponErrorMessage = 'Mã giảm giá không được để trống';
+                this.couponSuccessMessage = '';
+                return;
+            }
+            try {
+                const response = await apiService.vouchers.applyCoupon(this.couponCode);
+                this.voucherValue = response.data.value;
+                this.voucherId = response.data.id;
+                this.couponSuccessMessage = response.data.message;
+                this.voucherCode = this.couponCode;
+                this.couponErrorMessage = '';
+            } catch (error) {
+                this.couponSuccessMessage = '';
+                if (error.response?.data?.message) {
+                    this.couponErrorMessage = error.response.data.message;
+                } else {
+                    this.$swal.fire('Lỗi', 'Đã xảy ra lỗi khi áp dụng mã giảm giá', 'error');
                 }
             }
         },
-        async checkPaymentStatus() {
-            const maxAttempts = 15 * 60 / 5;
-            let attempts = 0;
-            this.paymentCheckInterval = setInterval(async () => {
-                try {
-                    // const response = await this.$request.get();
-                    const status = 'pending'; // Giả sử trạng thái ban đầu là 'pending'
-                    if (status === 'success') {
-                        clearInterval(this.paymentCheckInterval);
-                        clearInterval(this.countdownInterval);
-                        this.$swal.fire('Thanh toán hoàn tất!', 'Cảm ơn bạn đã mua hàng. Chúng tôi đã nhận được thanh toán của bạn.', 'success');
-                        // chuyển hướng người dùng đến trang theo dõi đơn
-                        return;
+        validate() {
+            let isValid = true;
+            this.errors = {
+                name: '',
+                phone: '',
+                city: '',
+                district: '',
+                ward: '',
+                address: '',
+            };
+            if (!this.name || this.name.trim() === '') {
+                this.errors.name = 'Tên không được để trống';
+                isValid = false;
+            }
+            if (!this.phone || this.phone.trim() === '') {
+                this.errors.phone = 'Số điện thoại không được để trống';
+                isValid = false;
+            }
+            if (!this.selectedCity) {
+                this.errors.city = 'Tỉnh/Thành phố không được để trống';
+                isValid = false;
+            }
+            if (!this.selectedDistrict) {
+                this.errors.district = 'Quận/Huyện không được để trống';
+                isValid = false;
+            }
+            if (!this.selectedWard) {
+                this.errors.ward = 'Phường/Xã không được để trống';
+                isValid = false;
+            }
+            if (!this.address || this.address.trim() === '') {
+                this.errors.address = 'Địa chỉ không được để trống';
+                isValid = false;
+            }
+            return isValid;
+        },
+        async save() {
+            if (!this.validate()) {
+                return;
+            }
+            if (this.selectedPaymentMethod === '') {
+                this.$swal.fire('Lỗi', 'Vui lòng chọn phương thức thanh toán', 'error');
+                return;
+            }
+            const details = this.details.map(detail => ({
+                product_id: detail.product.id,
+                quantity: detail.quantity,
+                price: detail.product.price,
+            }));
+            try {
+                const response = await apiService.orders.create({
+                    name: this.name,
+                    phone: this.phone,
+                    city_id: this.selectedCity,
+                    district_id: this.selectedDistrict,
+                    ward_id: this.selectedWard,
+                    shipping_address: this.address,
+                    address_type: this.selectedAddressType,
+                    payment_method: this.selectedPaymentMethod,
+                    shipping_fee: this.shippingFee,
+                    details: details,
+                    voucher_id: this.voucherId,
+                });
+                this.order = response.data;
+                if (this.order.id) {
+                    if (this.selectedPaymentMethod === 'Mã QR') {
+                        await this.fetchPaymentQR();
+                    } else if (this.selectedPaymentMethod === 'Ví điện tử') {
+                        if (this.selectedEWallet === 'MOMO') {
+                            await this.createMomoPayment();
+                        } else if (this.selectedEWallet === 'VN-Pay') {
+                            await this.createVNPayPayment();
+                        } else if (this.selectedEWallet === 'ZaloPay') {
+                            await this.createZaloPayPayment();
+                        }
+                    } else if (this.selectedPaymentMethod === 'Thanh toán khi nhận hàng') {
+                        await this.createCODPayment();
                     }
-                    attempts++;
-                    if (attempts >= maxAttempts) {
-                        clearInterval(this.paymentCheckInterval);
-                    }
-                } catch (error) {
-                    console.log(error);
-                    clearInterval(this.paymentCheckInterval);
                 }
-            }, 5000);
+            } catch (error) {
+                console.log(error);
+                this.$swal.fire('Lỗi', 'Đã xảy ra lỗi khi tạo đơn hàng', 'error');
+            }
         },
         onEWalletSelect(eWalletName) {
             this.selectedEWallet = eWalletName;
@@ -546,3 +643,12 @@ export default {
     },
 }
 </script>
+
+<style>
+.invalid-feedback {
+    font-size: 12px;
+}
+.valid-feedback {
+    font-size: 12px;
+}
+</style>

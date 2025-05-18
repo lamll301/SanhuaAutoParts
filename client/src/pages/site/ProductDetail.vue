@@ -14,7 +14,6 @@
                         </template>
                         <template v-else>
                             <div class="product-list-img">
-                                <!-- <img class="product-list-img-content--active product-list-img-content" :src="getImageUrl(product?.images[0]?.path)" alt=""> -->
                                 <div v-for="image in product?.images" :key="image" @click="selectImage(image)">
                                     <img :src="getImageUrl(image.path)" alt="" class="product-list-img-content"
                                         :class="{'product-list-img-content--active': selectedImage?.path === image.path}">
@@ -91,16 +90,6 @@
                             <SkeletonLoading height="14px" width="90%" marginBottom="8px" />
                             <SkeletonLoading height="14px" width="80%" marginBottom="16px" />
                         </div>
-                        <div class="product-type">
-                            <SkeletonLoading height="16px" width="40px" marginBottom="8px" />
-                            <div class="product-type-content">
-                                <ul class="product-type-list">
-                                    <li v-for="i in 2" :key="i" class="product-type-item">
-                                        <SkeletonLoading height="40px" width="80px" />
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
                         <div class="product-quantity">
                             <SkeletonLoading height="16px" width="70px" marginBottom="8px" />
                             <SkeletonLoading height="36px" width="120px" marginBottom="8px" />
@@ -123,6 +112,15 @@
                             <SkeletonLoading height="14px" width="80%" />
                             <SkeletonLoading height="14px" width="70%" />
                             <SkeletonLoading height="14px" width="60%" />
+                        </div>
+                        <div class="product-type">
+                            <div class="product-type-content">
+                                <ul class="product-type-list">
+                                    <li v-for="i in 5" :key="i" class="product-type-item">
+                                        <SkeletonLoading height="40px" width="80px" />
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </template>
                     <template v-else>
@@ -156,26 +154,6 @@
                         <span class="product-desc">
                             {{ product.description }}
                         </span>
-                        <div class="product-type">
-                            <span class="product-quantity-text">
-                                Loại:
-                            </span>
-                            <div class="product-type-content">
-                                <ul class="product-type-list">
-                                    <li v-for="category in product.categories" :key="category" class="product-type-item">
-                                        <router-link 
-                                            :to="'/danh-muc/' + category.slug"
-                                            class="product-type-btn default-router-link"
-                                        >
-                                            <img :src="getImageUrl(category?.images[0]?.path)" alt="" class="product-type-img">
-                                            <span class="product-type-text">
-                                                {{ category.name }}
-                                            </span>
-                                        </router-link>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
                         <div class="product-quantity">
                             <span class="product-quantity-text">
                                 Số lượng:
@@ -185,9 +163,9 @@
                                 {{ product.quantity }} sản phẩm có sẵn
                             </span>
                         </div>
-                        <router-link to="/don-hang" class="product-btn-buy product-btn button">
+                        <button @click="buyNow(product)" class="product-btn-buy product-btn button" style="width: 100%;">
                             Mua ngay
-                        </router-link>
+                        </button>
                         <button @click="addToCart(product.id)" class="button product-btn-add-to-cart product-btn"
                             style="width: 100%;">
                             Thêm vào giỏ hàng
@@ -275,6 +253,23 @@
                                     </div>
                                 </li>
                             </ul>
+                        </div>
+                        <div class="product-type">
+                            <div class="product-type-content">
+                                <ul class="product-type-list">
+                                    <li v-for="category in product.categories" :key="category" class="product-type-item">
+                                        <router-link 
+                                            :to="'/danh-muc/' + category.slug"
+                                            class="product-type-btn default-router-link"
+                                        >
+                                            <img :src="getImageUrl(category?.images[0]?.path)" alt="" class="product-type-img">
+                                            <span class="product-type-text">
+                                                {{ category.name }}
+                                            </span>
+                                        </router-link>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </template>
                 </div>
@@ -409,6 +404,9 @@ import ReadMoreButton from '@/components/ReadMoreButton.vue';
 import ZoomImage from '@/components/ZoomImage.vue';
 import RatingStars from '@/components/RatingStars.vue';
 import SkeletonLoading from '@/components/SkeletonLoading.vue';
+import { useAuthStore } from '@/stores/auth';
+import { useCartStore } from '@/stores/cart';
+import { useOrderStore } from '@/stores/order';
 
 export default {
     name: 'ProductDetail',
@@ -420,6 +418,16 @@ export default {
             comments: [],
             isLoading: true, selectedImage: null, selectedCommentImage: null, selectedCommentId: null,
             quantity: 1
+        }
+    },
+    setup() {
+        const authStore = useAuthStore();
+        const cartStore = useCartStore();
+        const orderStore = useOrderStore();
+        return {
+            authStore,
+            cartStore,
+            orderStore
         }
     },
     computed: {
@@ -461,16 +469,47 @@ export default {
             }
         },
         async addToCart(productId) {
+            if (!this.authStore.isAuthenticated) {
+                this.$swal.fire("Vui lòng đăng nhập", "Vui lòng đăng nhập để thêm vào giỏ hàng", "warning");
+                return;
+            }
             if (this.quantity < 1 || this.quantity > this.product.quantity) {
-                this.$swal.fire("Số lượng không hợp lệ!", `Số lượng sản phẩm tối đa là ${this.product.quantity}`, "error")
+                let message = this.quantity < 1
+                    ? "Số lượng phải lớn hơn 0"
+                    : `Số lượng vượt quá giới hạn. Tối đa: ${this.product.quantity}`;
+
+                this.$swal.fire("Số lượng không hợp lệ", message, "error");
                 return;
             }
             try {
-                await apiService.carts.addToCart(productId, this.quantity);
+                const res = await apiService.carts.addToCart(productId, this.quantity);
+                this.cartStore.addCartItem(res.data);
+                this.orderStore.setBuyNow({});     
                 this.$router.push('/gio-hang');
             } catch (error) {
                 console.error(error);
             }
+        },
+        buyNow(product) {
+            if (!this.authStore.isAuthenticated) {
+                this.$swal.fire("Vui lòng đăng nhập", "Bạn cần đăng nhập để mua sản phẩm", "warning");
+                return;
+            }
+            if (this.quantity < 1 || this.quantity > this.product.quantity) {
+                let message = this.quantity < 1
+                    ? "Số lượng phải lớn hơn 0"
+                    : `Số lượng vượt quá giới hạn. Tối đa: ${this.product.quantity}`;
+
+                this.$swal.fire("Số lượng không hợp lệ", message, "error");
+                return;
+            }
+            this.orderStore.setBuyNow({
+                quantity: this.quantity,
+                subtotal: this.quantity * product.price,
+                product_id: product.id,
+                product: product
+            });
+            this.$router.push('/don-hang');
         },
         selectImage(image) {
             this.selectedImage = image;

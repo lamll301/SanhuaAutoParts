@@ -4,15 +4,36 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Voucher;
+use Illuminate\Support\Facades\Auth;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+
 
 class VoucherController extends Controller
 {
     private const SEARCH_FIELDS = ['code'];
-    private const FILTER_FIELDS = [
-        'filterByStatus' => ['column' => 'status'],
-    ];
-    protected const STATUS_INACTIVE = 0;
-    protected const STATUS_ACTIVE = 1;
+    private const FILTER_FIELDS = [];
+
+    public function applyCoupon(Request $request) {
+        try {
+            $userId = Auth::id();
+            $couponCode = $request->query('couponCode');
+            $voucher = Voucher::where('code', $couponCode)->first();
+            if (!$voucher || !$voucher->isValid()) {
+                return response()->json(['message' => 'Mã giảm giá không hợp lệ'], 400);
+            }
+            if ($voucher->isExhausted()) {
+                return response()->json(['message' => 'Mã giảm giá đã hết lượt sử dụng'], 400);
+            }
+            if ($voucher->isUsedByUser($userId)) {
+                return response()->json(['message' => 'Mã giảm giá đã được sử dụng'], 400);
+            }
+            return response()->json(['message' => 'Mã giảm giá hợp lệ', 'id' => $voucher->id, 'value' => $voucher->value]);
+        } catch (TokenExpiredException $e) {
+            return response()->json(['message' => 'token expired'], 401);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
 
     public function index(Request $request) {
         $query = Voucher::query();
@@ -68,7 +89,7 @@ class VoucherController extends Controller
                 Voucher::whereIn('id', $ids)->update(['status' => $targetId]);
                 return response()->json(['message' => 'success'], 200);
             default:
-                return response()->json(['message' => 'Action is invalid'], 400);
+                return response()->json(['message' => 'invalid'], 400);
         }
     }
 }

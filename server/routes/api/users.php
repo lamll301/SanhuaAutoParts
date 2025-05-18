@@ -5,6 +5,10 @@ use App\Http\Controllers\UserController;
 use App\Http\Middleware\SortMiddleware;
 
 Route::prefix('users')->group(function () {
+    Route::middleware('auth:api')->group(function () {
+        Route::put('/update-profile', [UserController::class, 'updateProfile']);
+        Route::put('/update-password', [UserController::class, 'updatePassword']);
+    });
     Route::get('/trashed', [UserController::class, 'trashed'])->middleware(SortMiddleware::class);
     Route::patch('/{id}/restore', [UserController::class, 'restore']);
     Route::delete('/{id}/force-delete', [UserController::class, 'forceDelete']);
@@ -15,3 +19,4 @@ Route::prefix('users')->group(function () {
     Route::get('/{id}', [UserController::class, 'show']);
     Route::get('/', [UserController::class, 'index'])->middleware(SortMiddleware::class);
 });
+

@@ -71,6 +71,9 @@ const admin = [{
         { path: "cancel/trash", name: "admin.cancels.trash", component: () => import("../pages/admin/cancels/CancelList.vue"), },
         { path: "cancel/create", name: "admin.cancels.create", component: () => import("../pages/admin/cancels/CancelForm.vue"), },
         { path: "cancel/edit/:id", name: "admin.cancels.edit", component: () => import("../pages/admin/cancels/CancelForm.vue"), },
+        { path: "order", name: "admin.orders", component: () => import("../pages/admin/orders/OrderList.vue"), },
+        { path: "order/trash", name: "admin.orders.trash", component: () => import("../pages/admin/orders/OrderList.vue"), },
+        { path: "order/view/:id", name: "admin.orders.view", component: () => import("../pages/admin/orders/OrderForm.vue"), },
     ]
 }]
 

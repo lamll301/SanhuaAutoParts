@@ -28,7 +28,6 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             ProductSeeder::class,
             WarehouseSeeder::class,
-            OrderSeeder::class,
         ]);
 
         $productIds = Product::pluck('id')->toArray();

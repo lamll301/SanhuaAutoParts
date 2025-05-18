@@ -179,8 +179,8 @@
                             <div class="input-group">
                                 <select class="valid-elm form-select" v-model="product.status">
                                     <option value="" disabled selected>Chọn trạng thái</option>
-                                    <option v-for="status in statusOptions" :key="status.value" :value="status.value">
-                                        {{ status.label }}
+                                    <option v-for="([key, status]) in Object.entries(getAllStatusOptions('product'))" :key="key" :value="key">
+                                        {{ status }}
                                     </option>
                                 </select>
                             </div>
@@ -199,8 +199,8 @@
 <script>
 import apiService from '@/utils/apiService';
 import ImagePreview from '@/components/ImagePreview.vue';
-import { statusService } from '@/utils/statusService';
 import ItemDashboard from '@/components/ItemDashboard.vue';
+import { getAllStatusOptions } from '@/utils/statusService';
 
 export default {
     data() {
@@ -212,7 +212,6 @@ export default {
                 promotion_id: null,
             },
             promotions: [], suppliers: [], units: [], categories: [],
-            statusOptions: statusService.getOptions('product'),
             errors: {
                 name: '', original_price: '', dimensions: '', weight: '', color: '', material: '', compatibility: ''
             },
@@ -234,6 +233,7 @@ export default {
         await this.fetchData();
     },
     methods: {
+        getAllStatusOptions,
         validate() {
             let isValid = true;
             this.errors = {

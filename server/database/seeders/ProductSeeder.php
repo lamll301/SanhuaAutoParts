@@ -77,6 +77,7 @@ class ProductSeeder extends Seeder
                 'name' => $productName . ' ' . $faker->bothify('##??'),
                 'description' => $faker->paragraphs(2, true),
                 'original_price' => $faker->numberBetween(100000, 5000000),
+                'quantity' => $faker->numberBetween(0, 1000),
                 'dimensions' => $faker->randomElement([
                     '10x5x5 cm', '20x15x10 cm', '30x20x10 cm', '40x25x15 cm'
                 ]),
