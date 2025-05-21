@@ -152,8 +152,8 @@
 
 <script>
 import { useAuthStore } from '@/stores/auth';
-import apiService from '@/utils/apiService';
 import { getImageUrl } from '@/utils/helpers';
+import { userApi, addressApi } from '@/api';
 
 export default {
     setup() {
@@ -233,7 +233,7 @@ export default {
         getImageUrl,
         async fetchCities() {
             try {
-                const response = await apiService.provinces.getProvinces()
+                const response = await addressApi.getProvinces()
                 this.cities = response.data;
             } catch (error) {
                 console.error(error);
@@ -242,7 +242,7 @@ export default {
         async fetchDistricts() {
             if (!this.selectedCity) return;
             try {
-                const response = await apiService.provinces.getProvinceWithDistricts(this.selectedCity);
+                const response = await addressApi.getProvinceWithDistricts(this.selectedCity);
                 this.districts = response.data.districts;
             } catch (error) {
                 console.error(error);
@@ -251,7 +251,7 @@ export default {
         async fetchWards() {
             if (!this.selectedDistrict) return;
             try {
-                const response = await apiService.provinces.getDistrictWithWards(this.selectedDistrict);
+                const response = await addressApi.getDistrictWithWards(this.selectedDistrict);
                 this.wards = response.data.wards;
             } catch (error) {
                 console.error(error);
@@ -284,7 +284,7 @@ export default {
         async save() {
             const data = this.cleanData();
             try {
-                const res = await apiService.users.updateProfile(data);
+                const res = await userApi.updateProfile(data);
                 this.authStore.setUser(res.data);
                 this.$swal.fire('Hoàn tất!', 'Bạn đã cập nhật hồ sơ thành công.', 'success');
             } catch (error) {
@@ -294,10 +294,7 @@ export default {
         async savePassword() {
             if (!this.validate()) return;
             try {
-                await apiService.users.updatePassword({
-                    old_password: this.oldPassword,
-                    new_password: this.newPassword,
-                });
+                await userApi.updatePassword(this.oldPassword, this.newPassword);
                 this.oldPassword = '';
                 this.newPassword = '';
                 this.confirmPassword = '';
@@ -324,10 +321,6 @@ export default {
             }
             else if (this.newPassword.length < 8) {
                 this.errors.new_password = 'Mật khẩu mới phải có ít nhất 8 ký tự';
-                isValid = false;
-            }
-            else if (this.newPassword.length > 15) {
-                this.errors.new_password = 'Mật khẩu mới không được vượt quá 15 ký tự';
                 isValid = false;
             }
             else if (!passwordRegex.test(this.newPassword)) {

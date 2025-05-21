@@ -358,14 +358,14 @@
                     </div>
                     <div class="product-comment-list">
                         <div v-for="comment in comments" :key="comment.id" class="product-comment-item">
-                            <img :src="getImageUrl(comment.user.avatar.path)" alt="" class="product-comment-img">
+                            <img :src="getImageUrl(comment.user.avatar.path)" alt="Avatar" class="product-comment-img">
                             <div class="product-comment-text">
                                 <div class="product-comment-top">
                                     <div class="product-comment-star">
                                         <RatingStars :rating="comment.rating" />
                                     </div>
                                     <span class="product-comment-name">
-                                        {{ comment.user.name }}
+                                        {{ comment.user?.name || 'Người dùng' }}
                                     </span>
                                     <span class="product-comment-time">
                                         - {{ formatDate(comment.updated_at) }}
@@ -398,7 +398,7 @@
 
 <script>
 import { formatDate, formatPrice, getImageUrl } from '@/utils/helpers';
-import apiService from '@/utils/apiService';
+import { productApi, reviewApi, cartApi } from '@/api';
 import SitePagination from '@/components/SitePagination.vue'
 import ReadMoreButton from '@/components/ReadMoreButton.vue';
 import ZoomImage from '@/components/ZoomImage.vue';
@@ -448,8 +448,8 @@ export default {
             try {
                 const slug = this.slug || '';
                 const req = [
-                    apiService.products.getBySlug(slug),
-                    apiService.reviews.getByProductSlug(slug, { page: this.$route.query.page }),
+                    productApi.getBySlug(slug),
+                    reviewApi.getByProductSlug(slug, { page: this.$route.query.page }),
                 ];
 
                 const res = await Promise.all(req)
@@ -482,7 +482,7 @@ export default {
                 return;
             }
             try {
-                const res = await apiService.carts.addToCart(productId, this.quantity);
+                const res = await cartApi.add(productId, this.quantity);
                 this.cartStore.addCartItem(res.data);
                 this.orderStore.setBuyNow({});     
                 this.$router.push('/gio-hang');

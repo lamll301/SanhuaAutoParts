@@ -180,7 +180,7 @@ import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
 import { formatDate, formatPrice } from '@/utils/helpers';
 import apiService from '@/utils/apiService';
-import { getAllStatusOptions, getStatusText } from '@/utils/statusService';
+import { getAllStatusOptions, getStatusText } from '@/utils/statusMap';
 
 export default {
     components: {

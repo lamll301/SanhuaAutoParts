@@ -68,6 +68,11 @@ const site = [
                 name: 'newsDetail',
                 component: () => import('../pages/site/NewsDetail.vue'),
             },
+            {
+                path: 'danh-gia',
+                name: 'orderReview',
+                component: () => import('../pages/site/OrderReview.vue'),
+            },
         ]
     }
 ]

@@ -115,7 +115,7 @@
 <script>
 import ItemDashboard from '@/components/ItemDashboard.vue';
 import apiService from '@/utils/apiService';
-import { statusService } from '@/utils/statusService';
+import { statusService } from '@/utils/statusMap';
 
 export default {
     components: {

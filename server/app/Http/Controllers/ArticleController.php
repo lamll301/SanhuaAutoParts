@@ -9,8 +9,23 @@ class ArticleController extends Controller
 {
     private const SEARCH_FIELDS = ['title'];
     private const FILTER_FIELDS = [];
-    protected const STATUS_DRAFT = 0;
-    protected const STATUS_PUBLISHED = 1;
+
+    public function getByCategory(Request $request, string $categorySlug) {
+        $limit = $categorySlug === 'tin-noi-bat' ? 5 : 15;
+        $query = Article::whereHas('category', function($query) use ($categorySlug) {
+            $query->where('slug', $categorySlug);
+        })->whereNotNull('approved_by')
+        ->orderBy('publish_date', 'desc')
+        ->limit($limit)
+        ->with([
+            'creator:id,name',
+            'images' => function($query) {
+                $query->where('is_thumbnail', true)->select('id', 'path', 'article_id')->limit(1);
+            },
+        ])
+        ->select('id', 'title', 'slug', 'publish_date', 'highlight', 'created_at', 'author');
+        return response()->json($query->get());
+    }
 
     public function getBySlug(string $slug) {
         $article = Article::where('slug', $slug)->whereNotNull('approved_by')
@@ -105,7 +120,6 @@ class ArticleController extends Controller
     public function handleFormActions(Request $request) {
         $action = $request->input('action');
         $ids = $request->input('selectedIds', []);
-        $targetId = $request->input('targetId');
         switch ($action) {
             case 'delete':
                 Article::destroy($ids);

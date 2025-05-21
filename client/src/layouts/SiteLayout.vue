@@ -326,18 +326,18 @@
         </div>
     </footer>
     <AuthModal @fetchIfAuth="fetchIfAuth" />
-    <ChatComponent />
+    <ChatComponent v-if="isAuthenticated" />
 </template>
 
 <script>
 import { onMounted } from 'vue';
 import AuthModal from '@/components/AuthModal.vue';
 import ChatComponent from '@/components/ChatComponent.vue';
-import apiService from '@/utils/apiService';
 import { getImageUrl, formatPrice } from '@/utils/helpers';
 import { useCartStore } from '@/stores/cart';
 import { useAuthStore } from '@/stores/auth';
 import { useOrderStore } from '@/stores/order';
+import { categoryApi, authApi, cartApi } from '@/api';
 
 export default {
     name: 'SiteLayout',
@@ -393,7 +393,8 @@ export default {
     },
     created() {
         const token = localStorage.getItem('token');
-        if (token) {
+        const user = this.authStore.user;
+        if (token && Object.keys(user).length === 0) {
             this.authStore.setToken(token)
             this.fetchIfAuth()
         }
@@ -405,8 +406,8 @@ export default {
             this.isLoading = true;
             try {
                 const res = await Promise.all([
-                    apiService.categories.getAll({ key: 'part' }),
-                    apiService.categories.getAll({ key: 'brand' }),
+                    categoryApi.getAllCategories({ key: 'part' }),
+                    categoryApi.getAllCategories({ key: 'brand' }),
                 ]);
 
                 this.categories = res[0].data.data;
@@ -426,8 +427,8 @@ export default {
                 const token = this.authStore.token
                 if (token) {
                     const res = await Promise.all([
-                        apiService.auth.me(),
-                        apiService.carts.getCart()
+                        authApi.me(),
+                        cartApi.getCart()
                     ])
 
                     if (res[0].data) {
@@ -444,7 +445,7 @@ export default {
         },
         async logout() {
             try {
-                await apiService.auth.logout()
+                await authApi.logout()
                 this.cartStore.setCart([]);
                 this.authStore.removeToken();
                 this.authStore.removeUser();
@@ -467,7 +468,7 @@ export default {
         },
         removeCart(id) {
             this.cartStore.removeCartItem(id);
-            apiService.carts.removeFromCart(id).catch(err => console.error(err));
+            cartApi.remove(id).catch(err => console.error(err));
         },
         findByKeyword() {
             if (this.searchKeyword.trim()) {

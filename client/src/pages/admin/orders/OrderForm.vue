@@ -248,7 +248,7 @@
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import apiService from '@/utils/apiService';
 import { formatDate, formatPrice, getImageUrl } from '@/utils/helpers';
-import { getAllStatusOptions } from '@/utils/statusService';
+import { getAllStatusOptions } from '@/utils/statusMap';
 
 export default {
     components: {

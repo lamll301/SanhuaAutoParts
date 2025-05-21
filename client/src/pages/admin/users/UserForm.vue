@@ -148,8 +148,7 @@
 
 <script>
 import apiService from '@/utils/apiService';
-import { statusService } from '@/utils/statusService';
-import { isValidEmail, isValidPhone, isValidPassword } from '@/utils/helpers';
+import { statusService } from '@/utils/statusMap';
 
 export default {
     data() {
@@ -192,18 +191,6 @@ export default {
                     this.errors.password = 'Mật khẩu không được để trống.';
                     isValid = false;
                 }
-            }
-            if (this.user.password && !isValidPassword(this.user.password)) {
-                this.errors.password = 'Mật khẩu phải có ít nhất 8 ký tự, gồm chữ và số.';
-                isValid = false;
-            }
-            if (this.user.email && !isValidEmail(this.user.email)) {
-                this.errors.email = 'Email không hợp lệ.';
-                isValid = false;
-            }
-            if (this.user.phone && !isValidPhone(this.user.phone)) {
-                this.errors.phone = 'Số điện thoại không hợp lệ.';
-                isValid = false;
             }
             if (this.user.date_of_birth && new Date(this.user.date_of_birth).setHours(0,0,0,0) >= new Date().setHours(0,0,0,0)) {
                 this.errors.date_of_birth = 'Ngày sinh phải nhỏ hơn ngày hiện tại.';

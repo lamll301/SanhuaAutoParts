@@ -54,13 +54,24 @@ return new class extends Migration
             $table->softDeletes();
         });
 
+        Schema::create('categories', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('type')->nullable();
+            $table->string('slug')->unique();
+            $table->string('description')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+        });
+
         Schema::create('articles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('author')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
             $table->string('title');
             $table->string('slug')->unique();
             $table->string('highlight')->nullable();
-            $table->foreignId('author')->nullable()->constrained('users')->nullOnDelete();
             $table->date('publish_date')->nullable()->index();
             $table->longText('content')->nullable();
             $table->timestamps();
@@ -71,6 +82,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('articles');
+        Schema::dropIfExists('categories');
         Schema::dropIfExists('promotions');
         Schema::dropIfExists('vouchers');
         Schema::dropIfExists('suppliers');

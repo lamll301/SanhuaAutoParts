@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AddressService;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 
@@ -57,6 +58,33 @@ class Order extends Model
         return $this->details->sum(function ($detail) {
             return $detail->quantity * $detail->price;
         });
+    }
+
+    public function getCity()
+    {
+        if (!$this->city_id) {
+            return null;
+        }
+        
+        return app(AddressService::class)->getProvince($this->city_id);
+    }
+
+    public function getDistrict()
+    {
+        if (!$this->district_id) {
+            return null;
+        }
+        
+        return app(AddressService::class)->getDistrict($this->district_id);
+    }
+
+    public function getWard()
+    {
+        if (!$this->ward_id) {
+            return null;
+        }
+        
+        return app(AddressService::class)->getWard($this->ward_id);
     }
 
     public function user()

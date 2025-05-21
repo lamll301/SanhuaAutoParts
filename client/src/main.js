@@ -7,9 +7,11 @@ import axios from "axios";
 import VueAxios from 'vue-axios';
 import sweetalert from './plugins/sweetalert';
 import { createPinia } from 'pinia';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 
 const app = createApp(App);
 const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
 app.use(router);
 app.use(VueSweetalert2);
 app.use(VueAxios, { $request: axios });

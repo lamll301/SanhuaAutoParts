@@ -6,19 +6,19 @@ use App\Models\Cart;
 use App\Models\CartDetail;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $userId = $request->user_id;
         $cart = Cart::select('id', 'user_id')->with([
             'details:id,cart_id,product_id,quantity',
             'details.product:id,name,price,original_price,quantity,slug',
             'details.product.images' => function($query) {
                 $query->where('is_thumbnail', true)->select('id', 'path', 'product_id')->limit(1);
             },
-        ])->where('user_id', Auth::id())->first();
+        ])->where('user_id', $userId)->first();
         if (!$cart) {
             return;
         }
@@ -27,12 +27,13 @@ class CartController extends Controller
 
     public function add(Request $request, $id)
     {
+        $userId = $request->user_id;
         $request->validate(['quantity' => 'required|integer|min:1']);
         $product = Product::find($id);
         if (!$product) {
             return;
         }
-        $cart = Cart::firstOrCreate(['user_id' => Auth::id()]);
+        $cart = Cart::firstOrCreate(['user_id' => $userId]);
         $cartDetail = CartDetail::where('cart_id', $cart->id)->where('product_id', $product->id)->first();
         if ($cartDetail) {
             $cartDetail->quantity += $request->quantity;
@@ -55,7 +56,8 @@ class CartController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate(['quantity' => 'required|integer|min:1']);
-        $cart = Cart::where('user_id', Auth::id())->first();
+        $userId = $request->user_id;
+        $cart = Cart::where('user_id', $userId)->first();
         if (!$cart) {
             return;
         }
@@ -68,9 +70,10 @@ class CartController extends Controller
         return response()->json(['message' => 'success'], 200);
     }
 
-    public function remove($id)
+    public function remove(Request $request, $id)
     {
-        $cart = Cart::where('user_id', Auth::id())->first();
+        $userId = $request->user_id;
+        $cart = Cart::where('user_id', $userId)->first();
         if (!$cart) {
             return;
         }
@@ -82,9 +85,10 @@ class CartController extends Controller
         return response()->json(['message' => 'success'], 204);
     }
 
-    public function clear()
+    public function clear(Request $request)
     {
-        $cart = Cart::where('user_id', Auth::id())->first();
+        $userId = $request->user_id;
+        $cart = Cart::where('user_id', $userId)->first();
         if (!$cart) {
             return;
         }

@@ -9,5 +9,5 @@ Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::get('me', [AuthController::class, 'me'])->middleware(AuthenticateWithJWT::class);
     Route::post('logout', [AuthController::class, 'logout'])->middleware(AuthenticateWithJWT::class);
-    Route::post('refresh', [AuthController::class, 'refresh'])->middleware(AuthenticateWithJWT::class);
+    Route::post('refresh', [AuthController::class, 'refresh']);
 });

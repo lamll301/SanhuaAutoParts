@@ -110,7 +110,7 @@
 
 <script>
 import { useCartStore } from '@/stores/cart';
-import apiService from '@/utils/apiService';
+import { cartApi } from '@/api';
 import { formatPrice, getImageUrl } from '@/utils/helpers'
 import RatingStars from '@/components/RatingStars.vue';
 import { Vue3Lottie } from 'vue3-lottie';
@@ -177,12 +177,12 @@ export default {
                 this.updatedIds.forEach(id => {
                     const detail = this.cartDetails.find(d => d.product.id === id);
                     if (detail && detail.product.quantity > 0) {
-                        req.push(apiService.carts.updateCart(id, detail.quantity));
+                        req.push(cartApi.update(id, detail.quantity));
                     }
                 });
                 if (this.deletedIds.length > 0) {
                     this.deletedIds.forEach(id => {
-                        req.push(apiService.carts.removeFromCart(id))
+                        req.push(cartApi.remove(id))
                     })
                 }
                 await Promise.all(req);

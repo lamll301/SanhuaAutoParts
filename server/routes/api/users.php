@@ -3,9 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\SortMiddleware;
+use App\Http\Middleware\AuthenticateWithJWT;
 
 Route::prefix('users')->group(function () {
-    Route::middleware('auth:api')->group(function () {
+    Route::middleware([AuthenticateWithJWT::class])->group(function () {
         Route::put('/update-profile', [UserController::class, 'updateProfile']);
         Route::put('/update-password', [UserController::class, 'updatePassword']);
     });

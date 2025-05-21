@@ -71,7 +71,7 @@
 
 <script>
 import { getImageUrl } from '@/utils/helpers';
-import apiService from '@/utils/apiService';
+import { articleApi } from '@/api';
 import SitePagination from '@/components/SitePagination.vue';
 import SkeletonLoading from '@/components/SkeletonLoading.vue';
 
@@ -95,9 +95,9 @@ export default {
     methods: {
         async fetchData() {
             this.isLoading = true;
-            try {
+            try {   
                 const req = [
-                    apiService.articles.getPublished({ page: this.$route.query.page }),
+                    articleApi.getPublished({ page: this.$route.query.page }),
                 ];
 
                 const res = await Promise.all(req)

@@ -1,40 +1,8 @@
 <template>
     <div class="news-detail">
         <template v-if="isLoading">
-            <div class="news-detail-heading">
-                <h2 class="news-detail-title">
-                    <SkeletonLoading height="32px" width="80%" />
-                </h2>
-                <div class="news-detail-single-header">
-                    <div style="width: 52px;margin-bottom: 4px;">
-                        <SkeletonLoading class="news-detail-single-header-img"
-                            width="36px" height="36px" borderRadius="50%"
-                        />
-                    </div>
-                    <div>
-                        <SkeletonLoading width="200px" height="13px" />
-                        <SkeletonLoading width="150px" height="13px" marginBottom="0" />
-                    </div>
-                </div>
-            </div>
-            <div class="news-detail-content">
-                <SkeletonLoading height="500px" class="news-detail-content-main-img" />
-                <div class="news-detail-content-container">
-                    <div class="news-detail-content-container">
-                        <SkeletonLoading height="14px" />
-                        <SkeletonLoading height="14px" />
-                        <SkeletonLoading width="70%" height="14px" marginBottom="28px" />
-                        
-                        <SkeletonLoading height="14px" />
-                        <SkeletonLoading height="14px" />
-                        <SkeletonLoading height="14px" />
-                        <SkeletonLoading width="60%" height="14px" marginBottom="28px" />
-                        
-                        <SkeletonLoading height="14px" />
-                        <SkeletonLoading height="14px" />
-                        <SkeletonLoading width="80%" height="14px" marginBottom="28px" />
-                    </div>
-                </div>
+            <div class="spinner-container">
+                <div class="spinner"></div>
             </div>
         </template>
         <template v-else>
@@ -89,14 +57,11 @@
 </template>
 
 <script>
-import SkeletonLoading from '@/components/SkeletonLoading.vue';
-import apiService from '@/utils/apiService';
 import { getImageUrl } from '@/utils/helpers';
+import { articleApi } from '@/api';
 
 export default {
-    components: {
-        SkeletonLoading
-    },
+    components: {},
     data() {
         return {
             article: {},
@@ -144,7 +109,7 @@ export default {
             this.isLoading = true;
             try {
                 const slug = this.$route.params.slug;
-                const res = await apiService.articles.getBySlug(slug)
+                const res = await articleApi.getBySlug(slug)
 
                 this.article = res.data
                 this.images = this.article.images
@@ -167,3 +132,28 @@ export default {
     },
 }
 </script>
+
+<style scoped>
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+  width: 100%;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: #0073b1;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>

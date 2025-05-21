@@ -5,8 +5,6 @@ namespace App\Models;
 use App\Traits\HasSlug;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Article extends Model
 {
@@ -18,7 +16,9 @@ class Article extends Model
         'highlight',
         'publish_date',
         'content',
-        'author'
+        'author',
+        'approved_by',
+        'category_id'
     ];
 
     protected $casts = [
@@ -30,18 +30,23 @@ class Article extends Model
         return 'title';
     }
 
-    public function images(): HasMany 
+    public function images()
     {
         return $this->hasMany(Image::class);
     }
 
-    public function creator(): BelongsTo
+    public function creator()
     {
         return $this->belongsTo(User::class, 'author');
     }
 
-    public function approver(): BelongsTo
+    public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 }

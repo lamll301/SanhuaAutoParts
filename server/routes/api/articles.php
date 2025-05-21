@@ -5,8 +5,9 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Middleware\SortMiddleware;
 
 Route::prefix('articles')->group(function () {
-    Route::get('/published', [ArticleController::class, 'getPublished'])->middleware(SortMiddleware::class);
     Route::get('/by-slug/{slug}', [ArticleController::class, 'getBySlug']);
+    Route::get('/by-category/{categorySlug}', [ArticleController::class, 'getByCategory']);
+    Route::get('/published', [ArticleController::class, 'getPublished'])->middleware(SortMiddleware::class);
     Route::get('/trashed', [ArticleController::class, 'trashed'])->middleware(SortMiddleware::class);
     Route::patch('/{id}/restore', [ArticleController::class, 'restore']);
     Route::delete('/{id}/force-delete', [ArticleController::class, 'forceDelete']);

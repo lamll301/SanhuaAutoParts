@@ -88,7 +88,7 @@
 
 <script>
 import apiService from '@/utils/apiService';
-import { statusService } from '@/utils/statusService';
+import { statusService } from '@/utils/statusMap';
 
 export default {
     data() {

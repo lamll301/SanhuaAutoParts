@@ -1,0 +1,39 @@
+import apiClient from "@/plugins/axios"
+
+const productApi = {
+    getProducts(params = {}) {
+        return apiClient.get('/products', { params })
+    },
+    getProductsTrashed(params = {}) {
+        return apiClient.get('/products/trashed', { params })
+    },
+    getProduct(id) {
+        return apiClient.get(`/products/${id}`)
+    },
+    getBySlug(slug) {
+        return apiClient.get(`/products/by-slug/${slug}`)
+    },
+    getByCategory(slug = '', params = {}) {
+        return apiClient.get(`/products/by-category/${slug}`, { params })
+    },
+    create(data) {
+        return apiClient.post('/products', data)
+    },
+    updateWithImages(id, data) {
+        return apiClient.post(`/products/${id}`, data)
+    },
+    delete(id) {
+        return apiClient.delete(`/products/${id}`)
+    },
+    restore(id) {
+        return apiClient.patch(`/products/${id}/restore`)
+    },
+    forceDelete(id) {
+        return apiClient.delete(`/products/${id}/force-delete`)
+    },
+    handleFormActions(data) {
+        return apiClient.post('/products/handle-form-actions', data)
+    }
+}
+
+export default productApi

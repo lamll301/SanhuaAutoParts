@@ -17,12 +17,12 @@
                 >
                     Chờ thanh toán
                 </div>
-                <div class="settings-tab-text"
+                <!-- <div class="settings-tab-text"
                     :class="{ 'settings-tab-text--active': activeTab === 'pending_approve' }"
                     @click="changeTab('pending_approve')"
                 >
                     Chờ duyệt
-                </div>
+                </div> -->
                 <div class="settings-tab-text"
                     :class="{ 'settings-tab-text--active': activeTab === 'packaging' }"
                     @click="changeTab('packaging')"
@@ -47,12 +47,12 @@
                 >
                     Đã hủy
                 </div>
-                <div class="settings-tab-text"
+                <!-- <div class="settings-tab-text"
                     :class="{ 'settings-tab-text--active': activeTab === 'refund' }"
                     @click="changeTab('refund')"
                 >
                     Trả hàng/Hoàn tiền
-                </div>
+                </div> -->
             </div>
             <div class="settings-order-tracking settings-tab-content">
                 <input type="text" class="settings-order-tracking-search" placeholder="Bạn có thể tìm kiếm theo ID đơn hàng hoặc Tên sản phẩm"  @keyup.enter="search" v-model="key">
@@ -140,7 +140,7 @@
                                 </div>
                                 <div class="settings-order-tracking-bottom-right">
                                     <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
-                                        v-if="order.payment_status === 0" @click="payOrder(order.id)"
+                                        v-if="order.payment_status === 0 && order.status !== 4" @click="payOrder(order.id)"
                                     >
                                         Thanh toán
                                     </button>
@@ -150,7 +150,7 @@
                                         Hủy Đơn Hàng
                                     </button>
                                     <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
-                                        v-if="order.status === 3"
+                                        v-if="order.status === 3 && !areAllReviewed(order.details)" @click="reviewOrder(order)"
                                     >
                                         Đánh giá
                                     </button>
@@ -180,20 +180,31 @@
 <script>
 import SitePagination from '@/components/SitePagination.vue';
 import { formatDate, formatPrice, getImageUrl } from '@/utils/helpers';
-import apiService from '@/utils/apiService';
-import { getStatusText } from '@/utils/statusService';
 import { Vue3Lottie } from 'vue3-lottie';
 import animationData from '@/assets/images/Animation - 1747389560930.json';
 import { useOrderStore } from '@/stores/order';
+import { paymentApi, orderApi } from '@/api';
+import { getStatusText } from '@/utils/statusMap';
+import { useReviewStore } from '@/stores/review';
 
 export default {
     components: {
         SitePagination, Vue3Lottie
     },
+    beforeRouteEnter(to, from, next) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            next({ name: 'NotFound' });
+            return;
+        }
+        next();
+    },
     setup() {
         const orderStore = useOrderStore();
+        const reviewStore = useReviewStore();
         return {
             orderStore,
+            reviewStore,
             animationData
         };
     },
@@ -227,15 +238,19 @@ export default {
         async fetchData() {
             this.isLoading = true;
             try {
-                const res = await apiService.orders.viewList(this.$route.query);
+                const res = await orderApi.getOrdersByUser(this.$route.query);
                 this.orders = res.data.data;
                 this.totalPages = Math.ceil(res.data.pagination.total / res.data.pagination.per_page);
                 this.currentPage = res.data.pagination.current_page;
             } catch (error) {
-                console.log(error);
+                console.error(error);
             } finally {
                 this.isLoading = false;
             }
+        },
+        reviewOrder(order) {
+            this.reviewStore.setReview(order);
+            this.$router.push({ name: 'orderReview' })
         },
         async cancelOrder(id) {
             const { value: reason } = await this.$swal.fire('Huỷ đơn hàng', '', '', {
@@ -257,10 +272,12 @@ export default {
             if (!reason) return;
 
             try {
-                console.log(id)
+                const res = await orderApi.cancelOrderByUser(id, reason);
+                const order = res.data;
+                this.orders = this.orders.map(o => o.id === id ? order : o);
                 this.$swal.fire('Đã hủy đơn hàng', 'Đơn hàng đã được hủy thành công!', 'success');
             } catch (error) {
-                console.log(error);
+                console.error(error);
             }
         },
         async payOrder(id) {
@@ -300,7 +317,7 @@ export default {
                     }
                 }
             } catch (error) {
-                console.log(error);
+                console.error(error);
             }
         },
         async handleEwalletPayment(id) {
@@ -323,7 +340,7 @@ export default {
             if (!wallet || !id) return;
             try {
                 if (wallet === 'momo') {
-                    const res = await apiService.payments.createMomoPayment(id);
+                    const res = await paymentApi.createMomoPayment(id);
                     const momo = res.data;
                     if (momo.resultCode === 0) {
                         window.location.href = momo.payUrl;
@@ -331,7 +348,7 @@ export default {
                         this.$swal.fire('Lỗi', momo.message, 'error');
                     }
                 } else if (wallet === 'vnpay') {
-                    const res = await apiService.payments.createVNPayPayment(id);
+                    const res = await paymentApi.createVNPayPayment(id);
                     const vnpay = res.data;
                     if (vnpay.message === "success") {
                         window.location.href = vnpay.data;
@@ -339,7 +356,7 @@ export default {
                         this.$swal.fire('Lỗi', vnpay.message, 'error');
                     }
                 } else if (wallet === 'zalo') {
-                    const res = await apiService.payments.createZaloPayment(id);
+                    const res = await paymentApi.createZaloPayPayment(id);
                     const zalo = res.data;
                     if (zalo.return_code === 1) {
                         window.location.href = zalo.order_url;
@@ -348,7 +365,7 @@ export default {
                     }
                 }
             } catch (error) {
-                console.log(error);
+                console.error(error);
             }
         },
         async handleCardPayment(id) {
@@ -370,19 +387,45 @@ export default {
                     const cvv = document.getElementById('cvv').value;
                     const holder = document.getElementById('cardName').value;
                     const postal = document.getElementById('zipCode').value;
+                    if (!number || !expiry || !cvv || !holder || !postal) {
+                        return false;
+                    }
                     return { number, expiry, cvv, holder, postal };
                 },
-                inputValidator: (values) => {
-                    if (!values.number || !values.expiry || !values.cvv || !values.holder || !values.postal) {
-                        return 'Vui lòng điền đầy đủ thông tin thẻ';
-                    }
-                }
             });
             if (!formValues || !id) return;
-            
-            this.$swal.fire('Đã gửi thông tin thanh toán', 'Thông tin thẻ của bạn đã được gửi. Vui lòng chờ nhân viên xác nhận và xử lý trong thời gian sớm nhất.', 'info');
+            await this.$swal.fire('Đã gửi thông tin thanh toán', 'Thông tin thẻ của bạn đã được gửi. Vui lòng chờ nhân viên xác nhận và xử lý trong thời gian sớm nhất.', 'info');
         },
-        
+        async handleCashPayment(id) {
+            try {
+                const res = await paymentApi.createCODPayment(id);
+                if (res.data.message === "success") {
+                    window.location.href = '/theo-doi-don-hang/' + id;
+                } else {
+                    this.$swal.fire('Lỗi', 'Đã xảy ra lỗi khi tạo thanh toán COD', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async handleQRPayment(id) {
+            try {
+                const res = await paymentApi.createQRCodePayment(id);
+                const qrCode = res.data;
+                if (qrCode.code === "00") {
+                    this.$swal.fire('Quét mã QR để thanh toán', 'Vui lòng sử dụng ứng dụng ngân hàng hoặc ví điện tử để quét mã', '', {
+                        imageUrl: qrCode.data.qrDataURL,
+                        imageAlt: 'QR Code',
+                        imageWidth: 250,
+                        confirmButtonText: 'Tôi đã thanh toán',
+                    })
+                } else {
+                    this.$swal.fire('Lỗi', qrCode.desc, 'error');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
         async reorder(details) {
             await this.orderStore.setReorder(details);
             this.$router.push('/don-hang');
@@ -394,13 +437,13 @@ export default {
                 }
             })
         },
-        handleStatusText(status, paymentStatus, approvedBy) {
+        handleStatusText(status, paymentStatus) {
             let text = '';
             if (status > 0) {
                 text = getStatusText('order', status);
             } else if (paymentStatus === 0) {
                 text = 'Chờ thanh toán';
-            } else if (!approvedBy) {
+            } else {
                 text = 'Chờ duyệt';
             }
             return text;
@@ -411,32 +454,27 @@ export default {
             switch (tab) {
                 case 'pending_pay':
                     query = {
-                        action: 'filterByPaymentStatus', targetId: 0
-                    }
-                    break;
-                case 'pending_approve':
-                    query = {
-                        action: 'filterByUnapproved'
+                        action: 'filterUnpaid'
                     }
                     break;
                 case 'packaging':
                     query = {
-                        action: 'filterByStatus', targetId: 1
+                        action: 'filterPacking'
                     }
                     break;
                 case 'shipping':
                     query = {
-                        action: 'filterByStatus', targetId: 2
+                        action: 'filterShipping'
                     }
                     break;
                 case 'completed':
                     query = {
-                        action: 'filterByStatus', targetId: 3
+                        action: 'filterCompleted'
                     }
                     break;
                 case 'cancelled':
                     query = {
-                        action: 'filterByStatus', targetId: 4
+                        action: 'filterCancelled'
                     }
                     break;
                 default:
@@ -446,33 +484,35 @@ export default {
                 query
             })
         },
-        getStatusDisplayText(status, paymentStatus, approvedBy) {
-            if (paymentStatus === 0) return 'Đơn hàng đang chờ thanh toán';
-            if (!approvedBy) return 'Đơn hàng đang chờ duyệt bởi quản trị viên';
+        getStatusDisplayText(status, paymentStatus) {
             if (status === 1) return 'Đơn hàng đang được đóng gói để chuẩn bị giao';
             if (status === 2) return 'Đơn hàng đang trên đường vận chuyển đến bạn';
             if (status === 3) return 'Đơn hàng đã được giao thành công';
             if (status === 4) return 'Đơn hàng đã bị hủy';
-            return 'Trạng thái đơn hàng không xác định';
+            if (paymentStatus === 0) return 'Đơn hàng đang chờ thanh toán';
+            return '';
         },
-        getStatusClass(status, paymentStatus, approvedBy) {
-            if (paymentStatus === 0) return 'status-pending-payment';
-            if (!approvedBy) return 'status-pending-approval';
+        getStatusClass(status, paymentStatus) {
             if (status === 1) return 'status-packaging';
             if (status === 2) return 'status-shipping';
             if (status === 3) return 'status-completed';
             if (status === 4) return 'status-cancelled';
+            if (paymentStatus === 0) return 'status-pending-payment';
+            // if (!approvedBy) return 'status-pending-approval';
             return '';
         },
-        getStatusIcon(status, paymentStatus, approvedBy) {
-            if (paymentStatus === 0) return 'fa-solid fa-money-bill-wave status-pending-payment';
-            if (!approvedBy) return 'fa-solid fa-clipboard-check status-pending-approval';
+        getStatusIcon(status, paymentStatus) {
             if (status === 1) return 'fa-solid fa-box status-packaging';
             if (status === 2) return 'fa-solid fa-truck-fast status-shipping';
             if (status === 3) return 'fa-solid fa-check-circle status-completed';
-            if (status === 4) return 'fa-solid fa-ban status-cancelled';
-            return 'fa-solid fa-circle-question';
+            if (status === 4) return 'fa-solid fa-times-circle status-cancelled';
+            if (paymentStatus === 0) return 'fa-solid fa-money-bill-wave status-pending-payment';
+            // if (!approvedBy) return 'fa-solid fa-clipboard-check status-pending-approval';
+            return '';
         },
+        areAllReviewed(details) {
+            return details.every(detail => detail.isReviewed);
+        }
     }
 }
 </script>
@@ -484,15 +524,15 @@ export default {
 }
 
 .status-pending-approval {
-    color: #0d9488;
+    color: #eab308;
 }
 
 .status-packaging {
-    color: #6366f1;
+    color: #2563EB;
 }
 
 .status-shipping {
-    color: #2563eb;
+    color: #2563EB;
 }
 
 .status-completed {
@@ -504,7 +544,7 @@ export default {
 }
 
 .settings-order-tracking-empty-img {
-    width: 260px;
+    width: 248px;
     margin: 0 auto;
     display: block;
     margin-bottom: 60px;

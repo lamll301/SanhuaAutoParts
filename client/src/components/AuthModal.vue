@@ -106,8 +106,8 @@
 </template>
 
 <script>
-import apiService from '@/utils/apiService';
 import { useAuthStore } from '@/stores/auth';
+import { authApi } from '@/api';
 
 export default {
     name: 'AuthModal',
@@ -137,10 +137,20 @@ export default {
         }
     },
     methods: {
+        resetForm() {
+            this.username = '';
+            this.password = '';
+            this.errors = {
+                username: '',
+                password: ''
+            }
+        },
         switchForm(form) {
             this.activeForm = form;
+            this.resetForm();
         },
         validate() {
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/;
             let isValid = true;
             this.errors = {
                 username: '',
@@ -153,11 +163,13 @@ export default {
             if (!this.password) {
                 this.errors.password = 'Mật khẩu không được để trống';
                 isValid = false;
-            } else if (this.password.length < 8) {
+            } 
+            else if (this.password.length < 8 && this.activeForm === 'register') {
                 this.errors.password = 'Mật khẩu phải có ít nhất 8 ký tự';
                 isValid = false;
-            } else if (this.password.length > 15) {
-                this.errors.password = 'Mật khẩu phải có ít hơn 15 ký tự';
+            }
+            else if (!passwordRegex.test(this.password) && this.activeForm === 'register') {
+                this.errors.password = 'Mật khẩu phải có ít nhất 1 chữ cái viết hoa, 1 chữ cái viết thường, 1 số và 1 ký tự đặc biệt';
                 isValid = false;
             }
             return isValid;
@@ -167,12 +179,8 @@ export default {
                 return;
             }
             try {
-                const res = await apiService.auth.register({ 
-                    username: this.username, 
-                    password: this.password 
-                });
-
-                const token = res.data.access_token;
+                const res = await authApi.register(this.username, this.password);
+                const token = res.data.token;
                 this.authStore.setToken(token);
                 this.$emit('fetchIfAuth');
                 
@@ -182,11 +190,9 @@ export default {
                         this.$refs.closeButton.click();
                     }
                 });
-            } catch (err) {
-                console.error(err);
-                this.$swal.fire('Đăng ký thất bại', 'Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác', 'error', {
-                    confirmButtonText: 'Thử lại'
-                });
+            } catch (e) {
+                console.error(e);
+                this.errors.password = e.message;
             }
         },
         async login() {
@@ -194,12 +200,8 @@ export default {
                 return;
             }
             try {
-                const res = await apiService.auth.login({ 
-                    username: this.username, 
-                    password: this.password 
-                });
-
-                const token = res.data.access_token;
+                const res = await authApi.login(this.username, this.password);
+                const token = res.data.token;
                 this.authStore.setToken(token);
                 this.$emit('fetchIfAuth');
                 
@@ -209,11 +211,9 @@ export default {
                         this.$refs.closeButton.click();
                     }
                 });
-            } catch (err) {
-                console.error(err);
-                this.$swal.fire('Đăng nhập thất bại', 'Tên đăng nhập hoặc mật khẩu không chính xác', 'error', {
-                    confirmButtonText: 'Thử lại'
-                });
+            } catch (e) {
+                console.error(e);
+                this.errors.password = e.message;
             }
         }
     },

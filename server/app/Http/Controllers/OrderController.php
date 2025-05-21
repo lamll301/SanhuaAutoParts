@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderDetail;
+use App\Models\Review;
 use App\Models\Voucher;
 use App\Models\VoucherUsage;
 use Illuminate\Support\Facades\DB;
@@ -88,7 +89,7 @@ class OrderController extends Controller
         }
     }   
 
-    public function viewOrder(Request $request, string $id) {
+    public function getOrderByUser(Request $request, string $id) {
         $userId = $request->user_id;
         $order = Order::with([
             'voucher:id,code,value',
@@ -98,13 +99,24 @@ class OrderController extends Controller
                 $query->where('is_thumbnail', true)->select('id', 'path', 'product_id')->limit(1);
             },
         ])->where('id', $id)->where('user_id', $userId)->firstOrFail();
-        if (!$order) {
-            return response()->json(['message' => 'not found'], 404);
+        // gán biến isReviewed cho từng detail
+        $reviewedProducts = Review::where('order_id', $id)
+            ->where('user_id', $userId)
+            ->pluck('product_id')
+            ->toArray();
+        foreach ($order->details as $detail) {
+            $detail->setAttribute('isReviewed', in_array($detail->product_id, $reviewedProducts));
         }
-        return response()->json($order);
+        // gán thông tin thành phố, quận, phường
+        $orderArray = $order->toArray();
+        $orderArray['city'] = $order->getCity();
+        $orderArray['district'] = $order->getDistrict();
+        $orderArray['ward'] = $order->getWard();
+
+        return response()->json($orderArray);
     }
 
-    public function viewList(Request $request) {
+    public function getOrdersByUser(Request $request) {
         $userId = $request->user_id;
         $query = Order::with([
             'details:id,order_id,product_id,quantity,price',
@@ -113,24 +125,84 @@ class OrderController extends Controller
                 $query->where('is_thumbnail', true)->select('id', 'path', 'product_id')->limit(1);
             },
         ])->where('user_id', $userId)->orderBy('created_at', 'desc');
-        return $this->getListResponse($query, $request, self::SEARCH_FIELDS, [
-            'filterByPaymentStatus' => ['column' => 'payment_status'],
-            'filterByStatus' => ['column' => 'status'],
-            'filterByUnapproved' => ['column' => 'approved_by'],
-        ]);
+        $query = $this->search($query, $request->query('key'), self::SEARCH_FIELDS);
+        $action = $request->input('action');
+        switch ($action) {
+            case 'filterUnpaid':
+                $query->where('payment_status', Order::PAYMENT_STATUS_PENDING)->where('status', Order::STATUS_PENDING);
+                break;
+            case 'filterPacking':
+                $query->where('status', Order::STATUS_PACKED);
+                break;
+            case 'filterShipping':
+                $query->where('status', Order::STATUS_SHIPPED);
+                break;
+            case 'filterCompleted':
+                $query->where('status', Order::STATUS_COMPLETED);
+                break;
+            case 'filterCancelled':
+                $query->where('status', Order::STATUS_CANCELLED);
+                break;
+            default:
+                break;
+        }
+        $perPage = config('app.per_page');
+        $orders = $query->paginate($perPage);
+        $response = [
+            'data' => $orders->items(),
+            'pagination' => [
+                'current_page' => $orders->currentPage(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
+            ]
+        ];
+
+        if (count($response['data'])) {
+            $orderIds = collect($response['data'])->pluck('id')->toArray();
+            $reviewedItems = Review::where('user_id', $userId)
+                ->whereIn('order_id', $orderIds)
+                ->select('order_id', 'product_id')
+                ->get();
+            $reviewMap = [];
+            foreach ($reviewedItems as $review) {
+                $key = $review->order_id . '-' . $review->product_id;
+                $reviewMap[$key] = true;
+            }
+            foreach ($response['data'] as &$order) {
+                if (isset($order['details'])) {
+                    foreach ($order['details'] as &$detail) {
+                        $key = $order['id'] . '-' . $detail['product_id'];
+                        $detail['isReviewed'] = isset($reviewMap[$key]);
+                    }
+                }
+            }
+        }
+        return response()->json($response);
     }
 
-    public function cancel(Request $request, string $id) {
+    public function cancelOrderByUser(Request $request, string $id) {
         $userId = $request->user_id;
         $order = Order::where('id', $id)->where('user_id', $userId)->firstOrFail();
-        if ($order && $order->status === Order::STATUS_PENDING) {
-            $order->update(['status' => Order::STATUS_CANCELLED]);
-            $order->update(['cancel_reason' => $request->cancel_reason]);
+        if ($order->status === Order::STATUS_PENDING) {
+            $order->update(['status' => Order::STATUS_CANCELLED, 'cancel_reason' => $request->cancelReason, 'cancelled_at' => now()]);
+            $order->load([
+                'details' => function ($query) {
+                    $query->select('id', 'order_id', 'product_id', 'quantity', 'price');
+                },
+                'details.product' => function ($query) {
+                    $query->select('id', 'name', 'description', 'price', 'original_price', 'slug');
+                },
+                'details.product.images' => function ($query) {
+                    $query->where('is_thumbnail', true)
+                          ->select('id', 'path', 'product_id')
+                          ->limit(1);
+                },
+            ]);
             return response()->json($order);
         }
     }
 
-    public function updateStatus(Request $request, string $id) {
+    public function changeOrderStatus(Request $request, string $id) {
         $userId = $request->user_id;
         $order = Order::findOrFail($id);
         $status = $request->status;
@@ -140,8 +212,7 @@ class OrderController extends Controller
                 $order->payment_info = $request->payment_info;
                 break;
             case 'approved':
-                // $order->approved_by = $userId;
-                $order->approved_by = 1;
+                $order->approved_by = $userId;
                 break;
             case 'shipped':
                 $order->status = Order::STATUS_SHIPPED;

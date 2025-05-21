@@ -382,4 +382,44 @@ class PaymentController extends Controller      // chạy ngrok và đổi app_u
             "message" => "failed"
         ]);
     }
+
+    public function createQRCodePayment(Request $request)
+    {
+        $vietQrUrl = "https://api.vietqr.io/v2/generate";
+        $bankId = env('VIETQR_BANK_ID');
+        $accountNo = env('VIETQR_ACCOUNT_NO'); 
+        $accountName = env('VIETQR_ACCOUNT_NAME');
+        $description = "Thanh toan don hang #" . $request->id;
+        $totalAmount = $this->getOrderTotalAmount($request->id, $request->user_id);
+
+        $data = [
+            'accountNo' => $accountNo,
+            'accountName' => $accountName,
+            'acqId' => $bankId,
+            'amount' => $totalAmount,
+            'addInfo' => $description,
+            'template' => 'compact',
+            'format' => 'png'
+        ];
+
+        $apiKey = env('VIETQR_API_KEY');
+        $apiSecret = env('VIETQR_API_SECRET');
+        $ch = curl_init($vietQrUrl);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'x-api-key: ' . $apiKey,
+            'x-client-id: ' . $apiSecret,
+        ));
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        
+        $result = curl_exec($ch);
+        curl_close($ch);
+        
+        $response = json_decode($result, true);
+        return response()->json($response);
+    }
 }

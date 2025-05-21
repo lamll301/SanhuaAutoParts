@@ -1,14 +1,31 @@
 import axios from 'axios'
+import axiosRetry from 'axios-retry';
 import router from '@/router'
 import { swal } from './sweetalert'
 import { useAuthStore } from '@/stores/auth'
-import apiService from '@/utils/apiService'
+import { authApi } from '@/api';
 
 const apiClient = axios.create({
+    baseURL: process.env.VUE_APP_API_BASE_URL + '/api',
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
+    },
+})
+
+axiosRetry(apiClient, {
+    retries: 3,
+    retryDelay: (retryCount) => {
+        return axiosRetry.exponentialDelay(retryCount);
+    },
+    retryCondition: (error) => {
+        return (
+            error.code === 'ECONNABORTED' || 
+            !error.response || 
+            // (error.response && error.response.status >= 500) ||
+            !window.navigator.onLine
+        );
     }
 })
 
@@ -29,15 +46,11 @@ const processQueue = (error, token = null) => {
 apiClient.interceptors.request.use(
     config => {
         if (config.data instanceof FormData) {
-            // delete config.headers['Content-Type'];
             config.headers['Content-Type'] = 'multipart/form-data';
         }
-        const isInternalApi = config.url.includes(process.env.VUE_APP_API_BASE_URL)
         const token = localStorage.getItem('token')
-        if (token && isInternalApi) {
+        if (token) {
             config.headers.Authorization = `Bearer ${token}`
-        } else if (token && !isInternalApi) {
-            delete config.headers.Authorization
         }
         return config
     },
@@ -65,11 +78,11 @@ apiClient.interceptors.response.use(
                 originalRequest._retry = true;
                 isRefreshing = true;
                 try {
-                    const res = await apiService.auth.refresh();
-                    const { access_token } = res.data;
-                    authStore.setToken(access_token);
-                    originalRequest.headers.Authorization = `Bearer ${access_token}`;
-                    processQueue(null, access_token);
+                    const res = await authApi.refresh();
+                    const { token } = res.data;
+                    authStore.setToken(token);
+                    originalRequest.headers.Authorization = `Bearer ${token}`;
+                    processQueue(null, token);
                     return apiClient(originalRequest);
                 } catch (err) {
                     processQueue(err);
@@ -95,9 +108,9 @@ apiClient.interceptors.response.use(
                     break
                 case 422: {
                     console.error(response.data)
-                    const errors = response.data.errors || {}
-                    const firstError = Object.values(errors)[0]?.[0] || 'Vui lòng kiểm tra lại dữ liệu nhập vào.'
-                    swal.fire('Dữ liệu không hợp lệ', firstError, 'error')
+                    // const errors = response.data.errors || {}
+                    // const firstError = Object.values(errors)[0]?.[0] || 'Vui lòng kiểm tra lại dữ liệu nhập vào.'
+                    // swal.fire('Dữ liệu không hợp lệ', firstError, 'error')
                     return Promise.reject(response.data)
                 }
                 case 429:
@@ -109,22 +122,12 @@ apiClient.interceptors.response.use(
                 case 502:
                 case 503:
                     console.error(response.data)
-                    // swal.fire('Lỗi máy chủ', 'Hệ thống đang gặp sự cố. Vui lòng thử lại sau hoặc liên hệ quản trị viên.', 'error', {
-                    //     footer: `Mã lỗi: ${response.status}`
-                    // })
                     break
                 default:
                     console.error(response.data)
                     swal.fire('Lỗi không xác định', 'Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.', 'error')
             }
         } else {
-            if (error.code === 'ECONNABORTED') {
-                swal.fire('Hết thời gian chờ', 'Yêu cầu quá thời gian chờ phản hồi. Vui lòng kiểm tra kết nối và thử lại.', 'error')
-            } else if (!window.navigator.onLine) {
-                swal.fire('Mất kết nối mạng', 'Vui lòng kiểm tra kết nối internet của bạn và thử lại.', 'warning')
-            } else {
-                swal.fire('Lỗi kết nối', 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.', 'error')
-            }
             console.error(error)
         }
         return Promise.reject(error)

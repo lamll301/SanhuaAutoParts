@@ -200,7 +200,7 @@
 import apiService from '@/utils/apiService';
 import ImagePreview from '@/components/ImagePreview.vue';
 import ItemDashboard from '@/components/ItemDashboard.vue';
-import { getAllStatusOptions } from '@/utils/statusService';
+import { getAllStatusOptions } from '@/utils/statusMap';
 
 export default {
     data() {

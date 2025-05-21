@@ -5,7 +5,6 @@ import { onMounted } from 'vue';
 export default function useSwiper() {
 
     onMounted(() => {
-        // trang chủ
         initSwiper(1, '.swiper__slider', '.swiper__slider-btn-next', '.swiper__slider-btn-prev', {
             delay: 5000,
             disableOnInteraction: false,

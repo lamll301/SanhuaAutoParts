@@ -10,7 +10,7 @@
                     <ul class="category-left-list">
                         <template v-if="isLoading">
                             <li class="category-left-item" v-for="i in 5" :key="i">
-                                <SkeletonLoading height="14px"/>
+                                <SkeletonLoading height="14px" width="90%"/>
                             </li>
                         </template>
                         <template v-else>
@@ -36,7 +36,7 @@
                     <ul class="category-left-list category-left-list-scroll">
                         <template v-if="isLoading">
                             <li class="category-left-item" v-for="i in 5" :key="i">
-                                <SkeletonLoading height="14px"/>
+                                <SkeletonLoading height="14px" width="90%"/>
                             </li>
                         </template>
                         <template v-else>
@@ -56,7 +56,7 @@
                     <ul class="category-left-list">
                         <template v-if="isLoading">
                             <li class="category-left-item" v-for="i in 5" :key="i">
-                                <SkeletonLoading height="14px"/>
+                                <SkeletonLoading height="14px" width="90%"/>
                             </li>
                         </template>
                         <template v-else>
@@ -190,7 +190,7 @@
 <script>
 import { formatPrice, getImageUrl } from '@/utils/helpers'
 import SitePagination from '@/components/SitePagination.vue'
-import apiService from '@/utils/apiService';
+import { productApi, categoryApi } from '@/api';
 import SkeletonLoading from '@/components/SkeletonLoading.vue';
 
 export default {
@@ -251,11 +251,11 @@ export default {
             try {
                 const slug = this.slug || '';
                 const req = [
-                    apiService.products.getByCategorySlug(slug, this.$route.query),
+                    productApi.getByCategory(slug, this.$route.query),
                 ];
                 
                 if (slug) {
-                    req.push(apiService.categories.getBySlug(slug))
+                    req.push(categoryApi.getBySlug(slug))
                 }
                 
                 const res = await Promise.all(req)

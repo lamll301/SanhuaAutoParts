@@ -3,9 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\VoucherController;
 use App\Http\Middleware\SortMiddleware;
+use App\Http\Middleware\AuthenticateWithJWT;
 
 Route::prefix('vouchers')->group(function () {
-    Route::get('/apply-coupon', [VoucherController::class, 'applyCoupon'])->middleware('auth:api');
+    Route::get('/check/{couponCode}', [VoucherController::class, 'checkCoupon'])->middleware(AuthenticateWithJWT::class);
     Route::get('/trashed', [VoucherController::class, 'trashed'])->middleware(SortMiddleware::class);
     Route::patch('/{id}/restore', [VoucherController::class, 'restore']);
     Route::delete('/{id}/force-delete', [VoucherController::class, 'forceDelete']);

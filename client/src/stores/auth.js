@@ -26,5 +26,8 @@ export const useAuthStore = defineStore('auth', {
         updateUser(user) {
             this.user = user
         }
+    },
+    persist: {
+        paths: ['user'],
     }
 })

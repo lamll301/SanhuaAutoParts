@@ -134,7 +134,7 @@ import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
 import { formatDate } from '@/utils/formatter';
 import apiService from '@/utils/apiService';
-import { statusService } from '@/utils/statusService';
+import { statusService } from '@/utils/statusMap';
 
 export default {
     components: {

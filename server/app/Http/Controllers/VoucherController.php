@@ -13,26 +13,19 @@ class VoucherController extends Controller
     private const SEARCH_FIELDS = ['code'];
     private const FILTER_FIELDS = [];
 
-    public function applyCoupon(Request $request) {
-        try {
-            $userId = Auth::id();
-            $couponCode = $request->query('couponCode');
-            $voucher = Voucher::where('code', $couponCode)->first();
-            if (!$voucher || !$voucher->isValid()) {
-                return response()->json(['message' => 'Mã giảm giá không hợp lệ'], 400);
-            }
-            if ($voucher->isExhausted()) {
-                return response()->json(['message' => 'Mã giảm giá đã hết lượt sử dụng'], 400);
-            }
-            if ($voucher->isUsedByUser($userId)) {
-                return response()->json(['message' => 'Mã giảm giá đã được sử dụng'], 400);
-            }
-            return response()->json(['message' => 'Mã giảm giá hợp lệ', 'id' => $voucher->id, 'value' => $voucher->value]);
-        } catch (TokenExpiredException $e) {
-            return response()->json(['message' => 'token expired'], 401);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+    public function checkCoupon(Request $request, string $couponCode) {
+        $userId = $request->user_id;
+        $voucher = Voucher::where('code', $couponCode)->first();
+        if (!$voucher || !$voucher->isValid()) {
+            return response()->json(['message' => 'Mã giảm giá không hợp lệ'], 400);
         }
+        if ($voucher->isExhausted()) {
+            return response()->json(['message' => 'Mã giảm giá đã hết lượt sử dụng'], 400);
+        }
+        if ($voucher->isUsedByUser($userId)) {
+            return response()->json(['message' => 'Mã giảm giá đã được sử dụng'], 400);
+        }
+        return response()->json(['message' => 'Mã giảm giá hợp lệ', 'id' => $voucher->id, 'value' => $voucher->value]);
     }
 
     public function index(Request $request) {

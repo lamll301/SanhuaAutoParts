@@ -17,12 +17,12 @@
                                     Mã đơn hàng: {{ order.id }}
                                 </span>
                                 <span class="settings-order-tracking-status-text">
-                                    <span v-if="order.payment_status === 0">Chờ thanh toán</span>
-                                    <span v-else-if="!order.approved_by">Chờ duyệt</span>
-                                    <span v-else-if="order.status === 1">Đang đóng gói</span>
+                                    <span v-if="order.status === 1">Đang đóng gói</span>
                                     <span v-else-if="order.status === 2">Đang giao hàng</span>
                                     <span v-else-if="order.status === 3">Hoàn thành</span>
                                     <span v-else-if="order.status === 4">Đã hủy</span>
+                                    <span v-else-if="order.payment_status === 0">Chờ thanh toán</span>
+                                    <span v-else-if="!order.approved_by">Chờ duyệt</span>
                                 </span>
                             </div>
                         </div>
@@ -134,22 +134,24 @@
                                     </span>
                                 </span>
                                 <span v-else-if="order.status === 4">
-                                    Lý do: {{ order.note }}
+                                    Lý do: {{ order.cancel_reason }}
                                 </span>
                             </div>
                             <div class="settings-order-tracking-bottom-right">
                                 <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
-                                    v-if="order.payment_status === 0"
+                                    v-if="order.payment_status === 0 && order.status !== 4" 
+                                    @click="payOrder(order.id)"
                                 >
                                     Thanh toán
                                 </button>
                                 <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
                                     v-if="order.status < 1"
+                                    @click="cancelOrder(order.id)"
                                 >
                                     Hủy Đơn Hàng
                                 </button>
                                 <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
-                                    v-if="order.status === 3"
+                                    v-if="order.status === 3 && !areAllReviewed" @click="reviewOrder(order)"
                                 >
                                     Đánh giá
                                 </button>
@@ -158,7 +160,9 @@
                                 >
                                     Yêu cầu Trả hàng/Hoàn tiền
                                 </button>
-                                <button class="button settings-order-tracking-btn settings-order-tracking-btn-2">
+                                <button class="button settings-order-tracking-btn settings-order-tracking-btn-2"
+                                    @click="reorder(order.details)"
+                                >
                                     Mua lại
                                 </button>
                             </div>
@@ -174,7 +178,7 @@
                             </p>
                             <p class="order-tracking-detail-address-sub">{{ order.phone }}</p>
                             <p class="order-tracking-detail-address-sub">
-                                {{ order.address_type }}
+                                {{ order.address_type }} - {{ address }}
                             </p>
                         </div>
                         <ul class="settings-order-tracking-list">
@@ -233,7 +237,7 @@
                                     </span>
                                 </p>
                             </div>
-                            <div class="settings-order-tracking-bottom-content" v-show="order.payment_method === 'Thanh toán khi nhận hàng'">
+                            <div class="settings-order-tracking-bottom-content" v-show="order.payment_method === 'Thanh toán khi nhận hàng' && order.status !== 4">
                                 <div class="settings-order-tracking-bottom-left">
                                     <span>
                                         Vui lòng thanh toán <sup>đ</sup>{{ formatPrice(order.total_amount) }} khi nhận hàng.
@@ -257,13 +261,27 @@
 </template>
 
 <script>
-import apiService from '@/utils/apiService';
-import { formatDate, formatPrice, getImageUrl, formatAddress } from '@/utils/helpers';
+import { orderApi, paymentApi } from '@/api';
+import { formatDate, formatPrice, getImageUrl } from '@/utils/helpers';
+import { useOrderStore } from '@/stores/order';
+import { useReviewStore } from '@/stores/review';
 
 export default {
+    setup() {
+        const orderStore = useOrderStore();
+        const reviewStore = useReviewStore();
+        return {
+            orderStore,
+            reviewStore,
+        };
+    },
     data() {
         return {
-            order: {}
+            isLoading: false,
+            order: {},
+            city: '',
+            district: '',
+            ward: '',
         }
     },
     computed: {
@@ -271,6 +289,18 @@ export default {
             let n = this.order.status + 1;
             return (n > 4 ? 4 : n) * 25;
         },
+        address() {
+            const parts = [
+                this.order.shipping_address,
+                this.order.ward?.name,
+                this.order.district?.name,
+                this.order.city?.name
+            ];
+            return parts.filter(part => !!part).join(', ');
+        },
+        areAllReviewed() {
+            return this.order.details?.every(detail => detail.isReviewed) || false;
+        }
     },
     beforeRouteEnter(to, from, next) {
         const token = localStorage.getItem('token');
@@ -284,14 +314,21 @@ export default {
         this.fetchData();
     },
     methods: {
-        formatDate, formatPrice, getImageUrl, formatAddress,
+        formatDate, formatPrice, getImageUrl,
         async fetchData() {
+            this.isLoading = true;
             try {
-                const response = await apiService.orders.view(this.$route.params.id);
+                const response = await orderApi.getOrderByUser(this.$route.params.id);
                 this.order = response.data;
             } catch (error) {
                 console.error(error);
+            } finally {
+                this.isLoading = false;
             }
+        },
+        reorder(details) {
+            this.orderStore.setReorder(details);
+            this.$router.push('/don-hang');
         },
         isReturnExpired(completedAt) {
             if (!completedAt) return true;
@@ -300,6 +337,184 @@ export default {
             const diffTime = now - completedDate;
             const diffDays = diffTime / (1000 * 60 * 60 * 24);
             return diffDays > 14;
+        },
+        async payOrder(id) {
+            const { value: paymentMethod } = await this.$swal.fire('Chọn phương thức thanh toán', '', '', {
+                input: 'radio',
+                inputOptions: {
+                    qr: 'Mã QR',
+                    credit: 'Thẻ tín dụng/Ghi nợ',
+                    ewallet: 'Ví điện tử',
+                    cash: 'Tiền mặt'
+                },
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Bạn phải chọn một phương thức thanh toán!'
+                    }
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Tiếp tục',
+                cancelButtonText: 'Huỷ'
+            });
+
+            try {
+                if (paymentMethod) {
+                    switch (paymentMethod) {
+                        case 'qr':
+                            await this.handleQRPayment(id);
+                            break;
+                        case 'credit':
+                            await this.handleCardPayment(id);
+                            break;
+                        case 'ewallet':
+                            await this.handleEwalletPayment(id);
+                            break;
+                        case 'cash':
+                            await this.handleCashPayment(id);
+                            break;
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async handleEwalletPayment(id) {
+            const { value: wallet } = await this.$swal.fire('Chọn ví điện tử', '', '', {
+                input: 'radio',
+                inputOptions: {
+                    momo: 'Momo',
+                    vnpay: 'VNPay',
+                    zalo: 'ZaloPay'
+                },
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Bạn phải chọn một ví điện tử!'
+                    }
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Xác nhận',
+                cancelButtonText: 'Quay lại'
+            });
+            if (!wallet || !id) return;
+            try {
+                if (wallet === 'momo') {
+                    const res = await paymentApi.createMomoPayment(id);
+                    const momo = res.data;
+                    if (momo.resultCode === 0) {
+                        window.location.href = momo.payUrl;
+                    } else {
+                        this.$swal.fire('Lỗi', momo.message, 'error');
+                    }
+                } else if (wallet === 'vnpay') {
+                    const res = await paymentApi.createVNPayPayment(id);
+                    const vnpay = res.data;
+                    if (vnpay.message === "success") {
+                        window.location.href = vnpay.data;
+                    } else {
+                        this.$swal.fire('Lỗi', vnpay.message, 'error');
+                    }
+                } else if (wallet === 'zalo') {
+                    const res = await paymentApi.createZaloPayPayment(id);
+                    const zalo = res.data;
+                    if (zalo.return_code === 1) {
+                        window.location.href = zalo.order_url;
+                    } else {
+                        this.$swal.fire(zalo.return_message, zalo.sub_return_message, 'error');
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async handleCardPayment(id) {
+            const { value: formValues } = await this.$swal.fire('Thông tin thẻ', '', '', {
+                html: `
+                    <input id="cardNumber" class="swal2-input" placeholder="Số thẻ" type="number">
+                    <input id="cardName" class="swal2-input" placeholder="Họ tên chủ thẻ">
+                    <input id="expiryDate" class="swal2-input" placeholder="MM/YY">
+                    <input id="cvv" class="swal2-input" placeholder="CVV" type="number">
+                    <input id="zipCode" class="swal2-input" placeholder="Mã bưu chính" type="number">
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Thanh toán',
+                cancelButtonText: 'Hủy',
+                preConfirm: () => {
+                    const number = document.getElementById('cardNumber').value;
+                    const expiry = document.getElementById('expiryDate').value;
+                    const cvv = document.getElementById('cvv').value;
+                    const holder = document.getElementById('cardName').value;
+                    const postal = document.getElementById('zipCode').value;
+                    if (!number || !expiry || !cvv || !holder || !postal) {
+                        return false;
+                    }
+                    return { number, expiry, cvv, holder, postal };
+                },
+            });
+            if (!formValues || !id) return;
+            await this.$swal.fire('Đã gửi thông tin thanh toán', 'Thông tin thẻ của bạn đã được gửi. Vui lòng chờ nhân viên xác nhận và xử lý trong thời gian sớm nhất.', 'info');
+        },
+        async handleCashPayment(id) {
+            try {
+                const res = await paymentApi.createCODPayment(id);
+                if (res.data.message === "success") {
+                    window.location.href = '/theo-doi-don-hang/' + id;
+                } else {
+                    this.$swal.fire('Lỗi', 'Đã xảy ra lỗi khi tạo thanh toán COD', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async handleQRPayment(id) {
+            try {
+                const res = await paymentApi.createQRCodePayment(id);
+                const qrCode = res.data;
+                if (qrCode.code === "00") {
+                    this.$swal.fire('Quét mã QR để thanh toán', 'Vui lòng sử dụng ứng dụng ngân hàng hoặc ví điện tử để quét mã', '', {
+                        imageUrl: qrCode.data.qrDataURL,
+                        imageAlt: 'QR Code',
+                        imageWidth: 250,
+                        confirmButtonText: 'Tôi đã thanh toán',
+                    })
+                } else {
+                    this.$swal.fire('Lỗi', qrCode.desc, 'error');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async cancelOrder(id) {
+            const { value: reason } = await this.$swal.fire('Huỷ đơn hàng', '', '', {
+                input: 'textarea',
+                inputLabel: 'Lý do huỷ đơn hàng',
+                inputPlaceholder: 'Nhập lý do tại đây...',
+                inputAttributes: {
+                    'aria-label': 'Nhập lý do hủy'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Xác nhận hủy',
+                cancelButtonText: 'Quay lại',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Bạn phải nhập lý do huỷ đơn hàng!';
+                    }
+                }
+            })
+            if (!reason) return;
+
+            try {
+                const res = await orderApi.cancelOrderByUser(id, reason);
+                const order = res.data;
+                this.orders = this.orders.map(o => o.id === id ? order : o);
+                this.$swal.fire('Đã hủy đơn hàng', 'Đơn hàng đã được hủy thành công!', 'success');
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        reviewOrder(order) {
+            this.reviewStore.setReview(order);
+            this.$router.push({ name: 'orderReview' })
         }
     }
 }

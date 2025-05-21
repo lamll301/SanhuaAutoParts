@@ -6,7 +6,7 @@ use App\Http\Middleware\SortMiddleware;
 
 Route::prefix('products')->group(function () {
     Route::get('/by-slug/{slug}', [ProductController::class, 'getBySlug']);
-    Route::get('/category/{slug?}', [ProductController::class, 'getByCategorySlug'])->middleware(SortMiddleware::class);
+    Route::get('/by-category/{slug?}', [ProductController::class, 'getByCategorySlug'])->middleware(SortMiddleware::class);
     Route::get('/trashed', [ProductController::class, 'trashed'])->middleware(SortMiddleware::class);
     Route::patch('/{id}/restore', [ProductController::class, 'restore']);
     Route::delete('/{id}/force-delete', [ProductController::class, 'forceDelete']);

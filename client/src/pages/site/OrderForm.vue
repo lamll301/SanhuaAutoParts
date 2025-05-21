@@ -135,8 +135,8 @@
                             <div v-if="this.payment.qrcode" class="mb-16">
                                 <p class="order-form-qr-text">Quét mã QR dưới đây bằng ứng dụng Internet Banking để thanh toán</p>
                                 <img :src="payment.qrcode.image" alt="" class="order-form-qr">
-                                <p class="order-form-qr-sub-text">Số hoá đơn: {{ payment.id }}</p>
-                                <p class="order-form-qr-sub-text">Lưu ý: Mã QR này sẽ hết hạn sau {{ countdown }} kể từ lúc tạo</p>
+                                <p class="order-form-qr-sub-text">Mã đơn hàng: {{ order.id }}</p>
+                                <p class="order-form-qr-sub-text">Đơn hàng sẽ được xử lý sau khi quét mã QR</p>
                             </div>
                         </div>
                         <div class="order-form-radio-container">
@@ -322,10 +322,10 @@
 
 <script>
 import { getImageUrl, formatPrice } from '@/utils/helpers';
-import apiService from '@/utils/apiService';
 import { useOrderStore } from '@/stores/order';
 import { useCartStore } from '@/stores/cart';
 import { useAuthStore } from '@/stores/auth';
+import { orderApi, paymentApi, addressApi, voucherApi } from '@/api';
 
 export default {
     name: 'OrderForm',
@@ -399,7 +399,6 @@ export default {
             cities: [], selectedCity: '',
             districts: [], selectedDistrict: '',
             wards: [], selectedWard: '',
-            countdown: '15:00',
             errors: {
                 name: '',
                 phone: '',
@@ -411,7 +410,7 @@ export default {
         }
     },
     created() {
-        this.fetchData();
+        this.fetchCities();
     },
     watch: {
         selectedCity() {
@@ -426,9 +425,9 @@ export default {
     },
     methods: {
         getImageUrl, formatPrice,
-        async fetchData() {
+        async fetchCities() {
             try {
-                const res = await apiService.provinces.getProvinces()
+                const res = await addressApi.getProvinces()
                 this.cities = res.data;
             } catch (err) {
                 console.error(err);
@@ -436,7 +435,7 @@ export default {
         },
         async fetchDistricts() {
             try {
-                const res = await apiService.provinces.getProvinceWithDistricts(this.selectedCity);
+                const res = await addressApi.getProvinceWithDistricts(this.selectedCity);
                 this.districts = res.data.districts;
             } catch (err) {
                 console.error(err);
@@ -444,7 +443,7 @@ export default {
         },
         async fetchWards() {
             try {
-                const res = await apiService.provinces.getDistrictWithWards(this.selectedDistrict);
+                const res = await addressApi.getDistrictWithWards(this.selectedDistrict);
                 this.wards = res.data.wards;
             } catch (err) {
                 console.error(err);
@@ -452,19 +451,22 @@ export default {
         },
         async fetchPaymentQR() {
             try {
-                const response = await apiService.vietQR.generateQR(this.order.id, this.order.total_amount);
-                this.payment.qrcode = {
-                    image: response.data.data.qrDataURL,
-                };
-                this.startCountdown();
+                const response = await paymentApi.createQRCodePayment(this.order.id);
+                const qrCode = response.data;
+                if (qrCode.code === "00") {
+                    this.payment.qrcode = {
+                        image: qrCode.data.qrDataURL,
+                    };
+                } else {
+                    this.$swal.fire('Lỗi', qrCode.desc, 'error');
+                }
             } catch (error) {
                 console.log(error);
-                this.$swal.fire('Lỗi', 'Đã xảy ra lỗi khi tạo mã QR. Vui lòng thử lại.', 'error')
             }
         },
         async createMomoPayment() {
             try {
-                const response = await apiService.payments.createMomoPayment(this.order);
+                const response = await paymentApi.createMomoPayment(this.order.id);
                 const momo = response.data;
                 if (momo.resultCode === 0) {
                     window.location.href = momo.payUrl;
@@ -477,7 +479,7 @@ export default {
         },
         async createVNPayPayment() {
             try {
-                const response = await apiService.payments.createVNPayPayment(this.order);
+                const response = await paymentApi.createVNPayPayment(this.order.id);
                 const vnpay = response.data;
                 if (vnpay.message === "success") {
                     window.location.href = vnpay.data;
@@ -490,7 +492,7 @@ export default {
         },
         async createZaloPayPayment() {
             try {
-                const response = await apiService.payments.createZaloPayPayment(this.order);
+                const response = await paymentApi.createZaloPayPayment(this.order.id);
                 const zaloPay = response.data;
                 if (zaloPay.return_code === 1) {
                     window.location.href = zaloPay.order_url;
@@ -503,8 +505,9 @@ export default {
         },
         async createCODPayment() {
             try {
-                const response = await apiService.payments.createCODPayment(this.order.id);
-                if (response.data.message === "success") {
+                const response = await paymentApi.createCODPayment(this.order.id);
+                const cod = response.data;
+                if (cod.message === "success") {
                     window.location.href = '/theo-doi-don-hang/' + this.order.id;
                 } else {
                     this.$swal.fire('Lỗi', 'Đã xảy ra lỗi khi tạo thanh toán COD', 'error');
@@ -520,7 +523,7 @@ export default {
                 return;
             }
             try {
-                const response = await apiService.vouchers.applyCoupon(this.couponCode);
+                const response = await voucherApi.checkCoupon(this.couponCode);
                 this.voucherValue = response.data.value;
                 this.voucherId = response.data.id;
                 this.couponSuccessMessage = response.data.message;
@@ -585,7 +588,7 @@ export default {
                 price: detail.product.price,
             }));
             try {
-                const response = await apiService.orders.create({
+                const response = await orderApi.create({
                     name: this.name,
                     phone: this.phone,
                     city_id: this.selectedCity,
@@ -616,29 +619,10 @@ export default {
                 }
             } catch (error) {
                 console.log(error);
-                this.$swal.fire('Lỗi', 'Đã xảy ra lỗi khi tạo đơn hàng', 'error');
             }
         },
         onEWalletSelect(eWalletName) {
             this.selectedEWallet = eWalletName;
-        },
-        startCountdown() {
-            let time = 15 * 60;
-            this.countdownInterval = setInterval(() => {
-                if (time <= 0) {
-                    clearInterval(this.countdownInterval);
-                    this.$swal.fire('Hết thời gian', 'Thời gian quét mã QR đã hết. Vui lòng thử lại.', 'error');
-                    this.payment.qrcode = null;
-                    this.selectedPaymentMethod = '';
-                    this.countdown = '15:00';
-                    return;
-                }
-
-                const minutes = Math.floor(time / 60);
-                const seconds = time % 60;
-                this.countdown = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
-                time--;
-            }, 1000);
         },
     },
 }

@@ -8,16 +8,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('type')->nullable();
-            $table->string('slug')->unique();
-            $table->string('description')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
-        
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -60,6 +50,5 @@ return new class extends Migration
     {
         Schema::dropIfExists('product_category');
         Schema::dropIfExists('products');
-        Schema::dropIfExists('categories');
     }
 };

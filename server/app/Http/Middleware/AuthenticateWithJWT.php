@@ -17,7 +17,7 @@ class AuthenticateWithJWT
         try {
             $user = JWTAuth::parseToken()->authenticate();
             if (!$user) {
-                return response()->json(['message' => 'user not found'], 404);
+                return response()->json(['message' => 'Không tìm thấy User'], 401);
             }
             $request->merge(['user_id' => $user->id]);
             return $next($request);

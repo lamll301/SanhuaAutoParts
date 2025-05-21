@@ -6,9 +6,6 @@ use App\Http\Requests\UserRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
-use Illuminate\Support\Facades\Auth;
-use Tymon\JWTAuth\Exceptions\TokenExpiredException;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
@@ -21,63 +18,48 @@ class UserController extends Controller
     ];
 
     public function updateProfile(Request $request) {
-        try {
-            $user = User::findOrFail(Auth::id());
-            $user->update($request->only([
-                'name', 'email', 'phone', 'date_of_birth', 'city_id', 'district_id', 'ward_id',  'address', 'avatar_id'
-            ]));
-            if ($request->hasFile('avatar')) {
-                if ($user->avatar_id) {
-                    $oldImage = $user->avatar;
-                    if ($oldImage) {
-                        $path = str_replace('/storage', '', $oldImage->path);
-                        Storage::disk('public')->delete($path);
-                        $oldImage->delete();
-                    }
+        $userId = $request->user_id;
+        $user = User::findOrFail($userId);
+        $user->update($request->only([
+            'name', 'email', 'phone', 'date_of_birth', 'city_id', 'district_id', 'ward_id',  'address', 'avatar_id'
+        ]));
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar_id) {
+                $oldImage = $user->avatar;
+                if ($oldImage) {
+                    $path = str_replace('/storage', '', $oldImage->path);
+                    Storage::disk('public')->delete($path);
+                    $oldImage->delete();
                 }
-                $storagePath = "User/{$user->id}";
-                $file = $request->file('avatar');
-                $path = $file->store($storagePath, 'public');
-                $image = $user->avatar()->create([
-                    'path' => Storage::url($path),
-                    'filename' => $file->getClientOriginalName(),
-                    'mime_type' => $file->getClientMimeType(),
-                    'size' => $file->getSize(),
-                ]);
-                $user->avatar_id = $image->id;
-                $user->save();
             }
-            return response()->json($user->load(['avatar:id,path']));
-        } catch (TokenExpiredException $e) {
-            return response()->json(['error' => 'Token has expired'], 401);
+            $storagePath = "User/{$user->id}";
+            $file = $request->file('avatar');
+            $path = $file->store($storagePath, 'public');
+            $image = $user->avatar()->create([
+                'path' => Storage::url($path),
+                'filename' => $file->getClientOriginalName(),
+                'mime_type' => $file->getClientMimeType(),
+                'size' => $file->getSize(),
+            ]);
+            $user->avatar_id = $image->id;
+            $user->save();
         }
+        return response()->json($user->load(['avatar:id,path']));
     }
 
     public function updatePassword(Request $request) {
-        try {
-            $validator = Validator::make($request->all(), [
-                'old_password' => 'required|string|min:6',
-                'new_password' => 'required|string|min:6',
-            ]);
+        $userId = $request->user_id;
+        $user = User::findOrFail($userId);
 
-            if ($validator->fails()) {
-                return response()->json($validator->errors(), 422);
-            }
-
-            $user = User::findOrFail(Auth::id());
-
-            if (!Hash::check($request->old_password, $user->password)) {
-                return response()->json(['error' => 'Password is incorrect'], 422);
-            }
-
-            $user->update([
-                'password' => $request->new_password
-            ]);
-
-            return response()->json(['message' => 'success']);
-        } catch (TokenExpiredException $e) {
-            return response()->json(['error' => 'Token has expired'], 401);
+        if (!Hash::check($request->oldPassword, $user->password)) {
+            return response()->json(['error' => 'Password is incorrect'], 422);
         }
+
+        $user->update([
+            'password' => $request->newPassword
+        ]);
+
+        return response()->json(['message' => 'success']);
     }
 
     public function index(Request $request) {
