@@ -79,7 +79,7 @@
 </template>
 
 <script>
-import apiService from '@/utils/apiService';
+import { categoryApi } from '@/api';
 import ImagePreview from '@/components/ImagePreview.vue';
 
 export default {
@@ -143,7 +143,7 @@ export default {
         async fetchData() {
             try {
                 if (this.$route.params.id) {
-                    const res = await this.$swal.withLoading(apiService.categories.getOne(this.$route.params.id));
+                    const res = await this.$swal.withLoading(categoryApi.getOne(this.$route.params.id));
                     this.category = res.data;
                 }
             } catch (error) {
@@ -152,15 +152,15 @@ export default {
         },
         async save() {
             if (!this.validate()) return;
-            const data = this.cleanData(this.category);
+            const data = this.collectData(this.category);
 
             try {
                 if (this.category.id) {
-                    await apiService.categories.updateWithImages(this.category.id, data);
+                    await categoryApi.updateWithImages(this.category.id, data);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về danh mục đã được cập nhật!", "success")
                 }
                 else {
-                    await apiService.categories.create(data);
+                    await categoryApi.create(data);
                     await this.$swal.fire("Thêm thành công!", "Danh mục mới đã được thêm vào hệ thống!", "success")
                 }
                 this.$router.push({ name: 'admin.categories' });
@@ -168,7 +168,7 @@ export default {
                 console.error(error);
             }
         },
-        cleanData(category) {
+        collectData(category) {
             const formData = new FormData();
             const images = this.$refs.imagePreview.tempImages;
             const selectedThumbnail = this.$refs.imagePreview.selectedThumbnail;

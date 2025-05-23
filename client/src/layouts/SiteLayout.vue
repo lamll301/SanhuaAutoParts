@@ -23,7 +23,7 @@
                             <ul class="header__top-user-menu">
                                 <li class="header__top-user-item">
                                     <a class="header__top-user-item-info">
-                                        <img :src="getImageUrl(user?.avatar?.path)" alt="" class="header__top-user-item-avatar">
+                                        <img :src="getImageUrl(user.avatar?.path, '/images/empty-avatar.webp')" alt="" class="header__top-user-item-avatar">
                                         <p class="header__top-user-item-name">{{ user.name }}</p>
                                     </a>
                                 </li>
@@ -406,8 +406,8 @@ export default {
             this.isLoading = true;
             try {
                 const res = await Promise.all([
-                    categoryApi.getAllCategories({ key: 'part' }),
-                    categoryApi.getAllCategories({ key: 'brand' }),
+                    categoryApi.getAll({ key: 'part' }),
+                    categoryApi.getAll({ key: 'brand' }),
                 ]);
 
                 this.categories = res[0].data.data;

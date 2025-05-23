@@ -4,7 +4,6 @@
             <div class="admin-content__heading">
                 <h3 v-show="!isTrashRoute">Quản lý người dùng</h3>
                 <h3 v-show="isTrashRoute">Quản lý thùng rác</h3>
-                <router-link to="/admin/user/create" class="admin-content__create">Thêm người dùng</router-link>
             </div>
             <div class="admin-content__table">
                 <div class="admin-content__header d-flex align-items-center">
@@ -37,8 +36,8 @@
                     </select>
                     <select v-show="!isTrashRoute" ref="selectedStatus" class="form-select admin-content__select-attribute admin-content__select-status">
                         <option value="" selected>-- Chọn trạng thái --</option>
-                        <option v-for="status in statusOptions" :key="status.value" :value="status.value">
-                            {{ status.label }}
+                        <option v-for="([key, status]) in Object.entries(getAllStatusOptions('user'))" :key="key" :value="key">
+                            {{ status }}
                         </option>
                     </select>
                     <button class="fs-16 btn btn-primary" id="btnCheckboxSubmit" @click="handleFormActions()">Thực hiện</button>
@@ -47,6 +46,9 @@
                     <template #header>
                         <th scope="col">ID
                             <SortComponent field="id" :sort="sort"/>
+                        </th>
+                        <th scope="col">Tên tài khoản
+                            <SortComponent field="username" :sort="sort"/>
                         </th>
                         <th scope="col">Tên
                             <SortComponent field="name" :sort="sort"/>
@@ -60,9 +62,10 @@
                         <th scope="col">Điện thoại
                             <SortComponent field="phone" :sort="sort"/>
                         </th>
-                        <th scope="col">Địa chỉ</th>
                         <th scope="col">Vai trò</th>
-                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Trạng thái
+                            <SortComponent field="status" :sort="sort"/>
+                        </th>
                         <template v-if="!isTrashRoute">
                             <th scope="col">Ngày tạo
                                 <SortComponent field="created_at" :sort="sort"/>
@@ -79,13 +82,13 @@
                     </template>
                     <template #body="{ item }">
                         <th>{{ item.id }}</th>
+                        <td>{{ item.username }}</td>
                         <td>{{ item.name }}</td>
                         <td>{{ item.date_of_birth }}</td>
                         <td>{{ item.email }}</td>
                         <td>{{ item.phone }}</td>
-                        <td>{{ formatAddress(item.address, item.ward_id, item.district_id, item.city_id) }}</td>
                         <td>{{ item.role?.name }}</td>
-                        <td>{{ getStatusLabel(item.status) }}</td>
+                        <td>{{ getStatusText('user', item.status) }}</td>
                         <template v-if="!isTrashRoute">
                             <td>{{ formatDate(item.created_at) }}</td>
                             <td>{{ formatDate(item.updated_at) }}</td>
@@ -93,7 +96,7 @@
                         <td v-else>{{ formatDate(item.deleted_at) }}</td>
                         <td>
                             <template v-if="!isTrashRoute">
-                                <router-link :to="'/admin/user/edit/' + item.id" class="fs-16 btn btn-primary">Sửa</router-link>&nbsp;
+                                <router-link :to="'/admin/user/view/' + item.id" class="fs-16 btn btn-primary">Xem</router-link>&nbsp;
                                 <button class="fs-16 btn btn-danger" @click="onDelete(item.id)">Xóa</button>
                             </template>
                             <template v-else>
@@ -135,9 +138,10 @@
 import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
-import apiService from '@/utils/apiService';
-import { formatDate, formatAddress } from '@/utils/formatter';
-import { statusService } from '@/utils/statusMap';
+import { formatDate } from '@/utils/helpers';
+import { userApi, roleApi } from '@/api';
+import { getAllStatusOptions, getStatusText } from '@/utils/statusMap';
+
 
 export default {
     components: {
@@ -149,8 +153,6 @@ export default {
             sort: {}, totalPages: 0, currentPage: 1,
             selectedIds: [],
             users: [], roles: [],
-            cities: [], districts: [], wards: [],
-            statusOptions: statusService.getOptions('user'),
         }
     },
     computed: {
@@ -166,38 +168,30 @@ export default {
         },
     },
     methods: {
+        formatDate, getAllStatusOptions, getStatusText,
         async fetchData() {
             try {
                 const req = [
-                    apiService.provinces.getProvinces(),
-                    apiService.provinces.getDistricts(),
-                    apiService.provinces.getWards(),
                     this.isTrashRoute
-                        ? apiService.users.getTrashed(this.$route.query)
-                        : apiService.users.get(this.$route.query)
+                        ? userApi.getTrashed(this.$route.query)
+                        : userApi.get(this.$route.query)
                 ];
-
                 if (!this.isTrashRoute) {
                     req.push(
-                        apiService.users.getTrashed(),
-                        apiService.roles.getAll(),
+                        userApi.getTrashed(),
+                        roleApi.getAll(),
                     );
                 }
-                
                 const res = await this.$swal.withLoading(Promise.all(req))
 
-                this.cities = res[0].data;
-                this.districts = res[1].data;
-                this.wards = res[2].data;
-
-                this.users = res[3].data.data;
-                this.totalPages = Math.ceil(res[3].data.pagination.total / res[3].data.pagination.per_page);
-                this.currentPage = res[3].data.pagination.current_page;
-                this.sort = res[3].data._sort;
+                this.users = res[0].data.data;
+                this.totalPages = Math.ceil(res[0].data.pagination.total / res[0].data.pagination.per_page);
+                this.currentPage = res[0].data.pagination.current_page;
+                this.sort = res[0].data._sort;
     
                 if (!this.isTrashRoute) {
-                    this.deletedCount = res[4].data?.pagination?.total || 0;
-                    this.roles = res[5].data?.data || []
+                    this.deletedCount = res[1].data?.pagination?.total || 0;
+                    this.roles = res[2].data?.data || []
                 }
             } catch (error) {
                 console.error(error);
@@ -205,7 +199,7 @@ export default {
         },
         async onDelete(id) {
             try {
-                await apiService.users.delete(id)
+                await userApi.delete(id)
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success")
                 await this.fetchData()
             } catch (error) {
@@ -214,7 +208,7 @@ export default {
         },
         async onRestore(id) {
             try {
-                await apiService.users.restore(id)
+                await userApi.restore(id)
                 await this.$swal.fire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success")
                 await this.fetchData()
             } catch (error) {
@@ -229,7 +223,7 @@ export default {
             })
             if (!result.isConfirmed) return;
             try {
-                await apiService.users.forceDelete(id);
+                await userApi.forceDelete(id);
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success")
                 await this.fetchData();
             } catch (error) {
@@ -250,7 +244,7 @@ export default {
                 return;
             }
             try {
-                await apiService.users.handleFormActions({
+                await userApi.handleFormActions({
                     action,
                     selectedIds: this.selectedIds,
                     targetId
@@ -258,8 +252,9 @@ export default {
                 await this.$swal.fire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success")
                 await this.fetchData()
                 await this.$refs.checkboxTable.resetCheckboxAll()
-            } catch (error) {
-                console.error(error)
+            } catch (e) {
+                console.error(e)
+                this.$swal.fire("Lỗi!", e.message, "error")
             }
         },
         validateAndGetActionData() {
@@ -296,19 +291,6 @@ export default {
         handleUpdateIds(ids) {
             this.selectedIds = ids;
         },
-        formatDate(date) {
-            return formatDate(date);
-        },
-        formatAddress(address, wardId, districtId, cityId) {
-            return formatAddress(address, wardId, districtId, cityId, {
-                cities: this.cities,
-                districts: this.districts,
-                wards: this.wards
-            });
-        },
-        getStatusLabel(status) {
-            return statusService.getLabel('user', status);
-        }
     }
 }
 </script>

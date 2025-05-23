@@ -358,7 +358,7 @@
                     </div>
                     <div class="product-comment-list">
                         <div v-for="comment in comments" :key="comment.id" class="product-comment-item">
-                            <img :src="getImageUrl(comment.user.avatar.path)" alt="Avatar" class="product-comment-img">
+                            <img :src="getImageUrl(comment.user.avatar?.path, '/images/empty-avatar.webp')" alt="Avatar" class="product-comment-img">
                             <div class="product-comment-text">
                                 <div class="product-comment-top">
                                     <div class="product-comment-star">

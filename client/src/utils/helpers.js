@@ -15,8 +15,8 @@ export function formatPrice(price) {
     return new Intl.NumberFormat('vi-VN').format(price);
 }
 
-export function getImageUrl(path) {
-    if (!path) return null;
+export function getImageUrl(path, defaultImg = null) {
+    if (!path) return defaultImg;
     if (path.startsWith('http')) return path;
     return `${process.env.VUE_APP_API_BASE_URL}${path}`;
 }

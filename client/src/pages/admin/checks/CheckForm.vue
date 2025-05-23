@@ -58,8 +58,8 @@
 </template>
 
 <script>
-import apiService from '@/utils/apiService';
 import TableDetails from '@/components/TableDetails.vue';
+import { checkApi, inventoryApi } from '@/api';
 
 export default {
     components: {
@@ -111,12 +111,12 @@ export default {
         async fetchData() {
             try {
                 const req = [
-                    apiService.inventories.getAll(),
+                    inventoryApi.getAll(),
                 ];
 
                 if (this.$route.params.id) {
                     req.push(
-                        apiService.checks.getOne(this.$route.params.id)
+                        checkApi.getOne(this.$route.params.id)
                     );
                 }
 
@@ -130,15 +130,15 @@ export default {
         },
         async save() {
             if (!this.validate()) return;
-            const data = this.cleanData(this.check);
+            const data = this.collectData(this.check);
 
             try {
                 if (this.check.id) {
-                    await apiService.checks.update(this.check.id, data);
+                    await checkApi.update(this.check.id, data);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về phiếu kiểm kê đã được cập nhật!", "success")
                 }
                 else {
-                    await apiService.checks.create(data);
+                    await checkApi.create(data);
                     await this.$swal.fire("Thêm thành công!", "Phiếu kiểm kê mới đã được thêm vào hệ thống!", "success")
                 }
                 this.$router.push({ name: 'admin.checks' });
@@ -146,7 +146,7 @@ export default {
                 console.error(error);
             }
         },
-        cleanData(check) {
+        collectData(check) {
             const data = { ...check };
             if (data.details) {
                 data.details = data.details.filter(detail => 

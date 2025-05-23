@@ -43,21 +43,21 @@
                         <li v-for="article in articles" :key="article.id" class="news-item">
                             <router-link :to="`/tin-tuc/` + article.slug" class="news-item-container">
                                 <div class="news-item-img-container">
-                                    <img :src="getImageUrl(article.images[0].path)" alt="" class="news-item-img">
+                                    <img :src="getImageUrl(article.images[0]?.path)" alt="" class="news-item-img">
                                 </div>
                                 <div class="news-item-card">
                                     <div class="news-item-card-category">
-                                        {{ article.creator.name }}
+                                        {{ article.creator?.name }}
                                     </div>
                                     <div class="news-item-card-time">
-                                        {{ article.publish_date }}
+                                        {{ article?.publish_date }}
                                     </div>
                                 </div>
                                 <p class="news-item-title">
-                                    {{ article.title }}
+                                    {{ article?.title }}
                                 </p>
                                 <span class="news-item-desc">
-                                    {{ article.highlight }}
+                                    {{ article?.highlight }}
                                 </span>
                             </router-link>
                         </li>

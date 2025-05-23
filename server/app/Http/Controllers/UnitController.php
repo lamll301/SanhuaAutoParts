@@ -7,7 +7,7 @@ use App\Models\Unit;
 
 class UnitController extends Controller
 {
-    private const SEARCH_FIELDS = ['id', 'name'];
+    private const SEARCH_FIELDS = ['name'];
 
     public function index(Request $request) {
         $query = Unit::query();
@@ -59,7 +59,7 @@ class UnitController extends Controller
                 Unit::onlyTrashed()->whereIn('id', $ids)->forceDelete();
                 return response()->json(['message' => 'success'], 204);
             default:
-                return response()->json(['message' => 'Action is invalid'], 400);
+                return response()->json(['message' => 'Hành động không hợp lệ.'], 400);
         }
     }
 }

@@ -7,8 +7,8 @@ use App\Http\Middleware\AuthenticateWithJWT;
 
 Route::prefix('users')->group(function () {
     Route::middleware([AuthenticateWithJWT::class])->group(function () {
-        Route::put('/update-profile', [UserController::class, 'updateProfile']);
-        Route::put('/update-password', [UserController::class, 'updatePassword']);
+        Route::put('/profile', [UserController::class, 'updateProfile']);
+        Route::patch('/password/reset', [UserController::class, 'resetPassword']);
     });
     Route::get('/trashed', [UserController::class, 'trashed'])->middleware(SortMiddleware::class);
     Route::patch('/{id}/restore', [UserController::class, 'restore']);

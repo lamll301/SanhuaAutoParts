@@ -1,16 +1,16 @@
 import apiClient from "@/plugins/axios"
 
 const supplierApi = {
-    getSuppliers(params = {}) {
+    get(params = {}) {
         return apiClient.get('/suppliers', { params })
     },
-    getSuppliersTrashed(params = {}) {
+    getTrashed(params = {}) {
         return apiClient.get('/suppliers/trashed', { params })
     },
-    getAllSuppliers(params = {}) {
+    getAll(params = {}) {
         return apiClient.get('/suppliers', { params: { ...params, all: true } })
     },
-    getSupplier(id) {
+    getOne(id) {
         return apiClient.get(`/suppliers/${id}`)
     },
     create(data) {

@@ -1,16 +1,16 @@
 import apiClient from "@/plugins/axios"
 
 const inventoryApi = {
-    getInventories(params = {}) {
+    get(params = {}) {
         return apiClient.get('/inventories', { params })
     },
-    getInventoriesTrashed(params = {}) {
+    getTrashed(params = {}) {
         return apiClient.get('/inventories/trashed', { params })
     },
-    getAllInventories(params = {}) {
+    getAll(params = {}) {
         return apiClient.get('/inventories', { params: { ...params, all: true } })
     },
-    getInventory(id) {
+    getOne(id) {
         return apiClient.get(`/inventories/${id}`)
     },
     create(data) {

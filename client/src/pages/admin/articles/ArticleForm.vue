@@ -53,6 +53,7 @@
                             </div>
                         </div>
                         <div class="mb-20 admin-content__form-btn">
+                            <button v-if="!article.approved_by && article.id" type="button" class="fs-16 btn btn-secondary" @click="approve()">Duyệt</button>
                             <button type="submit" class="fs-16 btn btn-primary">Xác nhận</button>
                         </div>
                     </div>
@@ -65,7 +66,7 @@
 
 <script>
 import RichTextEditor from '@/components/RichTextEditor.vue';
-import apiService from '@/utils/apiService';
+import { articleApi } from '@/api';
 
 export default {
     components: {
@@ -92,10 +93,20 @@ export default {
         await this.fetchData();
     },
     methods: {
+        async approve() {
+            try {
+                await articleApi.approve(this.$route.params.id);
+                await this.$swal.fire("Duyệt thành công!", "Tin tức đã được duyệt!", "success")
+                this.$router.push({ name: 'admin.articles' });
+            } catch (e) {
+                console.error(e);
+                this.$swal.fire("Lỗi!", e.message, "error")
+            }
+        },
         async fetchData() {
             try {
                 if (this.$route.params.id) {
-                    const res = await this.$swal.withLoading(apiService.articles.getOne(this.$route.params.id));
+                    const res = await this.$swal.withLoading(articleApi.getOne(this.$route.params.id));
                     this.article = res.data;
                 }
             } catch (error) {
@@ -104,18 +115,14 @@ export default {
         },
         async save() {
             if (!this.validate()) return;
-            const data = this.cleanData(this.article);
-            // for (let [key, value] of data.entries()) {
-            //     console.log(`${key}:`, value);
-            // }
-
+            const data = this.collectData(this.article);
             try {
                 if (this.article.id) {
-                    await apiService.articles.updateWithImages(this.article.id, data);
+                    await articleApi.updateWithImages(this.article.id, data);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về tin tức đã được cập nhật!", "success")
                 }
                 else {
-                    await apiService.articles.create(data);
+                    await articleApi.create(data);
                     await this.$swal.fire("Thêm thành công!", "Tin tức mới đã được thêm vào hệ thống!", "success")
                 }
                 this.$router.push({ name: 'admin.articles' });
@@ -123,7 +130,7 @@ export default {
                 console.error(error);
             }
         },
-        cleanData(article) {
+        collectData(article) {
             const formData = new FormData();
             const content = this.$refs.richTextEditor.getContent();
             const images = this.$refs.richTextEditor.getTempImages();

@@ -1,13 +1,16 @@
 import apiClient from "@/plugins/axios"
 
 const articleApi = {
-    getArticles() {
-        return apiClient.get('/articles')
+    get(params = {}) {
+        return apiClient.get('/articles', { params })
     },
-    getArticlesTrashed() {
-        return apiClient.get('/articles/trashed')
+    getTrashed(params = {}) {
+        return apiClient.get('/articles/trashed', { params })
     },
-    getArticle(id) {
+    getAll(params = {}) {
+        return apiClient.get('/articles', { params: { ...params, all: true } })
+    },
+    getOne(id) {
         return apiClient.get(`/articles/${id}`)
     },
     getPublished(params = {}) {
@@ -36,6 +39,9 @@ const articleApi = {
     },
     handleFormActions(data) {
         return apiClient.post('/articles/handle-form-actions', data)
+    },
+    approve(id) {
+        return apiClient.patch(`/articles/${id}/approve`)
     }
 }
 

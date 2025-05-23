@@ -36,8 +36,8 @@
                     </select>
                     <select v-show="!isTrashRoute" ref="selectedStatus" class="form-select admin-content__select-attribute admin-content__select-status">
                         <option value="" selected>-- Chọn trạng thái --</option>
-                        <option v-for="status in statusOptions" :key="status.value" :value="status.value">
-                            {{ status.label }}
+                        <option v-for="([key, status]) in Object.entries(getAllStatusOptions('location'))" :key="key" :value="key">
+                            {{ status }}
                         </option>
                     </select>
                     <button class="fs-16 btn btn-primary" id="btnCheckboxSubmit" @click="handleFormActions()">Thực hiện</button>
@@ -88,7 +88,7 @@
                         <td>{{ item.shelf }}</td>
                         <td>{{ item.bin }}</td>
                         <td>{{ item.category?.name }}</td>
-                        <td>{{ getStatusLabel(item.status) }}</td>
+                        <td>{{ getStatusText('location', item.status) }}</td>
                         <template v-if="!isTrashRoute">
                             <td>{{ formatDate(item.created_at) }}</td>
                             <td>{{ formatDate(item.updated_at) }}</td>
@@ -138,9 +138,9 @@
 import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
-import apiService from '@/utils/apiService';
-import { formatDate } from '@/utils/formatter';
-import { statusService } from '@/utils/statusMap';
+import { locationApi, categoryApi } from '@/api';
+import { formatDate } from '@/utils/helpers';
+import { getAllStatusOptions, getStatusText } from '@/utils/statusMap';
 
 export default {
     components: {
@@ -152,7 +152,6 @@ export default {
             sort: {}, totalPages: 0, currentPage: 1,
             selectedIds: [],
             locations: [], categories: [],
-            statusOptions: statusService.getOptions('location'),
         }
     },
     computed: {
@@ -168,18 +167,19 @@ export default {
         },
     },
     methods: {
+        formatDate, getAllStatusOptions, getStatusText,
         async fetchData() {
             try {
                 const req = [
                     this.isTrashRoute
-                        ? apiService.locations.getTrashed(this.$route.query)
-                        : apiService.locations.get(this.$route.query)
+                        ? locationApi.getTrashed(this.$route.query)
+                        : locationApi.get(this.$route.query)
                 ];
 
                 if (!this.isTrashRoute) {
                     req.push(
-                        apiService.locations.getTrashed(),
-                        apiService.categories.getAll(),
+                        locationApi.getTrashed(),
+                        categoryApi.getAll(),
                     );
                 }
                 
@@ -200,7 +200,7 @@ export default {
         },
         async onDelete(id) {
             try {
-                await apiService.locations.delete(id)
+                await locationApi.delete(id)
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success")
                 await this.fetchData()
             } catch (error) {
@@ -209,7 +209,7 @@ export default {
         },
         async onRestore(id) {
             try {
-                await apiService.locations.restore(id)
+                await locationApi.restore(id)
                 await this.$swal.fire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success")
                 await this.fetchData()
             } catch (error) {
@@ -224,7 +224,7 @@ export default {
             })
             if (!result.isConfirmed) return;
             try {
-                await apiService.locations.forceDelete(id);
+                await locationApi.forceDelete(id);
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success")
                 await this.fetchData();
             } catch (error) {
@@ -245,7 +245,7 @@ export default {
                 return;
             }
             try {
-                await apiService.locations.handleFormActions({
+                await locationApi.handleFormActions({
                     action,
                     selectedIds: this.selectedIds,
                     targetId
@@ -290,12 +290,6 @@ export default {
         },
         handleUpdateIds(ids) {
             this.selectedIds = ids;
-        },
-        formatDate(date) {
-            return formatDate(date);
-        },
-        getStatusLabel(status) {
-            return statusService.getLabel('location', status);
         },
     }
 }

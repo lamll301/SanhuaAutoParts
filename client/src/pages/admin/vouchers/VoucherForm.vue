@@ -64,17 +64,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="mb-20">
-                            <h3 class="admin-content__form-text">Trạng thái</h3>
-                            <div class="input-group">
-                                <select class="valid-elm form-select" v-model="voucher.status">
-                                    <option value="" disabled selected>Chọn trạng thái</option>
-                                    <option v-for="status in statusOptions" :key="status.value" :value="status.value">
-                                        {{ status.label }}
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
                         <div class="mb-20 admin-content__form-btn">
                             <button type="submit" class="fs-16 btn btn-primary">Xác nhận</button>
                         </div>
@@ -87,16 +76,12 @@
 </template>
 
 <script>
-import apiService from '@/utils/apiService';
-import { statusService } from '@/utils/statusMap';
+import { voucherApi } from '@/api';
 
 export default {
     data() {
         return {
-            voucher: {
-                status: '',
-            }, 
-            statusOptions: statusService.getOptions('voucher'),
+            voucher: {}, 
             errors: {
                 value: '',
                 code: '',
@@ -165,7 +150,7 @@ export default {
         async fetchData() {
             try {
                 if (this.$route.params.id) {
-                    const res = await this.$swal.withLoading(apiService.vouchers.getOne(this.$route.params.id));
+                    const res = await this.$swal.withLoading(voucherApi.getOne(this.$route.params.id));
                     this.voucher = res.data;
                 }
             } catch (error) {
@@ -176,11 +161,11 @@ export default {
             if (!this.validate()) return;
             try {
                 if (this.voucher.id) {
-                    await apiService.vouchers.update(this.voucher.id, this.voucher);
+                    await voucherApi.update(this.voucher.id, this.voucher);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về voucher đã được cập nhật!", "success");
                 }
                 else {
-                    await apiService.vouchers.create(this.voucher);
+                    await voucherApi.create(this.voucher);
                     await this.$swal.fire("Thêm thành công!", "Voucher mới đã được thêm vào hệ thống!", "success");
                 }
                 this.$router.push({ name: 'admin.vouchers' });
@@ -193,7 +178,6 @@ export default {
                 value: '',
                 code: '',
                 usage_limit: '',
-                status: '',
             };
             this.errors = {
                 value: '',

@@ -60,7 +60,7 @@
                 <template v-if="isLoading">
                     <div style="margin-bottom: 60px;">
                         <div class="loading-dots">Đang tải dữ liệu</div>
-                        <vue3-lottie :animationData="animationData" width="320px" height="320px"/>
+                        <vue3-lottie :animationData="animationData" width="300px" height="300px"/>
                     </div>
                 </template>
                 <template v-else>
@@ -544,7 +544,7 @@ export default {
 }
 
 .settings-order-tracking-empty-img {
-    width: 248px;
+    width: 220px;
     margin: 0 auto;
     display: block;
     margin-bottom: 60px;

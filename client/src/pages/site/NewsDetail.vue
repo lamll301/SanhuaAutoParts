@@ -11,7 +11,7 @@
                     {{ article.title }}
                 </h2>
                 <div class="news-detail-single-header">
-                    <img :src="getImageUrl(article.creator?.avatar.path)" alt="" class="news-detail-single-header-img">
+                    <img :src="getImageUrl(article.creator?.avatar?.path, '/images/empty-avatar.webp')" alt="" class="news-detail-single-header-img">
                     <span class="news-detail-single-header-text">
                         Tạo bởi
                         <a href="">

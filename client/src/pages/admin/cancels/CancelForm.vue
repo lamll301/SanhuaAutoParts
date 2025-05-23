@@ -73,7 +73,7 @@
 </template>
 
 <script>
-import apiService from '@/utils/apiService';
+import { cancelApi, inventoryApi } from '@/api';
 import TableDetails from '@/components/TableDetails.vue';
 
 export default {
@@ -137,12 +137,12 @@ export default {
         async fetchData() {
             try {
                 const req = [
-                    apiService.inventories.getAll(),
+                    inventoryApi.getAll(),
                 ];
 
                 if (this.$route.params.id) {
                     req.push(
-                        apiService.cancels.getOne(this.$route.params.id)
+                        cancelApi.getOne(this.$route.params.id)
                     );
                 }
 
@@ -156,15 +156,15 @@ export default {
         },
         async save() {
             if (!this.validate()) return;
-            const data = this.cleanData(this.cancel);
+            const data = this.collectData(this.cancel);
 
             try {
                 if (this.cancel.id) {
-                    await apiService.cancels.update(this.cancel.id, data);
+                    await cancelApi.update(this.cancel.id, data);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về phiếu hủy hàng đã được cập nhật!", "success")
                 }
                 else {
-                    await apiService.cancels.create(data);
+                    await cancelApi.create(data);
                     await this.$swal.fire("Thêm thành công!", "Phiếu hủy hàng mới đã được thêm vào hệ thống!", "success")
                 }
                 this.$router.push({ name: 'admin.cancels' });
@@ -172,7 +172,7 @@ export default {
                 console.error(error);
             }
         },
-        cleanData(cancel) {
+        collectData(cancel) {
             const data = { ...cancel };
             if (data.details) {
                 data.details = data.details.filter(detail => 

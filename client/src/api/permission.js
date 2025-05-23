@@ -1,16 +1,16 @@
 import apiClient from "@/plugins/axios"
 
 const permissionApi = {
-    getPermissions(params = {}) {
+    get(params = {}) {
         return apiClient.get('/permissions', { params })
     },
-    getPermissionsTrashed(params = {}) {
+    getTrashed(params = {}) {
         return apiClient.get('/permissions/trashed', { params })
     },
-    getAllPermissions(params = {}) {
+    getAll(params = {}) {
         return apiClient.get('/permissions', { params: { ...params, all: true } })
     },
-    getPermission(id) {
+    getOne(id) {
         return apiClient.get(`/permissions/${id}`)
     },
     create(data) {

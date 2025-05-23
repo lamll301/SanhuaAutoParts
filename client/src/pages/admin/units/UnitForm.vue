@@ -49,7 +49,7 @@
 </template>
 
 <script>
-import apiService from '@/utils/apiService';
+import { unitApi } from '@/api';
 
 export default {
     data() {
@@ -98,7 +98,7 @@ export default {
         async fetchData() {
             try {
                 if (this.$route.params.id) {
-                    const res = await this.$swal.withLoading(apiService.units.getOne(this.$route.params.id));
+                    const res = await this.$swal.withLoading(unitApi.getOne(this.$route.params.id));
                     this.unit = res.data;
                 }
             } catch (error) {
@@ -109,11 +109,11 @@ export default {
             if (!this.validate()) return;
             try {
                 if (this.unit.id) {
-                    await apiService.units.update(this.unit.id, this.unit);
+                    await unitApi.update(this.unit.id, this.unit);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về đơn vị tính đã được cập nhật!", "success");
                 }
                 else {
-                    await apiService.units.create(this.unit);
+                    await unitApi.create(this.unit);
                     await this.$swal.fire("Thêm thành công!", "Đơn vị tính mới đã được thêm vào hệ thống!", "success");
                 }
                 this.$router.push({ name: 'admin.units' });

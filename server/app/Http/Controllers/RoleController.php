@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\RoleRequest;
 use Illuminate\Http\Request;
 use App\Models\Role;
 
 class RoleController extends Controller
 {
-    private const SEARCH_FIELDS = ['id', 'name'];
+    private const SEARCH_FIELDS = ['name'];
     private const FILTER_FIELDS = [
         'filterByPermission' => [
             'relation' => 'permissions',
@@ -28,14 +27,14 @@ class RoleController extends Controller
         $role = Role::with('permissions')->findOrFail($id);
         return response()->json($role);
     }
-    public function store(RoleRequest $request) {
+    public function store(Request $request) {
         $role = Role::create($request->all());
         if ($request->has('addedIds')) {
             $this->addIds($role, $request->input('addedIds'), 'permissions');
         }
         return response()->json(['message' => 'success'], 201);
     }
-    public function update(RoleRequest $request, string $id) {
+    public function update(Request $request, string $id) {
         $role = Role::findOrFail($id);
         $role->update($request->all());
         if ($request->has('addedIds')) {
@@ -78,7 +77,7 @@ class RoleController extends Controller
                 return response()->json(['message' => 'success'], 204);
             case 'addPermission':
                 if (!$targetId) {
-                    return response()->json(['message' => 'Permission ID is required'], 400);
+                    return response()->json(['message' => 'Vui lòng chọn phân quyền để thực hiện hành động này.'], 400);
                 }
                 $roles = Role::whereIn('id', $ids)->get();
                 foreach ($roles as $role) {
@@ -87,7 +86,7 @@ class RoleController extends Controller
                 return response()->json(['message' => 'success'], 200);
             case 'removePermission':
                 if (!$targetId) {
-                    return response()->json(['message' => 'Permission ID is required'], 400);
+                    return response()->json(['message' => 'Vui lòng chọn phân quyền để thực hiện hành động này.'], 400);
                 }
                 $roles = Role::whereIn('id', $ids)->get();
                 foreach ($roles as $role) {
@@ -95,7 +94,7 @@ class RoleController extends Controller
                 }
                 return response()->json(['message' => 'success'], 200);
             default:
-                return response()->json(['message' => 'Action is invalid'], 400);
+                return response()->json(['message' => 'Hành động không hợp lệ.'], 400);
         }
     }
 }

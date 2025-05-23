@@ -10,14 +10,29 @@ class PromotionController extends Controller
     private const SEARCH_FIELDS = ['name'];
     private const FILTER_FIELDS = [
         'filterByStatus' => ['column' => 'status'],
+        'filterByUnapproved' => ['column' => 'approved_by'],
     ];
 
+    public function approve(Request $request, string $id) {
+        $approverId = $request->user_id;
+        $promotion = Promotion::findOrFail($id);
+        $promotion->approved_by = $approverId;
+        $promotion->save();
+        return response()->json(['message' => 'success'], 200);
+    }
+
     public function index(Request $request) {
-        $query = Promotion::query();
+        $query = Promotion::with([
+            'creator:id,name',
+            'approver:id,name',
+        ])->orderBy('updated_at', 'desc');
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
     public function trashed(Request $request) {
-        $query = Promotion::onlyTrashed();
+        $query = Promotion::onlyTrashed()->with([
+            'creator:id,name',
+            'approver:id,name',
+        ])->orderBy('updated_at', 'desc');
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
     public function show(string $id) {
@@ -25,7 +40,8 @@ class PromotionController extends Controller
         return response()->json($promotion);
     }
     public function store(Request $request) {
-        Promotion::create($request->all());
+        $creatorId = $request->user_id;
+        Promotion::create($request->all() + ['created_by' => $creatorId]);
         return response()->json(['message' => 'success'], 201);
     }
     public function update(Request $request, string $id) {
@@ -66,7 +82,7 @@ class PromotionController extends Controller
                 Promotion::whereIn('id', $ids)->update(['status' => $targetId]);
                 return response()->json(['message' => 'success'], 200);
             default:
-                return response()->json(['message' => 'Action is invalid'], 400);
+                return response()->json(['message' => 'Hành động không hợp lệ.'], 400);
         }
     }
 }

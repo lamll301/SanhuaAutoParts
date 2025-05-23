@@ -32,7 +32,8 @@ class Voucher extends Model
 
     public function isValid()
     {
-        return $this->start_date <= now() && $this->end_date >= now();
+        $now = now();
+        return $this->start_date <= $now && $this->end_date >= $now && $this->approved_by !== null;
     }
 
     public function isUsedByUser($userId) 

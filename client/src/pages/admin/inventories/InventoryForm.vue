@@ -63,7 +63,7 @@
                                 :items="inventory.locations"
                                 :options="locations"
                                 :display="(location) => 
-                                    `Khu ${location.zone} > Dãy ${location.aisle} > Kệ ${location.rack} > Tầng ${location.shelf} > Ngăn ${location.bin}` 
+                                    `Khu ${location.zone}, Dãy ${location.aisle}, Kệ ${location.rack}, Tầng ${location.shelf}, Ngăn ${location.bin}` 
                                     + (location.category?.name ? ` - ${location.category.name}` : '')"
                                 :inputFields="[
                                     { text: 'Số lượng', key: 'quantity', type: 'number' },
@@ -110,7 +110,7 @@
 
 <script>
 import ItemDashboard from '@/components/ItemDashboard.vue';
-import apiService from '@/utils/apiService';
+import { inventoryApi, productApi, importApi, locationApi } from '@/api';
 
 export default {
     components: {
@@ -141,14 +141,14 @@ export default {
         async fetchData() {
             try {
                 const req = [
-                    apiService.products.getAll(),
-                    apiService.imports.getAll(),
-                    apiService.locations.getAll(),
+                    productApi.getAll(),
+                    importApi.getAll(),
+                    locationApi.getAll(),
                 ];
 
                 if (this.$route.params.id) {
                     req.push(
-                        apiService.inventories.getOne(this.$route.params.id)
+                        inventoryApi.getOne(this.$route.params.id)
                     );
                 }
 
@@ -180,11 +180,11 @@ export default {
             
             try {
                 if (this.inventory.id) {
-                    await apiService.inventories.update(this.inventory.id, data);
+                    await inventoryApi.update(this.inventory.id, data);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về hàng tồn kho đã được cập nhật!", "success");
                 }
                 else {
-                    await apiService.inventories.create(data);
+                    await inventoryApi.create(data);
                     await this.$swal.fire("Thêm thành công!", "Hàng tồn kho mới đã được thêm vào hệ thống!", "success");
                 }
                 this.$router.push({ name: 'admin.inventories' });

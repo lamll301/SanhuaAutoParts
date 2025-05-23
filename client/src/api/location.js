@@ -1,16 +1,16 @@
 import apiClient from "@/plugins/axios"
 
 const locationApi = {
-    getLocations(params = {}) {
+    get(params = {}) {
         return apiClient.get('/locations', { params })
     },
-    getLocationsTrashed(params = {}) {
+    getTrashed(params = {}) {
         return apiClient.get('/locations/trashed', { params })
     },
-    getAllLocations(params = {}) {
+    getAll(params = {}) {
         return apiClient.get('/locations', { params: { ...params, all: true } })
     },
-    getLocation(id) {
+    getOne(id) {
         return apiClient.get(`/locations/${id}`)
     },
     create(data) {

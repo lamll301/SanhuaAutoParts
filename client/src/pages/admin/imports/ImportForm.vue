@@ -82,7 +82,7 @@
 </template>
 
 <script>
-import apiService from '@/utils/apiService';
+import { importApi, supplierApi, productApi } from '@/api';
 import TableDetails from '@/components/TableDetails.vue';
 
 export default {
@@ -140,13 +140,13 @@ export default {
         async fetchData() {
             try {
                 const req = [
-                    apiService.suppliers.getAll(),
-                    apiService.products.getAll(),
+                    supplierApi.getAll(),
+                    productApi.getAll(),
                 ];
 
                 if (this.$route.params.id) {
                     req.push(
-                        apiService.imports.getOne(this.$route.params.id)
+                        importApi.getOne(this.$route.params.id)
                     );
                 }
 
@@ -161,15 +161,15 @@ export default {
         },
         async save() {
             if (!this.validate()) return;
-            const data = this.cleanData(this.importData);
+            const data = this.collectData(this.importData);
 
             try {
                 if (this.importData.id) {
-                    await apiService.imports.update(this.importData.id, data);
+                    await importApi.update(this.importData.id, data);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về phiếu nhập đã được cập nhật!", "success")
                 }
                 else {
-                    await apiService.imports.create(data);
+                    await importApi.create(data);
                     await this.$swal.fire("Thêm thành công!", "Phiếu nhập mới đã được thêm vào hệ thống!", "success")
                 }
                 this.$router.push({ name: 'admin.imports' });
@@ -177,7 +177,7 @@ export default {
                 console.error(error);
             }
         },
-        cleanData(importData) {
+        collectData(importData) {
             const data = { ...importData };
             if (data.details) {
                 data.details = data.details.filter(detail => 

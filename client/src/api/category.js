@@ -1,16 +1,16 @@
 import apiClient from "@/plugins/axios"
 
 const categoryApi = {
-    getCategories(params = {}) {
+    get(params = {}) {
         return apiClient.get('/categories', { params })
     },
-    getCategoriesTrashed(params = {}) {
+    getTrashed(params = {}) {
         return apiClient.get('/categories/trashed', { params })
     },
-    getAllCategories(params = {}) {
+    getAll(params = {}) {
         return apiClient.get('/categories', { params: { ...params, all: true } })
     },
-    getCategory(id) {
+    getOne(id) {
         return apiClient.get(`/categories/${id}`)
     },
     getBySlug(slug) {

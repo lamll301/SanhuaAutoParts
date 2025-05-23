@@ -1,16 +1,16 @@
 import apiClient from "@/plugins/axios"
 
 const cancelApi = {
-    getCancels(params = {}) {
+    get(params = {}) {
         return apiClient.get('/cancels', { params })
     },
-    getCancelsTrashed(params = {}) {
+    getTrashed(params = {}) {
         return apiClient.get('/cancels/trashed', { params })
     },
-    getAllCancels(params = {}) {
+    getAll(params = {}) {
         return apiClient.get('/cancels', { params: { ...params, all: true } })
     },
-    getCancel(id) {
+    getOne(id) {
         return apiClient.get(`/cancels/${id}`)
     },
     create(data) {

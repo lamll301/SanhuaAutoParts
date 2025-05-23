@@ -1,13 +1,16 @@
 import apiClient from "@/plugins/axios"
 
 const productApi = {
-    getProducts(params = {}) {
+    get(params = {}) {
         return apiClient.get('/products', { params })
     },
-    getProductsTrashed(params = {}) {
+    getAll(params = {}) {
+        return apiClient.get('/products', { params: { ...params, all: true } })
+    },
+    getTrashed(params = {}) {
         return apiClient.get('/products/trashed', { params })
     },
-    getProduct(id) {
+    getOne(id) {
         return apiClient.get(`/products/${id}`)
     },
     getBySlug(slug) {

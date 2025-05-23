@@ -22,15 +22,7 @@
                         </template>
                         <template v-else>
                             <option value="delete">Xóa</option>
-                            <option value="setStatus">Đặt trạng thái</option>
-                            <option value="filterByStatus">Lọc theo trạng thái</option>
                         </template>
-                    </select>
-                    <select v-show="!isTrashRoute" ref="selectedStatus" class="form-select admin-content__select-attribute admin-content__select-status">
-                        <option value="" selected>-- Chọn trạng thái --</option>
-                        <option v-for="status in statusOptions" :key="status.value" :value="status.value">
-                            {{ status.label }}
-                        </option>
                     </select>
                     <button class="fs-16 btn btn-primary" id="btnCheckboxSubmit" @click="handleFormActions()">Thực hiện</button>
                 </div>
@@ -57,9 +49,8 @@
                         <th scope="col">Ngày kết thúc
                             <SortComponent field="end_date" :sort="sort"/>
                         </th>
-                        <th scope="col">Trạng thái
-                            <SortComponent field="status" :sort="sort"/>
-                        </th>
+                        <th scope="col">Người tạo</th>
+                        <th scope="col">Người duyệt</th>
                         <template v-if="!isTrashRoute">
                             <th scope="col">Ngày tạo
                                 <SortComponent field="created_at" :sort="sort"/>
@@ -82,7 +73,8 @@
                         <td>{{ item.used_count }}</td>
                         <td>{{ item.start_date }}</td>
                         <td>{{ item.end_date }}</td>
-                        <td>{{ getStatusLabel(item.status) }}</td>
+                        <td>{{ item.creator?.name }}</td>
+                        <td>{{ item.approver?.name }}</td>
                         <template v-if="!isTrashRoute">
                             <td>{{ formatDate(item.created_at) }}</td>
                             <td>{{ formatDate(item.updated_at) }}</td>
@@ -132,9 +124,8 @@
 import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
-import { formatDate } from '@/utils/formatter';
-import apiService from '@/utils/apiService';
-import { statusService } from '@/utils/statusMap';
+import { formatDate } from '@/utils/helpers';
+import { voucherApi } from '@/api';
 
 export default {
     components: {
@@ -146,7 +137,6 @@ export default {
             sort: {}, totalPages: 0, currentPage: 1,
             selectedIds: [],
             vouchers: [],
-            statusOptions: statusService.getOptions('voucher'),
         }
     },
     computed: {
@@ -166,13 +156,13 @@ export default {
             try {
                 const req = [
                     this.isTrashRoute
-                        ? apiService.vouchers.getTrashed(this.$route.query)
-                        : apiService.vouchers.get(this.$route.query)
+                        ? voucherApi.getTrashed(this.$route.query)
+                        : voucherApi.get(this.$route.query)
                 ];
 
                 if (!this.isTrashRoute) {
                     req.push(
-                        apiService.vouchers.getTrashed(),
+                        voucherApi.getTrashed(),
                     );
                 }
                 
@@ -192,7 +182,7 @@ export default {
         },
         async onDelete(id) {
             try {
-                await apiService.vouchers.delete(id)
+                await voucherApi.delete(id)
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success")
                 await this.fetchData()
             } catch (error) {
@@ -201,7 +191,7 @@ export default {
         },
         async onRestore(id) {
             try {
-                await apiService.vouchers.restore(id)
+                await voucherApi.restore(id)
                 await this.$swal.fire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success")
                 await this.fetchData()
             } catch (error) {
@@ -216,7 +206,7 @@ export default {
             })
             if (!result.isConfirmed) return;
             try {
-                await apiService.vouchers.forceDelete(id);
+                await voucherApi.forceDelete(id);
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success")
                 await this.fetchData();
             } catch (error) {
@@ -236,7 +226,7 @@ export default {
                 return;
             }
             try {
-                await apiService.vouchers.handleFormActions({
+                await voucherApi.handleFormActions({
                     action,
                     selectedIds: this.selectedIds,
                     targetId
@@ -244,8 +234,9 @@ export default {
                 await this.$swal.fire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success")
                 await this.fetchData()
                 await this.$refs.checkboxTable.resetCheckboxAll()
-            } catch (error) {
-                console.error(error)
+            } catch (e) {
+                console.error(e)
+                this.$swal.fire("Lỗi!", e.message, "error")
             }
         },
         validateAndGetActionData() {
@@ -274,12 +265,7 @@ export default {
         handleUpdateIds(ids) {
             this.selectedIds = ids;
         },
-        formatDate(date) {
-            return formatDate(date);
-        },
-        getStatusLabel(status) {
-            return statusService.getLabel('voucher', status);
-        }
+        formatDate,
     }
 }
 </script>

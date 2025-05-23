@@ -1,13 +1,13 @@
 import apiClient from "@/plugins/axios"
 
 const userApi = {
-    getUsers(params = {}) {
+    get(params = {}) {
         return apiClient.get('/users', { params })
     },
-    getUsersTrashed(params = {}) {
+    getTrashed(params = {}) {
         return apiClient.get('/users/trashed', { params })
     },
-    getUser(id) {
+    getOne(id) {
         return apiClient.get(`/users/${id}`)
     },
     create(data) {
@@ -29,11 +29,11 @@ const userApi = {
         return apiClient.post('/users/handle-form-actions', data)
     },
     updateProfile(data) {
-        return apiClient.post('/users/update-profile', data)
+        return apiClient.post('/users/profile', data)
     },
-    updatePassword(oldPassword, newPassword) {
-        return apiClient.post('/users/update-password', { oldPassword, newPassword })
-    }
+    resetPassword(oldPassword, newPassword) {
+        return apiClient.patch('/users/password/reset', { oldPassword, newPassword })
+    },
 }
 
 export default userApi

@@ -49,7 +49,7 @@ return new class extends Migration
             $table->unsignedInteger('max_discount_amount')->nullable();
             $table->date('start_date')->index();
             $table->date('end_date')->index();
-            $table->tinyInteger('status')->nullable();  //  lên lịch, đang hoạt động, hết hạn
+            $table->tinyInteger('status')->nullable();  // đang hoạt động, hết hạn
             $table->timestamps();
             $table->softDeletes();
         });

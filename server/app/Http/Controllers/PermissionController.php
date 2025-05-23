@@ -59,7 +59,7 @@ class PermissionController extends Controller
                 Permission::onlyTrashed()->whereIn('id', $ids)->forceDelete();
                 return response()->json(['message' => 'success'], 204);
             default:
-                return response()->json(['message' => 'Action is invalid'], 400);
+                return response()->json(['message' => 'Hành động không hợp lệ.'], 400);
         }
     }
 }

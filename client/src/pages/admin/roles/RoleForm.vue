@@ -47,9 +47,9 @@
 </template>
 
 <script>
-import { formatDate } from '@/utils/formatter';
-import apiService from '@/utils/apiService';
 import ItemDashboard from '@/components/ItemDashboard.vue';
+import { roleApi, permissionApi } from '@/api';
+import { formatDate } from '@/utils/helpers';
 
 export default {
     components: {
@@ -77,6 +77,7 @@ export default {
         await this.fetchData();
     },
     methods: {
+        formatDate,
         validate() {
             let isValid = true;
             this.errors = {
@@ -94,12 +95,12 @@ export default {
         async fetchData() {
             try {
                 const req = [
-                    apiService.permissions.getAll(),
+                    permissionApi.getAll(),
                 ];
 
                 if (this.$route.params.id) {
                     req.push(
-                        apiService.roles.getOne(this.$route.params.id)
+                        roleApi.getOne(this.$route.params.id)
                     );
                 }
 
@@ -107,8 +108,8 @@ export default {
 
                 this.permissions = res[0].data.data;
                 if (this.$route.params.id) this.role = res[1].data;
-            } catch (error) {
-                console.log(error);
+            } catch (e) {
+                console.log(e);
             }
         },
         cleanData(role) {
@@ -126,20 +127,17 @@ export default {
 
             try {
                 if (this.role.id) {
-                    await apiService.roles.update(this.role.id, data);
+                    await roleApi.update(this.role.id, data);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về vai trò đã được cập nhật!", "success")
                 }
                 else {
-                    await apiService.roles.create(data);
+                    await roleApi.create(data);
                     await this.$swal.fire("Thêm thành công!", "Vai trò mới đã được thêm vào hệ thống!", "success")
                 }
                 this.$router.push({ name: 'admin.roles' });
-            } catch (error) {
-                console.error(error);
+            } catch (e) {
+                console.error(e);
             }
-        },
-        formatDate(date) {
-            return formatDate(date);
         },
         removePermission(id) {
             this.role.permissions = this.role.permissions.filter(permission => permission.id !== id);

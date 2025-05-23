@@ -95,8 +95,8 @@
                             <div class="input-group">
                                 <select class="valid-elm form-select" v-model="location.status">
                                     <option value="" disabled selected>Chọn trạng thái</option>
-                                    <option v-for="status in statusOptions" :key="status.value" :value="status.value">
-                                        {{ status.label }}
+                                    <option v-for="([key, status]) in Object.entries(getAllStatusOptions('location'))" :key="key" :value="key">
+                                        {{ status }}
                                     </option>
                                 </select>
                             </div>
@@ -114,8 +114,8 @@
 
 <script>
 import ItemDashboard from '@/components/ItemDashboard.vue';
-import apiService from '@/utils/apiService';
-import { statusService } from '@/utils/statusMap';
+import { locationApi, categoryApi, inventoryApi } from '@/api';
+import { getAllStatusOptions } from '@/utils/statusMap';
 
 export default {
     components: {
@@ -123,7 +123,6 @@ export default {
     },
     data() {
         return {
-            statusOptions: statusService.getOptions('location'),
             categories: [], inventories: [],
             location: {
                 category_id: '', status: ''
@@ -142,20 +141,21 @@ export default {
             }
         }
     },
-    async created() {
-        await this.fetchData();
+    created() {
+        this.fetchData();
     },
     methods: {
+        getAllStatusOptions,
         async fetchData() {
             try {
                 const req = [
-                    apiService.categories.getAll(),
-                    apiService.inventories.getAll(),
+                    categoryApi.getAll(),
+                    inventoryApi.getAll(),
                 ];
 
                 if (this.$route.params.id) {
                     req.push(
-                        apiService.locations.getOne(this.$route.params.id)
+                        locationApi.getOne(this.$route.params.id)
                     );
                 }
 
@@ -225,11 +225,11 @@ export default {
 
             try {
                 if (this.location.id) {
-                    await apiService.locations.update(this.location.id, data);
+                    await locationApi.update(this.location.id, data);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về vị trí kho đã được cập nhật!", "success")
                 }
                 else {
-                    await apiService.locations.create(data);
+                    await locationApi.create(data);
                     await this.$swal.fire("Thêm thành công!", "Vị trí kho mới đã được thêm vào hệ thống!", "success")
                 }
                 this.$router.push({ name: 'admin.locations' });

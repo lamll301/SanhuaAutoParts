@@ -2,13 +2,16 @@
 import apiClient from "@/plugins/axios"
 
 const voucherApi = {
-    getVouchers(params = {}) {
+    get(params = {}) {
         return apiClient.get('/vouchers', { params })
     },
-    getTrashedVouchers(params = {}) {
+    getTrashed(params = {}) {
         return apiClient.get('/vouchers/trashed', { params })
     },
-    getVoucher(id) {
+    getAll(params = {}) {
+        return apiClient.get('/vouchers', { params: { ...params, all: true } })
+    },
+    getOne(id) {
         return apiClient.get(`/vouchers/${id}`)
     },
     create(data) {

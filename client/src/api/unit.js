@@ -1,16 +1,16 @@
 import apiClient from "@/plugins/axios"
 
 const unitApi = {
-    getUnits(params = {}) {
+    get(params = {}) {
         return apiClient.get('/units', { params })
     },
-    getUnitsTrashed(params = {}) {
+    getTrashed(params = {}) {
         return apiClient.get('/units/trashed', { params })
     },
-    getAllUnits(params = {}) {
+    getAll(params = {}) {
         return apiClient.get('/units', { params: { ...params, all: true } })
     },
-    getUnit(id) {
+    getOne(id) {
         return apiClient.get(`/units/${id}`)
     },
     create(data) {

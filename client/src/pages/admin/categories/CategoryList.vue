@@ -108,8 +108,8 @@
 import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
-import { formatDate } from '@/utils/formatter';
-import apiService from '@/utils/apiService';
+import { categoryApi } from '@/api';
+import { formatDate } from '@/utils/helpers';
 
 export default {
     components: {
@@ -140,13 +140,13 @@ export default {
             try {
                 const req = [
                     this.isTrashRoute
-                        ? apiService.categories.getTrashed(this.$route.query)
-                        : apiService.categories.get(this.$route.query)
+                        ? categoryApi.getTrashed(this.$route.query)
+                        : categoryApi.get(this.$route.query)
                 ];
 
                 if (!this.isTrashRoute) {
                     req.push(
-                        apiService.categories.getTrashed(),
+                        categoryApi.getTrashed(),
                     );
                 }
                 
@@ -166,7 +166,7 @@ export default {
         },
         async onDelete(id) {
             try {
-                await apiService.categories.delete(id)
+                await categoryApi.delete(id)
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success")
                 await this.fetchData()
             } catch (error) {
@@ -175,7 +175,7 @@ export default {
         },
         async onRestore(id) {
             try {
-                await apiService.categories.restore(id)
+                await categoryApi.restore(id)
                 await this.$swal.fire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success")
                 await this.fetchData()
             } catch (error) {
@@ -190,7 +190,7 @@ export default {
             })
             if (!result.isConfirmed) return;
             try {
-                await apiService.categories.forceDelete(id);
+                await categoryApi.forceDelete(id);
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success")
                 await this.fetchData();
             } catch (error) {
@@ -208,23 +208,22 @@ export default {
                 return;
             }
             try {
-                await apiService.categories.handleFormActions({
+                await categoryApi.handleFormActions({
                     action,
                     selectedIds: this.selectedIds,
                 })
                 await this.$swal.fire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success")
                 await this.fetchData()
                 await this.$refs.checkboxTable.resetCheckboxAll()
-            } catch (error) {
-                console.error(error)
+            } catch (e) {
+                console.error(e)
+                this.$swal.fire("Lỗi!", e.message, "error")
             }
         },
         handleUpdateIds(ids) {
             this.selectedIds = ids;
         },
-        formatDate(date) {
-            return formatDate(date);
-        },
+        formatDate,
     }
 }
 </script>

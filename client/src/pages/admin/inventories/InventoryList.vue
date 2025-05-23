@@ -124,8 +124,8 @@
 import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
-import { formatDate } from '@/utils/formatter';
-import apiService from '@/utils/apiService';
+import { formatDate } from '@/utils/helpers';
+import { inventoryApi, productApi } from '@/api';
 
 export default {
     components: {
@@ -152,18 +152,19 @@ export default {
         },
     },
     methods: {
+        formatDate,
         async fetchData() {
             try {
                 const req = [
                     this.isTrashRoute
-                        ? apiService.inventories.getTrashed(this.$route.query)
-                        : apiService.inventories.get(this.$route.query)
+                        ? inventoryApi.getTrashed(this.$route.query)
+                        : inventoryApi.get(this.$route.query)
                 ];
 
                 if (!this.isTrashRoute) {
                     req.push(
-                        apiService.inventories.getTrashed(),
-                        apiService.products.getAll(),
+                        inventoryApi.getTrashed(),
+                        productApi.getAll(),
                     );
                 }
 
@@ -184,7 +185,7 @@ export default {
         },
         async onDelete(id) {
             try {
-                await apiService.inventories.delete(id)
+                await inventoryApi.delete(id)
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success")
                 await this.fetchData()
             } catch (error) {
@@ -193,7 +194,7 @@ export default {
         },
         async onRestore(id) {
             try {
-                await apiService.inventories.restore(id)
+                await inventoryApi.restore(id)
                 await this.$swal.fire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success")
                 await this.fetchData()
             } catch (error) {
@@ -208,7 +209,7 @@ export default {
             })
             if (!result.isConfirmed) return;
             try {
-                await apiService.inventories.forceDelete(id);
+                await inventoryApi.forceDelete(id);
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success")
                 await this.fetchData();
             } catch (error) {
@@ -229,7 +230,7 @@ export default {
                 return;
             }
             try {
-                await apiService.inventories.handleFormActions({
+                await inventoryApi.handleFormActions({
                     action,
                     selectedIds: this.selectedIds,
                     targetId
@@ -266,9 +267,6 @@ export default {
         },
         handleUpdateIds(ids) {
             this.selectedIds = ids;
-        },
-        formatDate(date) {
-            return formatDate(date);
         },
     }
 }

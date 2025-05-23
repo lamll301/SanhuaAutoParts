@@ -68,13 +68,14 @@
                             <div class="input-group">
                                 <select class="valid-elm form-select" v-model="promotion.status">
                                     <option value="" disabled selected>Chọn trạng thái</option>
-                                    <option v-for="status in statusOptions" :key="status.value" :value="status.value">
-                                        {{ status.label }}
+                                    <option v-for="([key, status]) in Object.entries(getAllStatusOptions('promotion'))" :key="key" :value="key">
+                                        {{ status }}
                                     </option>
                                 </select>
                             </div>
                         </div>
                         <div class="mb-20 admin-content__form-btn">
+                            <button v-if="!promotion.approved_by" type="button" class="fs-16 btn btn-secondary" @click="approve()">Duyệt</button>
                             <button type="submit" class="fs-16 btn btn-primary">Xác nhận</button>
                         </div>
                     </div>
@@ -86,8 +87,8 @@
 </template>
 
 <script>
-import apiService from '@/utils/apiService';
-import { statusService } from '@/utils/statusMap';
+import { getAllStatusOptions } from '@/utils/statusMap';
+import { promotionApi } from '@/api';
 
 export default {
     data() {
@@ -95,7 +96,6 @@ export default {
             promotion: {
                 status: '',
             },
-            statusOptions: statusService.getOptions('promotion'),
             errors: {
                 name: '',
                 discount_percent: '',
@@ -118,6 +118,17 @@ export default {
         await this.fetchData();
     },
     methods: {
+        getAllStatusOptions,
+        async approve() {
+            try {
+                await promotionApi.approve(this.$route.params.id);
+                await this.$swal.fire("Duyệt thành công!", "Khuyến mãi đã được duyệt!", "success");
+                this.$router.push({ name: 'admin.promotions' });
+            } catch (e) {
+                console.error(e);
+                this.$swal.fire("Lỗi!", e.message, "error");
+            }
+        },
         validate() {
             let isValid = true;
             this.errors = {
@@ -130,21 +141,24 @@ export default {
             if (!this.promotion.name) {
                 this.errors.name = 'Tên khuyến mãi không được để trống.';
                 isValid = false;
-            } else if (this.promotion.name.length > 255) {
+            } 
+            else if (this.promotion.name.length > 255) {
                 this.errors.name = 'Tên khuyến mãi không được vuợt quá 255 ký tự.';
                 isValid = false;
             }
             if (!this.promotion.discount_percent) {
                 this.errors.discount_percent = 'Phần trăm giảm không được để trống.';
                 isValid = false;
-            } else if (this.promotion.discount_percent < 0 || this.promotion.discount_percent > 100) {
+            } 
+            else if (this.promotion.discount_percent < 0 || this.promotion.discount_percent > 100) {
                 this.errors.discount_percent = 'Phần trăm giảm phải nằm trong khoảng từ 0 đến 100.';
                 isValid = false;
             }
             if (!this.promotion.max_discount_amount) {
                 this.errors.max_discount_amount = 'Tiền giảm tối đa không được để trống.';
                 isValid = false;
-            } else if (this.promotion.max_discount_amount < 0) {
+            } 
+            else if (this.promotion.max_discount_amount < 0) {
                 this.errors.max_discount_amount = 'Tiền giảm tối đa không được nhỏ hơn 0.';
                 isValid = false;
             }
@@ -155,7 +169,8 @@ export default {
             if (!this.promotion.end_date) {
                 this.errors.end_date = 'Ngày kết thúc không được để trống.';
                 isValid = false;
-            } else if (new Date(this.promotion.start_date) >= new Date(this.promotion.end_date)) {
+            } 
+            else if (new Date(this.promotion.start_date) >= new Date(this.promotion.end_date)) {
                 this.errors.end_date = 'Ngày kết thúc phải lớn hơn ngày bắt đầu.';
                 isValid = false;
             }
@@ -164,7 +179,7 @@ export default {
         async fetchData() {
             try {
                 if (this.$route.params.id) {
-                    const res = await this.$swal.withLoading(apiService.promotions.getOne(this.$route.params.id));
+                    const res = await this.$swal.withLoading(promotionApi.getOne(this.$route.params.id));
                     this.promotion = res.data;
                 }
             } catch (error) {
@@ -175,11 +190,11 @@ export default {
             if (!this.validate()) return;
             try {
                 if (this.promotion.id) {
-                    await apiService.promotions.update(this.promotion.id, this.promotion);
+                    await promotionApi.update(this.promotion.id, this.promotion);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về khuyến mãi đã được cập nhật!", "success");
                 }
                 else {
-                    await apiService.promotions.create(this.promotion);
+                    await promotionApi.create(this.promotion);
                     await this.$swal.fire("Thêm thành công!", "Khuyến mãi mới đã được thêm vào hệ thống!", "success");
                 }
                 this.$router.push({ name: 'admin.promotions' });

@@ -1,16 +1,16 @@
 import apiClient from "@/plugins/axios"
 
 const roleApi = {
-    getRoles(params = {}) {
+    get(params = {}) {
         return apiClient.get('/roles', { params })
     },
-    getRolesTrashed(params = {}) {
+    getTrashed(params = {}) {
         return apiClient.get('/roles/trashed', { params })
     },
-    getAllRoles(params = {}) {
+    getAll(params = {}) {
         return apiClient.get('/roles', { params: { ...params, all: true } })
     },
-    getRole(id) {
+    getOne(id) {
         return apiClient.get(`/roles/${id}`)
     },
     create(data) {

@@ -38,6 +38,12 @@ class AuthController extends Controller
             );
         }
 
+        if (auth('api')->user()->status === User::STATUS_BANNED) {
+            return response()->json([
+                'message' => 'Tài khoản đã bị cấm. Vui lòng liên hệ quản trị viên.'
+            ], 400);
+        }
+
         return $this->respondWithToken($token);
     }
     

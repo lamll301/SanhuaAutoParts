@@ -1,16 +1,16 @@
 import apiClient from "@/plugins/axios"
 
 const importApi = {
-    getImports(params = {}) {
+    get(params = {}) {
         return apiClient.get('/imports', { params })
     },
-    getImportsTrashed(params = {}) {
+    getTrashed(params = {}) {
         return apiClient.get('/imports/trashed', { params })
     },
-    getAllImports(params = {}) {
+    getAll(params = {}) {
         return apiClient.get('/imports', { params: { ...params, all: true } })
     },
-    getImport(id) {
+    getOne(id) {
         return apiClient.get(`/imports/${id}`)
     },
     create(data) {

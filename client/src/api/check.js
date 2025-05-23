@@ -1,16 +1,16 @@
 import apiClient from "@/plugins/axios"
 
 const checkApi = {
-    getChecks(params = {}) {
+    get(params = {}) {
         return apiClient.get('/checks', { params })
     },
-    getChecksTrashed(params = {}) {
+    getTrashed(params = {}) {
         return apiClient.get('/checks/trashed', { params })
     },
-    getAllChecks(params = {}) {
+    getAll(params = {}) {
         return apiClient.get('/checks', { params: { ...params, all: true } })
     },
-    getCheck(id) {
+    getOne(id) {
         return apiClient.get(`/checks/${id}`)
     },
     create(data) {

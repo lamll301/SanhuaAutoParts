@@ -4,13 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Promotion extends Model
 {
     use SoftDeletes;
-
-    const STATUS_SCHEDULED = 0;
+    
+    const STATUS_UPCOMING = 0;
     const STATUS_ACTIVE = 1;
     const STATUS_EXPIRED = 2;
 
@@ -20,7 +19,9 @@ class Promotion extends Model
         'max_discount_amount',
         'start_date',
         'end_date',
-        'status'
+        'status',
+        'created_by',
+        'approved_by',
     ];
 
     protected $casts = [
@@ -31,12 +32,12 @@ class Promotion extends Model
         'max_discount_amount' => 'integer',
     ];
 
-    public function creator(): BelongsTo
+    public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function approver(): BelongsTo
+    public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');
     }

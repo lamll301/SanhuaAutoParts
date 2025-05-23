@@ -279,24 +279,22 @@
                                 </h3>
                             </header>
                             <ul class="nav-admin__notify-list">
-                                <li class="nav-admin__notify-item nav-admin__notify-item-active">
-                                    <a href="" class="nav-admin__notify-link">
-                                        <p class="nav-admin__notify-name">Namesadasdasdasdadasdasdad asd1</p>
-                                        <p class="nav-admin__notify-describe">asdadsadasd sad asdsad asdasdasd</p>
-                                    </a>
-                                </li>
-                                <li class="nav-admin__notify-item">
-                                    <a href="" class="nav-admin__notify-link">
-                                        <p class="nav-admin__notify-name">Name1</p>
-                                        <p class="nav-admin__notify-describe">asasdsadasdadsadadasd sad asdsad asdasdasd</p>
-                                    </a>
-                                </li>
-                                <li class="nav-admin__notify-item nav-admin__notify-item-active">
-                                    <a href="" class="nav-admin__notify-link">
-                                        <p class="nav-admin__notify-name">Name1</p>
-                                        <p class="nav-admin__notify-describe">asdadsadasd sad asdsad asdasdasd</p>
-                                    </a>
-                                </li>
+                                <template v-if="notifications.length === 0">
+                                    <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;height: 300px;">
+                                        <img src="../assets/images/empty-notify.webp" alt="" class="header__notify--empty-img" style="margin-top: 0;">
+                                        <p class="header__notify--empty-msg">
+                                            Chưa có thông báo
+                                        </p>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <li v-for="notify in notifications" :key="notify.id" class="nav-admin__notify-item nav-admin__notify-item-active">
+                                        <a href="#" class="nav-admin__notify-link">
+                                            <p class="nav-admin__notify-name">{{ notify.name }}</p>
+                                            <p class="nav-admin__notify-describe">{{ notify.content }}</p>
+                                        </a>
+                                    </li>
+                                </template>
                             </ul>
                             <div class="nav-admin__notify-footer">
                                 <a href="#">Xem tất cả thông báo</a>
@@ -305,36 +303,24 @@
                     </div>
                     <!-- admin avatar -->
                     <div class="nav-admin__avatar">
-                        <img class="nav-admin__avatar-img" src="https://picsum.photos/600" alt="">
+                        <img class="nav-admin__avatar-img" :src="getImageUrl(user?.avatar?.path, '/images/empty-avatar.webp')" alt="">
                         <div class="nav-admin__avatar-content">
                             <header class="nav-admin__avatar-header">
-                                <h3>Lam Le</h3>
-                                <p>lamle301@gmail.com</p>
+                                <h3>{{ user.name || 'N/A' }}</h3>
+                                <p>{{ user.email || 'N/A' }}</p>
                             </header>
                             <ul class="nav-admin__avatar-list">
                                 <li class="nav-admin__avatar-item">
-                                    <a href="" class="nav-admin__avatar-link">
+                                    <router-link to="/cai-dat" class="nav-admin__avatar-link">
                                         <i class="fa-solid fa-gear nav-admin__icon"></i>
                                         <span>Cài đặt tài khoản</span>
-                                    </a>
+                                    </router-link>
                                 </li>
                                 <li class="nav-admin__avatar-item">
-                                    <a href="" class="nav-admin__avatar-link">
-                                        <i class="fa-solid fa-gear nav-admin__icon"></i>
-                                        <span>Cài đặt tài khoản</span>
-                                    </a>
-                                </li>
-                                <li class="nav-admin__avatar-item">
-                                    <a href="" class="nav-admin__avatar-link">
-                                        <i class="fa-solid fa-gear nav-admin__icon"></i>
-                                        <span>Cài đặt tài khoản</span>
-                                    </a>
-                                </li>
-                                <li class="nav-admin__avatar-item">
-                                    <a href="" class="nav-admin__avatar-link">
+                                    <button @click.prevent="logout" class="nav-admin__avatar-link" style="background: none;padding: 0;border: none;">
                                         <i class="fa-solid fa-power-off nav-admin__icon"></i>
                                         <span>Đăng xuất</span>
-                                    </a>
+                                    </button>
                                 </li>
                             </ul>
                         </div>
@@ -356,13 +342,33 @@
 
 <script>
 import gsap from "gsap";
+import { useAuthStore } from '@/stores/auth';
+import { useCartStore } from '@/stores/cart';
+import { getImageUrl } from "@/utils/helpers";
+import { authApi } from "@/api";
+
 export default {
+    setup() {
+        const authStore = useAuthStore();
+        const cartStore = useCartStore();
+        return {
+            authStore,
+            cartStore
+        }
+    },
     data() {
         return {
-            isSidebarActive: true
+            isSidebarActive: true,
+            notifications: []
+        }
+    },
+    computed: {
+        user() {
+            return this.authStore.user;
         }
     },
     methods: {
+        getImageUrl,
         toggleSidebar() {
             if (this.isSidebarActive) {
                 gsap.to(this.$refs.sidebar, {
@@ -397,7 +403,24 @@ export default {
                 params.delete('key')
             }
             this.$router.push(this.$route.path + '?' + params.toString())
-        }
+        },
+        async logout() {
+            console.log("OK")
+            try {
+                await authApi.logout()
+                this.cartStore.setCart([]);
+                this.authStore.removeToken();
+                this.authStore.removeUser();
+                await this.$swal.fire('Đăng xuất thành công', '', 'success', {
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 1500,
+                });
+                this.$router.push('/');
+            } catch (e) {
+                console.error(e)
+            }
+        },
     }
 }
 </script>

@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UserRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
@@ -47,38 +45,35 @@ class UserController extends Controller
         return response()->json($user->load(['avatar:id,path']));
     }
 
-    public function updatePassword(Request $request) {
+    public function resetPassword(Request $request) {
         $userId = $request->user_id;
         $user = User::findOrFail($userId);
-
         if (!Hash::check($request->oldPassword, $user->password)) {
-            return response()->json(['error' => 'Password is incorrect'], 422);
+            return response()->json(['message' => 'Mật khẩu cũ không chính xác'], 422);
         }
-
         $user->update([
             'password' => $request->newPassword
         ]);
-
         return response()->json(['message' => 'success']);
     }
 
     public function index(Request $request) {
-        $query = User::query()->with('role');
+        $query = User::query()->with('role:id,name');
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
     public function trashed(Request $request) {
-        $query = User::onlyTrashed()->with('role');
+        $query = User::onlyTrashed()->with('role:id,name');
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
     public function show(string $id) {
         $user = User::findOrFail($id);
         return response()->json($user);
     }
-    public function store(UserRequest $request) {
+    public function store(Request $request) {
         User::create($request->all());
         return response()->json(['message' => 'success'], 201);
     }
-    public function update(UserRequest $request, string $id) {
+    public function update(Request $request, string $id) {
         $user = User::findOrFail($id);
         $user->update($request->all());
         return response()->json(['message' => 'success'], 200);
@@ -114,12 +109,6 @@ class UserController extends Controller
                 User::onlyTrashed()->whereIn('id', $ids)->forceDelete();
                 return response()->json(['message' => 'success'], 204);
             case 'setRole':
-                if (!$targetId) {
-                    return response()->json(['message' => 'Role ID is required'], 400);
-                }
-                if (!Role::where('id', $targetId)->exists()) {
-                    return response()->json(['message' => 'Role not found'], 400);
-                }
                 User::whereIn('id', $ids)->update(['role_id' => $targetId]);
                 return response()->json(['message' => 'success'], 200);
             case 'removeRole':
@@ -129,7 +118,7 @@ class UserController extends Controller
                 User::whereIn('id', $ids)->update(['status' => $targetId]);
                 return response()->json(['message' => 'success'], 200);
             default:
-                return response()->json(['message' => 'Action is invalid'], 400);
+                return response()->json(['message' => 'Hành động không hợp lệ'], 400);
         }
     }
 }

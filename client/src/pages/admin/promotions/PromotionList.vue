@@ -8,8 +8,12 @@
             </div>
             <div class="admin-content__table">
                 <div class="admin-content__header d-flex align-items-center">
-                    <h4 v-show="!isTrashRoute">Tất cả khuyến mãi</h4>
-                    <h4 v-show="isTrashRoute">Khuyến mãi đã xóa</h4>
+                    <router-link v-show="!isTrashRoute" to="/admin/promotion" class="admin-content__title-link">
+                        <h4>Tất cả khuyến mãi</h4>
+                    </router-link>
+                    <router-link v-show="isTrashRoute" to="/admin/promotion/trash" class="admin-content__title-link">
+                        <h4>Khuyến mãi đã xóa</h4>
+                    </router-link>
                     <select ref="selectCheckboxAction" class="form-select admin-content__checkbox-select-all-opts">
                         <option value="" selected>-- Hành động --</option>
                         <template v-if="isTrashRoute">
@@ -18,14 +22,15 @@
                         </template>
                         <template v-else>
                             <option value="delete">Xóa</option>
+                            <option value="filterByUnapproved">Lọc khuyến mãi chưa duyệt</option>
                             <option value="setStatus">Đặt trạng thái</option>
                             <option value="filterByStatus">Lọc theo trạng thái</option>
                         </template>
                     </select>
                     <select v-show="!isTrashRoute" ref="selectedStatus" class="form-select admin-content__select-attribute admin-content__select-status">
                         <option value="" selected>-- Chọn trạng thái --</option>
-                        <option v-for="status in statusOptions" :key="status.value" :value="status.value">
-                            {{ status.label }}
+                        <option v-for="([key, status]) in Object.entries(getAllStatusOptions('promotion'))" :key="key" :value="key">
+                            {{ status }}
                         </option>
                     </select>
                     <button class="fs-16 btn btn-primary" id="btnCheckboxSubmit" @click="handleFormActions()">Thực hiện</button>
@@ -53,6 +58,8 @@
                         <th scope="col">Trạng thái
                             <SortComponent field="status" :sort="sort"/>
                         </th>
+                        <th scope="col">Người tạo</th>
+                        <th scope="col">Người duyệt</th>
                         <template v-if="!isTrashRoute">
                             <th scope="col">Ngày tạo
                                 <SortComponent field="created_at" :sort="sort"/>
@@ -70,11 +77,13 @@
                     <template #body="{ item }">
                         <th>{{ item.id }}</th>
                         <td>{{ item.name }}</td>
-                        <td>{{ item.discount_percent }}</td>
+                        <td>{{ item.discount_percent }}%</td>
                         <td>{{ formatPrice(item.max_discount_amount) }}</td>
                         <td>{{ item.start_date }}</td>
                         <td>{{ item.end_date }}</td>
-                        <td>{{ getStatusLabel(item.status) }}</td>
+                        <td>{{ getStatusText('promotion', item.status) }}</td>
+                        <td>{{ item.creator?.name }}</td>
+                        <td>{{ item.approver?.name }}</td>
                         <template v-if="!isTrashRoute">
                             <td>{{ formatDate(item.created_at) }}</td>
                             <td>{{ formatDate(item.updated_at) }}</td>
@@ -124,9 +133,9 @@
 import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
-import { formatDate, formatPrice } from '@/utils/formatter';
-import apiService from '@/utils/apiService';
-import { statusService } from '@/utils/statusMap';
+import { promotionApi } from '@/api';
+import { formatDate, formatPrice } from '@/utils/helpers';
+import { getAllStatusOptions, getStatusText } from '@/utils/statusMap';
 
 export default {
     components: {
@@ -138,7 +147,6 @@ export default {
             sort: {}, totalPages: 0, currentPage: 1,
             selectedIds: [],
             promotions: [],
-            statusOptions: statusService.getOptions('promotion'),
         }
     },
     computed: {
@@ -158,13 +166,13 @@ export default {
             try {
                 const req = [
                     this.isTrashRoute
-                        ? apiService.promotions.getTrashed(this.$route.query)
-                        : apiService.promotions.get(this.$route.query)
+                        ? promotionApi.getTrashed(this.$route.query)
+                        : promotionApi.get(this.$route.query)
                 ];
 
                 if (!this.isTrashRoute) {
                     req.push(
-                        apiService.promotions.getTrashed(),
+                        promotionApi.getTrashed(),
                     );
                 }
                 
@@ -184,7 +192,7 @@ export default {
         },
         async onDelete(id) {
             try {
-                await apiService.promotions.delete(id)
+                await promotionApi.delete(id)
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success")
                 await this.fetchData()
             } catch (error) {
@@ -193,7 +201,7 @@ export default {
         },
         async onRestore(id) {
             try {
-                await apiService.promotions.restore(id)
+                await promotionApi.restore(id)
                 await this.$swal.fire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success")
                 await this.fetchData()
             } catch (error) {
@@ -208,7 +216,7 @@ export default {
             })
             if (!result.isConfirmed) return;
             try {
-                await apiService.promotions.forceDelete(id);
+                await promotionApi.forceDelete(id);
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success")
                 await this.fetchData();
             } catch (error) {
@@ -228,7 +236,7 @@ export default {
                 return;
             }
             try {
-                await apiService.promotions.handleFormActions({
+                await promotionApi.handleFormActions({
                     action,
                     selectedIds: this.selectedIds,
                     targetId
@@ -236,8 +244,9 @@ export default {
                 await this.$swal.fire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success")
                 await this.fetchData()
                 await this.$refs.checkboxTable.resetCheckboxAll()
-            } catch (error) {
-                console.error(error)
+            } catch (e) {
+                console.error(e)
+                this.$swal.fire("Lỗi!", e.message, "error")
             }
         },
         validateAndGetActionData() {
@@ -248,6 +257,9 @@ export default {
                 return;
             }
             switch (action) {
+                case 'filterByUnapproved':
+                    targetId = null;
+                    break;
                 case 'setStatus':
                 case 'filterByStatus':
                     targetId = this.$refs.selectedStatus.value;
@@ -266,15 +278,7 @@ export default {
         handleUpdateIds(ids) {
             this.selectedIds = ids;
         },
-        formatDate(date) {
-            return formatDate(date);
-        },
-        formatPrice(price) {
-            return formatPrice(price);
-        },
-        getStatusLabel(status) {
-            return statusService.getLabel('promotion', status);
-        }
+        formatDate, formatPrice, getStatusText, getAllStatusOptions,
     }
 }
 </script>

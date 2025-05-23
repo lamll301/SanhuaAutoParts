@@ -22,6 +22,7 @@
                         </template>
                         <template v-else>
                             <option value="delete">Xóa</option>
+                            <option value="filterByUnapproved">Lọc tin chưa duyệt</option>
                         </template>
                     </select>
                     <button class="fs-16 btn btn-primary" id="btnCheckboxSubmit" @click="handleFormActions()">Thực hiện</button>
@@ -34,15 +35,14 @@
                         <th scope="col">Tiêu đề
                             <SortComponent field="title" :sort="sort"/>
                         </th>
-                        <th scope="col">Tác giả
-                            <SortComponent field="author" :sort="sort"/>
-                        </th>
+                        <th scope="col">Tác giả</th>
                         <th scope="col">Highlight
                             <SortComponent field="highlight" :sort="sort"/>
                         </th>
                         <th scope="col">Ngày xuất bản
                             <SortComponent field="publish_date" :sort="sort"/>
                         </th>
+                        <th scope="col">Người duyệt</th>
                         <template v-if="!isTrashRoute">
                             <th scope="col">Ngày tạo
                                 <SortComponent field="created_at" :sort="sort"/>
@@ -63,6 +63,7 @@
                         <td>{{ item?.creator?.name }}</td>
                         <td>{{ item.highlight }}</td>
                         <td>{{ item.publish_date }}</td>
+                        <td>{{ item?.approver?.name }}</td>
                         <template v-if="!isTrashRoute">
                             <td>{{ formatDate(item.created_at) }}</td>
                             <td>{{ formatDate(item.updated_at) }}</td>
@@ -112,8 +113,8 @@
 import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
-import { formatDate } from '@/utils/formatter';
-import apiService from '@/utils/apiService';
+import { formatDate } from '@/utils/helpers';
+import { articleApi } from '@/api';
 
 export default {
     components: {
@@ -144,13 +145,13 @@ export default {
             try {
                 const req = [
                     this.isTrashRoute
-                        ? apiService.articles.getTrashed(this.$route.query)
-                        : apiService.articles.get(this.$route.query)
+                        ? articleApi.getTrashed(this.$route.query)
+                        : articleApi.get(this.$route.query)
                 ];
 
                 if (!this.isTrashRoute) {
                     req.push(
-                        apiService.articles.getTrashed(),
+                        articleApi.getTrashed(),
                     );
                 }
                 
@@ -170,7 +171,7 @@ export default {
         },
         async onDelete(id) {
             try {
-                await apiService.articles.delete(id)
+                await articleApi.delete(id)
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success")
                 await this.fetchData()
             } catch (error) {
@@ -179,7 +180,7 @@ export default {
         },
         async onRestore(id) {
             try {
-                await apiService.articles.restore(id)
+                await articleApi.restore(id)
                 await this.$swal.fire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success")
                 await this.fetchData()
             } catch (error) {
@@ -194,7 +195,7 @@ export default {
             })
             if (!result.isConfirmed) return;
             try {
-                await apiService.articles.forceDelete(id);
+                await articleApi.forceDelete(id);
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success")
                 await this.fetchData();
             } catch (error) {
@@ -214,7 +215,7 @@ export default {
                 return;
             }
             try {
-                await apiService.articles.handleFormActions({
+                await articleApi.handleFormActions({
                     action,
                     selectedIds: this.selectedIds,
                     targetId
@@ -222,8 +223,9 @@ export default {
                 await this.$swal.fire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success");
                 await this.fetchData();
                 await this.$refs.checkboxTable.resetCheckboxAll();
-            } catch (error) {
-                console.error(error)
+            } catch (e) {
+                console.error(e)
+                this.$swal.fire("Lỗi!", e.message, "error")
             }
         },
         validateAndGetActionData() {
@@ -234,13 +236,8 @@ export default {
                 return;
             }
             switch (action) {
-                case 'setStatus':
-                case 'filterByStatus':
-                    targetId = this.$refs.selectedStatus.value;
-                    if (!targetId) {
-                        this.$swal.fire("Lỗi!", "Vui lòng chọn trạng thái để thực hiện hành động.", "error");
-                        return;
-                    }
+                case 'filterByUnapproved':
+                    targetId = null;
                     break;
             }
             return {

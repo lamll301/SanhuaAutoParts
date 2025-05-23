@@ -12,7 +12,7 @@ class CategoryController extends Controller
     public function getBySlug(string $slug) {
         $category = Category::where('slug', $slug)->first();
         if (!$category) {
-            return response()->json(['message' => 'Category not found'], 404);
+            return response()->json(['message' => 'Không tìm thấy danh mục'], 404);
         }
         $related = Category::where('type', $category->type)->where('id', '!=', $category->id) ->get();
         
@@ -88,7 +88,7 @@ class CategoryController extends Controller
                 Category::onlyTrashed()->whereIn('id', $ids)->forceDelete();
                 return response()->json(['message' => 'success'], 204);
             default:
-                return response()->json(['message' => 'Action is invalid'], 400);
+                return response()->json(['message' => 'Hành động không hợp lệ'], 400);
         }
     }
 }

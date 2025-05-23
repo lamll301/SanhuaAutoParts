@@ -83,7 +83,7 @@
 </template>
 
 <script>
-import apiService from '@/utils/apiService';
+import { exportApi, inventoryApi } from '@/api';
 import TableDetails from '@/components/TableDetails.vue';
 
 export default {
@@ -150,12 +150,12 @@ export default {
         async fetchData() {
             try {
                 const req = [
-                    apiService.inventories.getAll(),
+                    inventoryApi.getAll(),
                 ];
 
                 if (this.$route.params.id) {
                     req.push(
-                        apiService.exports.getOne(this.$route.params.id)
+                        exportApi.getOne(this.$route.params.id)
                     );
                 }
 
@@ -169,15 +169,15 @@ export default {
         },
         async save() {
             if (!this.validate()) return;
-            const data = this.cleanData(this.exportData);
+            const data = this.collectData(this.exportData);
 
             try {
                 if (this.exportData.id) {
-                    await apiService.exports.update(this.exportData.id, data);
+                    await exportApi.update(this.exportData.id, data);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về phiếu xuất đã được cập nhật!", "success")
                 }
                 else {
-                    await apiService.exports.create(data);
+                    await exportApi.create(data);
                     await this.$swal.fire("Thêm thành công!", "Phiếu xuất mới đã được thêm vào hệ thống!", "success")
                 }
                 this.$router.push({ name: 'admin.exports' });
@@ -185,7 +185,7 @@ export default {
                 console.error(error);
             }
         },
-        cleanData(exportData) {
+        collectData(exportData) {
             const data = { ...exportData };
             if (data.details) {
                 data.details = data.details.filter(detail => 

@@ -66,8 +66,7 @@
 </template>
 
 <script>
-import apiService from '@/utils/apiService';
-import { isValidEmail, isValidPhone } from '@/utils/helpers';
+import { supplierApi } from '@/api';
 
 export default {
     data() {
@@ -112,15 +111,9 @@ export default {
             if (!this.supplier.email) {
                 this.errors.email = 'Email không được để trống.';
                 isValid = false;
-            } else if (!isValidEmail(this.supplier.email)) {
-                this.errors.email = 'Email không hợp lệ.';
-                isValid = false;
             }
             if (!this.supplier.phone) {
                 this.errors.phone = 'Số điện thoại không được để trống.';
-                isValid = false;
-            } else if (!isValidPhone(this.supplier.phone)) {
-                this.errors.phone = 'Số điện thoại không hợp lệ.';
                 isValid = false;
             }
             if (!this.supplier.address) {
@@ -135,7 +128,7 @@ export default {
         async fetchData() {
             try {
                 if (this.$route.params.id) {
-                    const res = await this.$swal.withLoading(apiService.suppliers.getOne(this.$route.params.id));
+                    const res = await this.$swal.withLoading(supplierApi.getOne(this.$route.params.id));
                     this.supplier = res.data;
                 }
             } catch (error) {
@@ -146,11 +139,11 @@ export default {
             if (!this.validate()) return;
             try {
                 if (this.supplier.id) {
-                    await apiService.suppliers.update(this.supplier.id, this.supplier);
+                    await supplierApi.update(this.supplier.id, this.supplier);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về nhà cung cấp đã được cập nhật!", "success");
                 }
                 else {
-                    await apiService.suppliers.create(this.supplier);
+                    await supplierApi.create(this.supplier);
                     await this.$swal.fire("Thêm thành công!", "Nhà cung cấp mới đã được thêm vào hệ thống!", "success");
                 }
                 this.$router.push({ name: 'admin.suppliers' });

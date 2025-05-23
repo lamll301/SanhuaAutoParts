@@ -22,6 +22,8 @@
                         </template>
                         <template v-else>
                             <option value="delete">Xóa</option>
+                            <option value="filterByOutOfStock">Lọc SP hết hàng</option>
+                            <option value="filterByLowStock">Lọc SP sắp hết hàng</option>
                             <option value="addCategory">Thêm danh mục</option>
                             <option value="removeCategory">Xóa danh mục</option>
                             <option value="filterByCategory">Lọc theo danh mục</option>
@@ -60,7 +62,8 @@
                     >
                         <option value="" selected>-- Chọn khuyến mãi --</option>
                         <option v-for="promotion in promotions" :key="promotion.id" :value="promotion.id">
-                            {{ promotion.name }}
+                            {{ promotion.name }} ({{ `${promotion.discount_percent}%` }} - 
+                            {{ promotion.status === null ? 'Chờ duyệt' : getStatusText('promotion', promotion.status) }})
                         </option>
                     </select>
                     <select v-show="['setUnit', 'filterByUnit'].includes(currentAction)" 
@@ -77,7 +80,7 @@
                         class="form-select admin-content__select-attribute admin-content__select-status"
                     >
                         <option value="" selected>-- Chọn trạng thái --</option>
-                        <option v-for="([key, status]) in getAllStatusOptions('product')" :key="key" :value="key">
+                        <option v-for="([key, status]) in Object.entries(getAllStatusOptions('product'))" :key="key" :value="key">
                             {{ status }}
                         </option>
                     </select>
@@ -103,8 +106,13 @@
                         <th scope="col">Số lượng
                             <SortComponent field="quantity" :sort="sort"/>
                         </th>
+                        <th scope="col">Đã bán
+                            <SortComponent field="sold" :sort="sort"/>
+                        </th>
                         <th scope="col">Đơn vị tính</th>
-                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Trạng thái
+                            <SortComponent field="status" :sort="sort"/>
+                        </th>
                         <template v-if="!isTrashRoute">
                             <th scope="col">Ngày tạo
                                 <SortComponent field="created_at" :sort="sort"/>
@@ -125,8 +133,17 @@
                         <td>{{ item.supplier?.name }}</td>
                         <td>{{ formatPrice(item.price) }}</td>
                         <td>{{ formatPrice(item.original_price) }}</td>
-                        <td>{{ item.promotion?.discount_percent ? `-${item.promotion.discount_percent}%` : '0%' }}</td>
+                        <td>{{
+                            item.promotion?.discount_percent
+                              ? `-${item.promotion.discount_percent}% (${item.promotion.name} - ${
+                                    item.promotion.status === null
+                                        ? 'Chờ duyệt'
+                                        : getStatusText('promotion', item.promotion.status)
+                                })`
+                              : '0%'
+                        }}</td>
                         <td>{{ item.quantity }}</td>
+                        <td>{{ item.sold }}</td>
                         <td>{{ item.unit?.name }}</td>
                         <td>{{ getStatusText('product', item.status) }}</td>
                         <template v-if="!isTrashRoute">
@@ -147,7 +164,7 @@
                     </template>
                     <template #empty>
                         <tr>
-                            <td colspan="14" class="text-center">
+                            <td colspan="20" class="text-center">
                                 <span v-show="isTrashRoute">
                                     Thùng rác trống.
                                     <router-link to="/admin/product">Danh sách sản phẩm</router-link>
@@ -179,7 +196,7 @@ import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
 import { formatDate, formatPrice } from '@/utils/helpers';
-import apiService from '@/utils/apiService';
+import { productApi, promotionApi, supplierApi, unitApi, categoryApi } from '@/api';
 import { getAllStatusOptions, getStatusText } from '@/utils/statusMap';
 
 export default {
@@ -213,17 +230,17 @@ export default {
             try {
                 const req = [
                     this.isTrashRoute
-                        ? apiService.products.getTrashed(this.$route.query)
-                        : apiService.products.get(this.$route.query)
+                        ? productApi.getTrashed(this.$route.query)
+                        : productApi.get(this.$route.query)
                 ];
 
                 if (!this.isTrashRoute) {
                     req.push(
-                        apiService.products.getTrashed(),
-                        apiService.categories.getAll(),
-                        apiService.suppliers.getAll(),
-                        apiService.promotions.getAll(),
-                        apiService.units.getAll(),
+                        productApi.getTrashed(),
+                        categoryApi.getAll(),
+                        supplierApi.getAll(),
+                        promotionApi.getAll(),
+                        unitApi.getAll(),
                     );
                 }
                 
@@ -247,7 +264,7 @@ export default {
         },
         async onDelete(id) {
             try {
-                await apiService.products.delete(id)
+                await productApi.delete(id)
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success")
                 await this.fetchData()
             } catch (error) {
@@ -256,7 +273,7 @@ export default {
         },
         async onRestore(id) {
             try {
-                await apiService.products.restore(id)
+                await productApi.restore(id)
                 await this.$swal.fire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success")
                 await this.fetchData()
             } catch (error) {
@@ -271,7 +288,7 @@ export default {
             })
             if (!result.isConfirmed) return;
             try {
-                await apiService.products.forceDelete(id);
+                await productApi.forceDelete(id);
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success")
                 await this.fetchData();
             } catch (error) {
@@ -292,7 +309,7 @@ export default {
                 return;
             }
             try {
-                await apiService.products.handleFormActions({
+                await productApi.handleFormActions({
                     action,
                     selectedIds: this.selectedIds,
                     targetId
@@ -312,6 +329,10 @@ export default {
                 return;
             }
             switch (action) {
+                case 'filterByOutOfStock':
+                    break;
+                case 'filterByLowStock':
+                    break;
                 case 'addCategory':
                 case 'removeCategory':
                 case 'filterByCategory':

@@ -13,6 +13,9 @@ class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable, SoftDeletes;
 
+    const STATUS_BANNED = 0;
+    const STATUS_ACTIVE = 1;
+
     protected $fillable = [
         'username',
         'password',

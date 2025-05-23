@@ -11,6 +11,9 @@ class Product extends Model
 {
     use SoftDeletes, HasSlug;
 
+    const STATUS_ACTIVE = 0;
+    const STATUS_INACTIVE = 1;
+
     protected $fillable = [
         'name',
         'description',
@@ -18,6 +21,7 @@ class Product extends Model
         'original_price',
         // 'price',
         // 'quantity',
+        // sold
         'dimensions',
         'weight',
         'color',
@@ -29,12 +33,7 @@ class Product extends Model
         'supplier_id',
     ];
 
-    protected $appends = ['sold', 'rate', 'reviewCount'];
-
-    public function getSoldAttribute() 
-    {
-        return rand(10, 500);
-    }
+    protected $appends = ['rate', 'reviewCount'];
 
     public function getRateAttribute() 
     {

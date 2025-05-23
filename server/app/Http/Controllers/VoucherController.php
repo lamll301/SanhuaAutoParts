@@ -4,9 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Voucher;
-use Illuminate\Support\Facades\Auth;
-use Tymon\JWTAuth\Exceptions\TokenExpiredException;
-
 
 class VoucherController extends Controller
 {
@@ -29,11 +26,17 @@ class VoucherController extends Controller
     }
 
     public function index(Request $request) {
-        $query = Voucher::query();
+        $query = Voucher::with([
+            'creator:id,name',
+            'approver:id,name',
+        ]);
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
     public function trashed(Request $request) {
-        $query = Voucher::onlyTrashed();
+        $query = Voucher::onlyTrashed()->with([
+            'creator:id,name',
+            'approver:id,name',
+        ]);
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
     public function show(string $id) {
@@ -67,7 +70,6 @@ class VoucherController extends Controller
     public function handleFormActions(Request $request) {
         $action = $request->input('action');
         $ids = $request->input('selectedIds', []);
-        $targetId = $request->input('targetId');
         switch ($action) {
             case 'delete':
                 Voucher::destroy($ids);
@@ -78,11 +80,8 @@ class VoucherController extends Controller
             case 'forceDelete':
                 Voucher::onlyTrashed()->whereIn('id', $ids)->forceDelete();
                 return response()->json(['message' => 'success'], 204);
-            case 'setStatus':
-                Voucher::whereIn('id', $ids)->update(['status' => $targetId]);
-                return response()->json(['message' => 'success'], 200);
             default:
-                return response()->json(['message' => 'invalid'], 400);
+                return response()->json(['message' => 'Hành động không hợp lệ'], 400);
         }
     }
 }

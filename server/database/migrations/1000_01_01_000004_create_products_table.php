@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedInteger('original_price');
             $table->unsignedInteger('price');
             $table->unsignedInteger('quantity')->default(0);
+            $table->unsignedInteger('sold')->default(0);
             $table->string('dimensions')->nullable();  // kich thuoc
             $table->string('weight')->nullable();     // trong luong
             $table->string('color')->nullable();      // mau sac

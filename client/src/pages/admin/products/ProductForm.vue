@@ -50,7 +50,8 @@
                                     <select class="valid-elm form-select" v-model="product.promotion_id">
                                         <option disabled value="null">Chọn khuyến mãi</option>
                                         <option v-for="promotion in promotions" :key="promotion.id" :value="promotion.id">
-                                            {{ promotion.name }} (-{{ promotion.discount_percent }}%) 
+                                            {{ promotion.name }} ({{ `${promotion.discount_percent}%` }} - 
+                                            {{ promotion.status === null ? 'Chờ duyệt' : getStatusText('promotion', promotion.status) }})
                                         </option>
                                     </select>
                                 </div>
@@ -197,10 +198,10 @@
 </template>
 
 <script>
-import apiService from '@/utils/apiService';
 import ImagePreview from '@/components/ImagePreview.vue';
 import ItemDashboard from '@/components/ItemDashboard.vue';
-import { getAllStatusOptions } from '@/utils/statusMap';
+import { productApi, promotionApi, supplierApi, unitApi, categoryApi } from '@/api';
+import { getAllStatusOptions, getStatusText } from '@/utils/statusMap';
 
 export default {
     data() {
@@ -233,7 +234,7 @@ export default {
         await this.fetchData();
     },
     methods: {
-        getAllStatusOptions,
+        getAllStatusOptions, getStatusText,
         validate() {
             let isValid = true;
             this.errors = {
@@ -278,15 +279,15 @@ export default {
         async fetchData() {
             try {
                 const req = [
-                    apiService.promotions.getAll(),
-                    apiService.suppliers.getAll(),
-                    apiService.units.getAll(),
-                    apiService.categories.getAll(),
+                    promotionApi.getAll(),
+                    supplierApi.getAll(),
+                    unitApi.getAll(),
+                    categoryApi.getAll(),
                 ];
 
                 if (this.$route.params.id) {
                     req.push(
-                        apiService.products.getOne(this.$route.params.id)
+                        productApi.getOne(this.$route.params.id)
                     );
                 }
 
@@ -304,18 +305,14 @@ export default {
         },
         async save() {
             if (!this.validate()) return;
-            const data = this.cleanData(this.product);
-            // for (let [key, value] of data.entries()) {
-            //     console.log(`${key}:`, value);
-            // }
-
+            const data = this.collectData(this.product);
             try {
                 if (this.product.id) {
-                    await apiService.products.updateWithImages(this.product.id, data);
+                    await productApi.updateWithImages(this.product.id, data);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về sản phẩm đã được cập nhật!", "success")
                 }
                 else {
-                    await apiService.products.create(data);
+                    await productApi.create(data);
                     await this.$swal.fire("Thêm thành công!", "Sản phẩm mới đã được thêm vào hệ thống!", "success")
                 }
                 this.$router.push({ name: 'admin.products' });
@@ -323,7 +320,7 @@ export default {
                 console.error(error);
             }
         },
-        cleanData(product) {
+        collectData(product) {
             const formData = new FormData();
             const images = this.$refs.imagePreview.tempImages;
             const selectedThumbnail = this.$refs.imagePreview.selectedThumbnail;

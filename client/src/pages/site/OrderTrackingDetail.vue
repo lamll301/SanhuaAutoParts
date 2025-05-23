@@ -505,8 +505,7 @@ export default {
 
             try {
                 const res = await orderApi.cancelOrderByUser(id, reason);
-                const order = res.data;
-                this.orders = this.orders.map(o => o.id === id ? order : o);
+                this.order = res.data;
                 this.$swal.fire('Đã hủy đơn hàng', 'Đơn hàng đã được hủy thành công!', 'success');
             } catch (error) {
                 console.error(error);

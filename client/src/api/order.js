@@ -2,13 +2,13 @@
 import apiClient from "@/plugins/axios"
 
 const orderApi = {
-    getOrders(params = {}) {
+    get(params = {}) {
         return apiClient.get('/orders', { params })
     },
-    getTrashedOrders(params = {}) {
+    getTrashed(params = {}) {
         return apiClient.get('/orders/trashed', { params })
     },
-    getOrder(id) {
+    getOne(id) {
         return apiClient.get(`/orders/${id}`)
     },
     create(data) {

@@ -1,16 +1,16 @@
 import apiClient from "@/plugins/axios"
 
 const exportApi = {
-    getExports(params = {}) {
+    get(params = {}) {
         return apiClient.get('/exports', { params })
     },
-    getExportsTrashed(params = {}) {
+    getTrashed(params = {}) {
         return apiClient.get('/exports/trashed', { params })
     },
-    getAllExports(params = {}) {
+    getAll(params = {}) {
         return apiClient.get('/exports', { params: { ...params, all: true } })
     },
-    getExport(id) {
+    getOne(id) {
         return apiClient.get(`/exports/${id}`)
     },
     create(data) {

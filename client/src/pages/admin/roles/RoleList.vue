@@ -111,8 +111,8 @@
 import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
-import { formatDate } from '@/utils/formatter';
-import apiService from '@/utils/apiService';
+import { roleApi, permissionApi } from '@/api';
+import { formatDate } from '@/utils/helpers';
 
 export default {
     components: {
@@ -139,18 +139,19 @@ export default {
         },
     },
     methods: {
+        formatDate,
         async fetchData() {
             try {
                 const req = [
                     this.isTrashRoute
-                        ? apiService.roles.getTrashed(this.$route.query)
-                        : apiService.roles.get(this.$route.query)
+                        ? roleApi.getTrashed(this.$route.query)
+                        : roleApi.get(this.$route.query)
                 ];
 
                 if (!this.isTrashRoute) {
                     req.push(
-                        apiService.roles.getTrashed(),
-                        apiService.permissions.getAll(),
+                        roleApi.getTrashed(),
+                        permissionApi.getAll(),
                     );
                 }
                 
@@ -171,7 +172,7 @@ export default {
         },
         async onDelete(id) {
             try {
-                await apiService.roles.delete(id)
+                await roleApi.delete(id)
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa.", "success")
                 await this.fetchData()
             } catch (error) {
@@ -180,7 +181,7 @@ export default {
         },
         async onRestore(id) {
             try {
-                await apiService.roles.restore(id)
+                await roleApi.restore(id)
                 await this.$swal.fire("Khôi phục thành công!", "Dữ liệu của bạn đã được khôi phục!", "success")
                 await this.fetchData()
             } catch (error) {
@@ -195,7 +196,7 @@ export default {
             })
             if (!result.isConfirmed) return;
             try {
-                await apiService.roles.forceDelete(id);
+                await roleApi.forceDelete(id);
                 await this.$swal.fire("Xóa thành công!", "Dữ liệu của bạn đã được xóa vĩnh viễn khỏi hệ thống.", "success")
                 await this.fetchData();
             } catch (error) {
@@ -216,7 +217,7 @@ export default {
                 return;
             }
             try {
-                await apiService.roles.handleFormActions({
+                await roleApi.handleFormActions({
                     action,
                     selectedIds: this.selectedIds,
                     targetId
@@ -224,8 +225,9 @@ export default {
                 await this.$swal.fire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success")
                 await this.fetchData()
                 await this.$refs.checkboxTable.resetCheckboxAll()
-            } catch (error) {
-                console.error(error)
+            } catch (e) {
+                console.error(e)
+                this.$swal.fire("Lỗi!", e.message, "error")
             }
         },
         validateAndGetActionData() {
@@ -254,9 +256,6 @@ export default {
         },      
         handleUpdateIds(ids) {
             this.selectedIds = ids;
-        },
-        formatDate(date) {
-            return formatDate(date);
         },
     }
 }

@@ -74,8 +74,8 @@
 </template>
 
 <script>
-import apiService from '@/utils/apiService';
 import TableDetails from '@/components/TableDetails.vue';
+import { disposalApi, inventoryApi } from '@/api';
 
 export default {
     components: {
@@ -138,12 +138,12 @@ export default {
         async fetchData() {
             try {
                 const req = [
-                    apiService.inventories.getAll(),
+                    inventoryApi.getAll(),
                 ];
 
                 if (this.$route.params.id) {
                     req.push(
-                        apiService.disposals.getOne(this.$route.params.id)
+                        disposalApi.getOne(this.$route.params.id)
                     );
                 }
 
@@ -157,15 +157,15 @@ export default {
         },
         async save() {
             if (!this.validate()) return;
-            const data = this.cleanData(this.disposalData);
+            const data = this.collectData(this.disposalData);
 
             try {
                 if (this.disposalData.id) {
-                    await apiService.disposals.update(this.disposalData.id, data);
+                    await disposalApi.update(this.disposalData.id, data);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về phiếu thanh lý đã được cập nhật!", "success")
                 }
                 else {
-                    await apiService.disposals.create(data);
+                    await disposalApi.create(data);
                     await this.$swal.fire("Thêm thành công!", "Phiếu thanh lý mới đã được thêm vào hệ thống!", "success")
                 }
                 this.$router.push({ name: 'admin.disposals' });
@@ -173,7 +173,7 @@ export default {
                 console.error(error);
             }
         },
-        cleanData(disposalData) {
+        collectData(disposalData) {
             const data = { ...disposalData };
             if (data.details) {
                 data.details = data.details.filter(detail => 

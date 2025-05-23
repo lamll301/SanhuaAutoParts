@@ -1,16 +1,16 @@
 import apiClient from "@/plugins/axios"
 
 const disposalApi = {
-    getDisposals(params = {}) {
+    get(params = {}) {
         return apiClient.get('/disposals', { params })
     },
-    getDisposalsTrashed(params = {}) {
+    getTrashed(params = {}) {
         return apiClient.get('/disposals/trashed', { params })
     },
-    getAllDisposals(params = {}) {
+    getAll(params = {}) {
         return apiClient.get('/disposals', { params: { ...params, all: true } })
     },
-    getDisposal(id) {
+    getOne(id) {
         return apiClient.get(`/disposals/${id}`)
     },
     create(data) {

@@ -1,19 +1,33 @@
 
 const STATUS_CONFIG = Object.freeze({
-    user: { 0: 'Không hoạt động', 1: 'Hoạt động', 2: 'Bị cấm' },
-    product: { 0: 'Không hoạt động', 1: 'Hoạt động', 2: 'Hết hàng', },
-    promotion: { 0: 'Bản nháp', 1: 'Hoạt động', 2: 'Lên lịch', 3: 'Hết hạn', 4: 'Bị hủy' },
-    location: { 0: 'Còn trống', 1: 'Đã đầy', 2: 'Tạm khóa' },
+    location: { 
+        0: 'Còn trống', 
+        1: 'Đang chứa hàng', 
+        2: 'Đã đầy' 
+    },
+    product: { 
+        0: 'Hoạt động', 
+        1: 'Ngưng bán', 
+    },
+    user: { 
+        0: 'Bị cấm', 
+        1: 'Hoạt động' 
+    },
+    promotion: { 
+        0: 'Sắp diễn ra',
+        1: 'Đang áp dụng', 
+        2: 'Hết hạn',
+    },
     order: { 
-        0: 'Mới tạo', 
-        1: 'Đóng gói', 
-        2: 'Vận chuyển', 
-        3: 'Thành công', 
-        4: 'Bị hủy' 
+        0: 'Đang xử lý',
+        1: 'Đang đóng gói',
+        2: 'Đang giao hàng',
+        3: 'Đã giao hàng',
+        4: 'Đã hủy'
     },
     payment: { 
-        0: 'Chưa TT', 
-        1: 'Đã TT' 
+        0: 'Chưa TT',
+        1: 'Đã TT'
     }
 })
 

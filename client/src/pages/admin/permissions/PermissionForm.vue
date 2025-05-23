@@ -50,7 +50,7 @@
 </template>
 
 <script>
-import apiService from '@/utils/apiService';
+import { permissionApi } from '@/api';
 
 export default {
     data() {
@@ -95,7 +95,7 @@ export default {
         async fetchData() {
             try {
                 if (this.$route.params.id) {
-                    const res = await this.$swal.withLoading(apiService.permissions.getOne(this.$route.params.id));
+                    const res = await this.$swal.withLoading(permissionApi.getOne(this.$route.params.id));
                     this.permission = res.data;
                 }
             } catch (error) {
@@ -107,11 +107,11 @@ export default {
 
             try {
                 if (this.permission.id) {
-                    await apiService.permissions.update(this.permission.id, this.permission);
+                    await permissionApi.update(this.permission.id, this.permission);
                     await this.$swal.fire("Cập nhật thành công!", "Thông tin về phân quyền kho đã được cập nhật!", "success")
                 }
                 else {
-                    await apiService.permissions.create(this.permission);
+                    await permissionApi.create(this.permission);
                     await this.$swal.fire("Thêm thành công!", "Phân quyền kho mới đã được thêm vào hệ thống!", "success")
                 }
                 this.$router.push({ name: 'admin.permissions' });

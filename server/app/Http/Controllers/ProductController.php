@@ -68,7 +68,7 @@ class ProductController extends Controller
             }, 
             'unit:id,name',
             'promotion:id,discount_percent'
-        ]);
+        ])->where('status', Product::STATUS_ACTIVE);
 
         if ($slug !== null) {
             $query->whereHas('categories', function($q) use ($slug) {
@@ -108,17 +108,38 @@ class ProductController extends Controller
     }
 
     public function index(Request $request) {
-        $query = Product::with('images')->with('categories')->with('unit')->with('supplier')->with('promotion');
+        $query = Product::with([
+            'categories:id,name',
+            'unit:id,name',
+            'supplier:id,name',
+            'promotion:id,discount_percent,status,name'
+        ]);
+        $action = $request->query('action');
+        switch ($action) {
+            case 'filterByOutOfStock':
+                $query->where('quantity', 0)->where('status', Product::STATUS_ACTIVE);
+                break;
+            case 'filterByLowStock':
+                $query->where('quantity', '<', 10)->where('quantity', '>', 0)->where('status', Product::STATUS_ACTIVE);
+                break;
+            default:
+                break;
+        }
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
 
     public function trashed(Request $request) {
-        $query = Product::onlyTrashed()->with('images')->with('categories')->with('unit')->with('supplier')->with('promotion');
+        $query = Product::onlyTrashed()->with([
+            'images',
+            'categories:id,name',
+            'unit:id,name',
+            'supplier:id,name',
+            'promotion:id,discount_percent,status,name'
+        ]);
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
 
     public function show(string $id) {
-        // $product = Product::with('images')->with('categories')->findOrFail($id);
         $product = Product::with([
             'images',
             'categories:id,name',
@@ -230,7 +251,7 @@ class ProductController extends Controller
                 Product::whereIn('id', $ids)->update(['unit_id' => $targetId]);
                 return response()->json(['message' => 'success'], 200);
             default:
-                return response()->json(['message' => 'Action is invalid'], 400);
+                return response()->json(['message' => 'Hành động không hợp lệ'], 400);
         }
     }
 }

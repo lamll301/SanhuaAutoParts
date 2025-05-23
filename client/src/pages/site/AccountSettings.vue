@@ -268,7 +268,7 @@ export default {
                 event.target.value = '';
             }
         },
-        cleanData() {
+        collectData() {
             const formData = new FormData();
             Object.entries(this.user).forEach(([key, value]) => {
                 if (value !== null && value !== undefined) {
@@ -282,7 +282,7 @@ export default {
             return formData;
         },
         async save() {
-            const data = this.cleanData();
+            const data = this.collectData();
             try {
                 const res = await userApi.updateProfile(data);
                 this.authStore.setUser(res.data);
@@ -294,13 +294,14 @@ export default {
         async savePassword() {
             if (!this.validate()) return;
             try {
-                await userApi.updatePassword(this.oldPassword, this.newPassword);
+                await userApi.resetPassword(this.oldPassword, this.newPassword);
                 this.oldPassword = '';
                 this.newPassword = '';
                 this.confirmPassword = '';
                 this.$swal.fire('Hoàn tất!', 'Mật khẩu đã được cập nhật.', 'success');
-            } catch (error) {
-                console.error(error);
+            } catch (e) {
+                console.error(e);
+                this.errors.old_password = e.message;
             }
         },
         validate() {
