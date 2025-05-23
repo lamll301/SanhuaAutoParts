@@ -36,7 +36,7 @@ export const useCartStore = defineStore('cart', {
                 item.quantity = quantity
                 item.subtotal = item.product.price * quantity
             }
-        }
+        },
     },
     persist: true
 })

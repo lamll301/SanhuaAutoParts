@@ -4,6 +4,8 @@ import router from '@/router'
 import { swal } from './sweetalert'
 import { useAuthStore } from '@/stores/auth'
 import { authApi } from '@/api';
+import { useCartStore } from '@/stores/cart';
+
 
 const apiClient = axios.create({
     baseURL: process.env.VUE_APP_API_BASE_URL + '/api',
@@ -23,7 +25,7 @@ axiosRetry(apiClient, {
         return (
             error.code === 'ECONNABORTED' || 
             !error.response || 
-            // (error.response && error.response.status >= 500) ||
+            (error.response && error.response.status >= 500) ||
             !window.navigator.onLine
         );
     }
@@ -63,8 +65,17 @@ apiClient.interceptors.response.use(
         const { response } = error
         const originalRequest = error.config;
         const authStore = useAuthStore();
+        const cartStore = useCartStore();
         if (response) {
             if (response.status === 401 && !originalRequest._retry) {
+                const errorCode = response.data?.code
+                if (errorCode === 1001) {
+                    authStore.removeToken();
+                    authStore.removeUser();
+                    cartStore.setCart([]);
+                    router.push('/')
+                    return Promise.reject(response.data)
+                }
                 if (isRefreshing) {
                     return new Promise((resolve, reject) => {
                         failedQueue.push({ resolve, reject });
@@ -88,6 +99,7 @@ apiClient.interceptors.response.use(
                     processQueue(err);
                     authStore.removeToken();
                     authStore.removeUser();
+                    cartStore.setCart([]);
                     router.push('/')
                     return Promise.reject(err)
                 } finally {
@@ -100,7 +112,7 @@ apiClient.interceptors.response.use(
                     break
                 case 403:
                     console.error(response.data)
-                    router.replace({ name: "NotFound" })
+                    router.replace({ name: "AccessDenied" })
                     break
                 case 404:
                     console.error(response.data)

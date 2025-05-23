@@ -35,6 +35,9 @@ const voucherApi = {
     checkCoupon(couponCode) {
         return apiClient.get(`/vouchers/check/${couponCode}`)
     },
+    approve(id) {
+        return apiClient.patch(`/vouchers/${id}/approve`)
+    }
 }
 
 export default voucherApi;

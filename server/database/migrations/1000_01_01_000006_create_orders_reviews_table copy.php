@@ -18,9 +18,9 @@ return new class extends Migration
             $table->unsignedInteger('total_amount');
             $table->string('name');
             $table->string('phone');
-            $table->unsignedInteger('city_id');
-            $table->unsignedInteger('district_id');
-            $table->unsignedInteger('ward_id');
+            $table->unsignedInteger('city_id')->nullable();
+            $table->unsignedInteger('district_id')->nullable();
+            $table->unsignedInteger('ward_id')->nullable();
             $table->string('shipping_address');
             $table->enum('address_type', ['Nhà riêng', 'Văn phòng'])->default('Nhà riêng');
             $table->enum('payment_method', ['Mã QR', 'Thẻ tín dụng / thẻ ghi nợ', 'Ví điện tử', 'Thanh toán khi nhận hàng'])->default('Thanh toán khi nhận hàng');

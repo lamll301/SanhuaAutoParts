@@ -75,7 +75,7 @@
                             </div>
                         </div>
                         <div class="mb-20 admin-content__form-btn">
-                            <button v-if="!promotion.approved_by" type="button" class="fs-16 btn btn-secondary" @click="approve()">Duyệt</button>
+                            <button v-if="!promotion.approved_by && promotion.id" type="button" class="fs-16 btn btn-secondary" @click="approve()">Duyệt</button>
                             <button type="submit" class="fs-16 btn btn-primary">Xác nhận</button>
                         </div>
                     </div>

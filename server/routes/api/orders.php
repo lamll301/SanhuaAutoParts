@@ -4,21 +4,34 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Middleware\SortMiddleware;
 use App\Http\Middleware\AuthenticateWithJWT;
+use App\Http\Middleware\Authorization;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('orders')->group(function () {
     Route::patch('/my-orders/{id}/cancel', [OrderController::class, 'cancelOrderByUser'])->middleware(AuthenticateWithJWT::class);
     Route::get('/my-orders/{id}', [OrderController::class, 'getOrderByUser'])->middleware(AuthenticateWithJWT::class);
     Route::get('/my-orders', [OrderController::class, 'getOrdersByUser'])->middleware(AuthenticateWithJWT::class);
-    Route::get('/trashed', [OrderController::class, 'trashed'])->middleware(SortMiddleware::class);
     Route::post('/handle-form-actions', [OrderController::class, 'handleFormActions']);
-    Route::delete('/{id}', [OrderController::class, 'destroy']);
-    Route::patch('/{id}/status', [OrderController::class, 'changeOrderStatus'])->middleware(AuthenticateWithJWT::class);
-    Route::patch('/{id}/restore', [OrderController::class, 'restore']);
-    Route::delete('/{id}/force-delete', [OrderController::class, 'forceDelete']);
-    Route::get('/{id}', [OrderController::class, 'show']);
     Route::post('/', [OrderController::class, 'store'])->middleware(AuthenticateWithJWT::class);
-    Route::get('/', [OrderController::class, 'index'])->middleware(SortMiddleware::class);
+    Route::patch('/{id}/status', [OrderController::class, 'changeOrderStatus'])->middleware(AuthenticateWithJWT::class);
+    Route::delete('/{id}', [OrderController::class, 'destroy'])->middleware([
+        AuthenticateWithJWT::class, Authorization::class . ':orders.manage'
+    ]);
+    Route::patch('/{id}/restore', [OrderController::class, 'restore'])->middleware([
+        AuthenticateWithJWT::class, Authorization::class . ':orders.manage'
+    ]);
+    Route::delete('/{id}/force-delete', [OrderController::class, 'forceDelete'])->middleware([
+        AuthenticateWithJWT::class, Authorization::class . ':orders.manage'
+    ]);
+    Route::get('/trashed', [OrderController::class, 'trashed'])->middleware([
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':orders.view'
+    ]);
+    Route::get('/{id}', [OrderController::class, 'show'])->middleware([
+        AuthenticateWithJWT::class, Authorization::class . ':orders.view'
+    ]);
+    Route::get('/', [OrderController::class, 'index'])->middleware([
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':orders.view'
+    ]);
 });
 
 Route::prefix('payments')->group(function () {

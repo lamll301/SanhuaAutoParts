@@ -25,23 +25,21 @@ class PermissionSeeder extends Seeder
             'promotions',
             'articles',
             'suppliers',
-            'units'
+            'units',
+            'disposals',
+            'checks',
+            'cancels',
+            'locations',
         ];
 
-        $actions = ['view', 'create', 'update', 'delete'];
+        $actions = ['view', 'manage', 'approve'];
 
         foreach ($modules as $module) {
             foreach ($actions as $action) {
                 Permission::create([
-                    'name' => "$action $module",
-                    'description' => ucfirst($action) . " " . str_replace('_', ' ', $module),
+                    'name' => "$module.$action",
                 ]);
             }
         }
-        
-        Permission::create([
-            'name' => 'full access',
-            'description' => 'Toàn quyền hệ thống',
-        ]);
     }
 }

@@ -23,7 +23,7 @@ class UserSeeder extends Seeder
                 return preg_match('/\.(jpg|jpeg|png|gif)$/i', $file);
             })->values()->all();
 
-        for ($i = 0; $i < 50; $i++) {
+        for ($i = 0; $i < 20; $i++) {
             $name = $faker->lastName . ' ' . $faker->firstName;
             $email = Str::slug($name, '.') . $i . '@gmail.com';
 
@@ -36,8 +36,8 @@ class UserSeeder extends Seeder
             ]);
 
             User::create([
-                'username' => $faker->unique()->userName,
-                'password' => bcrypt('matkhau123'),
+                'username' => 'test' . $i,
+                'password' => bcrypt('test' . $i),
                 'name' => $name,
                 'email' => strtolower($email),
                 'phone' => $faker->randomElement($prefixes) . $faker->numberBetween(1000000, 9999999),
@@ -46,5 +46,10 @@ class UserSeeder extends Seeder
                 'avatar_id' => $avatar->id,
             ]);
         }
+        User::create([
+            'username' => 'admin',
+            'password' => bcrypt('admin'),
+            'role_id' => Role::where('name', 'admin')->first()->id,
+        ]);
     }
 }

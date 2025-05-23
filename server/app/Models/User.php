@@ -64,4 +64,15 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsTo(Image::class, 'avatar_id');
     }
+
+    public function hasPermission(string $permission)
+    {
+        if (!$this->role) {
+            return false;
+        }
+        if ($this->role->name === 'admin') {
+            return true;
+        }
+        return $this->role->permissions()->where('name', $permission)->exists();
+    }
 }

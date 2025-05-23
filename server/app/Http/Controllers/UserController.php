@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
-    private const SEARCH_FIELDS = ['phone', 'name'];
+    private const SEARCH_FIELDS = ['phone', 'name', 'username'];
     private const FILTER_FIELDS = [
         'filterByRole' => ['column' => 'role_id'],
         'filterByStatus' => ['column' => 'status'],

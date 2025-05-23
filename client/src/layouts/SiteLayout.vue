@@ -430,13 +430,16 @@ export default {
                         authApi.me(),
                         cartApi.getCart()
                     ])
-
-                    if (res[0].data) {
-                        this.authStore.setUser(res[0].data)
+                    const user = res[0].data;
+                    const cart = res[1].data;
+                    if (user) {
+                        this.authStore.setUser(user)
                     }
-                    
-                    if (res[1].data?.details) {
-                        this.cartStore.setCart(res[1].data.details)
+                    if (cart?.details) {
+                        this.cartStore.setCart(cart.details)
+                    }
+                    if (user.role_id) {
+                        this.$router.push('/admin')
                     }
                 }
             } catch (err) {

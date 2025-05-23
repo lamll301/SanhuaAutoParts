@@ -10,6 +10,14 @@ class VoucherController extends Controller
     private const SEARCH_FIELDS = ['code'];
     private const FILTER_FIELDS = [];
 
+    public function approve(Request $request, string $id) {
+        $approverId = $request->user_id;
+        $voucher = Voucher::findOrFail($id);
+        $voucher->approved_by = $approverId;
+        $voucher->save();
+        return response()->json(['message' => 'success'], 200);
+    }
+
     public function checkCoupon(Request $request, string $couponCode) {
         $userId = $request->user_id;
         $voucher = Voucher::where('code', $couponCode)->first();

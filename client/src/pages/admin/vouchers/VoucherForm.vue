@@ -65,6 +65,7 @@
                             </div>
                         </div>
                         <div class="mb-20 admin-content__form-btn">
+                            <button v-if="!voucher.approved_by && voucher.id" type="button" class="fs-16 btn btn-secondary" @click="approve()">Duyệt</button>
                             <button type="submit" class="fs-16 btn btn-primary">Xác nhận</button>
                         </div>
                     </div>
@@ -104,6 +105,16 @@ export default {
         await this.fetchData();
     },
     methods: {
+        async approve() {
+            try {
+                await voucherApi.approve(this.$route.params.id);
+                await this.$swal.fire("Duyệt thành công!", "Voucher đã được duyệt!", "success");
+                this.$router.push({ name: 'admin.vouchers' });
+            } catch (e) {
+                console.error(e);
+                this.$swal.fire("Lỗi!", e.message, "error");
+            }
+        },
         validate() {
             let isValid = true;
             this.errors = {

@@ -333,7 +333,7 @@
                         </div>
                         <div class="product-rating-histogram">
                             <ul class="product-rating-histogram-list">
-                                <li v-for="(count, stars) in ratingCounts" :key="stars" class="product-rating-histogram-item">
+                                <li v-for="stars in [5,4,3,2,1]" :key="stars" class="product-rating-histogram-item">
                                     <div class="product-rating-histogram-item-l">
                                         <i class="product-rating-icon fa-solid fa-star"></i>
                                         <span class="product-rating-histogram-item-l-star">
@@ -344,13 +344,13 @@
                                         <div class="product-rating-histogram-item-c">
                                             <div class="product-rating-histogram-item-c-bar" 
                                                 :style="{
-                                                    width: (count / total) * 100 + '%'
+                                                    width: total > 0 ? ((ratingCounts[stars] || 0) / total) * 100 + '%' : '0%'
                                                 }"
                                             ></div>
                                         </div>
                                     </div>
                                     <div class="product-rating-histogram-item-r">
-                                        {{ count }}
+                                        {{ ratingCounts[stars] || 0 }}
                                     </div>
                                 </li>
                             </ul>

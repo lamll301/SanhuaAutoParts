@@ -15,16 +15,12 @@ return new class extends Migration
             $table->integer('size')->nullable(); 
             $table->string('mime_type')->nullable();
             $table->boolean('is_thumbnail')->default(false);
-            // $table->unsignedBigInteger('message_id')->nullable();
             $table->foreignId('review_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('article_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
             
             $table->timestamps();
-
-            // $table->foreign('message_id')->references('id')->on('messages')->onDelete('cascade');
-
         });
     }
 

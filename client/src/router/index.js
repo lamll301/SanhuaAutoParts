@@ -9,6 +9,11 @@ const routes = [
         path: '/:pathMatch(.*)*',
         name: 'NotFound',
         component: () => import('@/pages/NotFound.vue')
+    },
+    {
+        path: '/access-denied',
+        name: 'AccessDenied',
+        component: () => import('@/pages/AccessDenied.vue')
     }
 ];
 

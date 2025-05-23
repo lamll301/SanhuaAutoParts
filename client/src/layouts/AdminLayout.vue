@@ -8,7 +8,7 @@
                 <i class="header-admin__icon fa-solid fa-house"></i>
                 Trang chủ
             </router-link>
-            <div class="header-admin__label1">QUẢN TRỊ VIÊN</div>
+            <!-- <div class="header-admin__label1">QUẢN TRỊ VIÊN</div> -->
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
@@ -45,7 +45,6 @@
                 </div>
                 <ul class="header-admin__dropdown-menu">
                     <li class="header-admin__dropdown-item"><router-link to="/admin/user">Tất cả người dùng</router-link></li>
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/user/create">Thêm người dùng</router-link></li>
                 </ul>
             </div>
             <div class="header-admin__dropdown">
@@ -62,7 +61,7 @@
                 </ul>
             </div>
             
-            <div class="header-admin__label1">NHÂN VIÊN BÁN HÀNG</div>
+            <!-- <div class="header-admin__label1">NHÂN VIÊN BÁN HÀNG</div> -->
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
@@ -73,7 +72,6 @@
                 </div>
                 <ul class="header-admin__dropdown-menu">
                     <li class="header-admin__dropdown-item"><router-link to="/admin/order">Tất cả đơn hàng</router-link></li>
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/order/create">Thêm đơn hàng</router-link></li>
                 </ul>
             </div>
             <div class="header-admin__dropdown">
@@ -89,19 +87,6 @@
                     <li class="header-admin__dropdown-item"><router-link to="/admin/product/create">Thêm sản phẩm</router-link></li>
                 </ul>
             </div>
-            <!-- <div class="header-admin__dropdown">
-                <div class="header-admin__dropdown-content">
-                    <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-seedling header-admin__dropdown-icon"></i>
-                        Quản lý nguyên liệu
-                    </div>
-                    <i class="fa-solid fa-chevron-down"></i>
-                </div>
-                <ul class="header-admin__dropdown-menu">
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/ingredient">Tất cả nguyên liệu</router-link></li>
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/ingredient/create">Tạo nguyên liệu</router-link></li>
-                </ul>
-            </div> -->
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
@@ -155,7 +140,7 @@
                 </ul>
             </div>
             <!-- Nhan vien ban hang -->
-            <div class="header-admin__label1">NHÂN VIÊN KHO</div>
+            <!-- <div class="header-admin__label1">NHÂN VIÊN KHO</div> -->
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
@@ -332,7 +317,7 @@
             <router-view></router-view>
             <div class="footer-admin">
                 <p>Ghé thăm website
-                    <a href="/" class="footer-admin-link">tại đây</a>
+                    <router-link to="/" class="footer-admin-link">tại đây</router-link>
                 </p>
                 <p>Made by lamlely</p>
             </div>

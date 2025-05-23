@@ -6,6 +6,7 @@ use App\Http\Middleware\SortMiddleware;
 use App\Http\Middleware\AuthenticateWithJWT;
 
 Route::prefix('vouchers')->group(function () {
+    Route::patch('/{id}/approve', [VoucherController::class, 'approve'])->middleware(AuthenticateWithJWT::class);
     Route::get('/check/{couponCode}', [VoucherController::class, 'checkCoupon'])->middleware(AuthenticateWithJWT::class);
     Route::get('/trashed', [VoucherController::class, 'trashed'])->middleware(SortMiddleware::class);
     Route::patch('/{id}/restore', [VoucherController::class, 'restore']);
