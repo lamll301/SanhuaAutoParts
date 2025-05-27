@@ -43,6 +43,7 @@ class Order extends Model
         'completed_at',
         'cancelled_at',
         'cancel_reason',
+        'last_delivery_failure_reason',
     ];
     
     protected $casts = [
@@ -52,6 +53,11 @@ class Order extends Model
     ];
     
     protected $appends = ['product_total'];
+
+    public function isOverThirtyDays()
+    {
+        return $this->created_at->diffInDays(now()) > 30;
+    }
 
     public function getProductTotalAttribute()
     {

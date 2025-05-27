@@ -13,32 +13,101 @@ use Carbon\Carbon;
 
 class OrderSeeder extends Seeder
 {
-    public function run(): void
-    {
-        $faker = Faker::create('vi_VN');
-        $userIds = User::pluck('id')->toArray();
-        $productIds = Product::pluck('id')->toArray();
-        $voucherIds = Voucher::pluck('id')->toArray();
-        $adminUserIds = User::whereHas('role', function($query) {
-            $query->where('name', 'admin');
-        })->pluck('id')->toArray();
+    private const PAYMENT_METHODS = ['Mã QR', 'Thẻ tín dụng / thẻ ghi nợ', 'Ví điện tử', 'Thanh toán khi nhận hàng'];
+    private const STATUS = [0, 1, 2, 3, 4];
+    private const ADDRESS_TYPE = ['Nhà riêng', 'Văn phòng'];
 
-        for ($i = 0; $i < 30; $i++) {
+    private function createOrderDetails($faker, $order, $productIds): int {
+        $numberOfProducts = $faker->numberBetween(2, 5);
+        $selectedProducts = $faker->randomElements($productIds, $numberOfProducts);
+        $totalAmount = 0;
+        foreach ($selectedProducts as $productId) {
+            $quantity = $faker->numberBetween(1, 3);
+            $price = $faker->numberBetween(50000, 500000);
+            $totalAmount += $quantity * $price;
+            OrderDetail::create([
+                'order_id' => $order->id,
+                'product_id' => $productId,
+                'quantity' => $quantity,
+                'price' => $price,
+            ]);
+        }
+        return $totalAmount;
+    }
+
+    private function createCompletedOrders($faker, $userIds, $productIds, $voucherIds, $adminUserIds) {
+        $startOfYear = Carbon::now()->startOfYear();
+        $endOfYear = Carbon::now()->endOfYear();
+        for ($i = 0; $i < 200; $i++) {
+            $shippingFee = $faker->randomElement([15000, 20000, 25000, 30000]);
+            $createdAt = $faker->dateTimeBetween($startOfYear, $endOfYear);
+            $shippedAt = Carbon::instance($createdAt)->addHours($faker->numberBetween(1, 48));
+            $completedAt = Carbon::instance($shippedAt)->addDays($faker->numberBetween(1, 7));
+
+            $order = Order::create([
+                'user_id' => $faker->randomElement($userIds),
+                'approved_by' => $faker->randomElement($adminUserIds),
+                'voucher_id' => $faker->boolean(30) ? $faker->randomElement($voucherIds) : null,
+                'status' => 3,
+                'shipping_fee' => $shippingFee,
+                'total_amount' => 0,
+                'name' => $faker->name,
+                'phone' => '0' . $faker->numberBetween(300000000, 999999999),
+                'shipping_address' => $faker->address,
+                'address_type' => $faker->randomElement(self::ADDRESS_TYPE),
+                'payment_method' => $faker->randomElement(self::PAYMENT_METHODS),
+                'payment_info' => $faker->sentence,
+                'payment_status' => 1,
+                'shipped_at' => $shippedAt,
+                'completed_at' => $completedAt,
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt,
+            ]);
+            $totalAmount = $this->createOrderDetails($faker, $order, $productIds);
+            $order->update(['total_amount' => $totalAmount + $shippingFee]);
+        }
+    }
+
+    public function createUnpaidOrders($faker, $productIds, $voucherIds, $adminUserIds) {
+        $userId = User::where('username', 'admin')->first()->id;
+        for ($i = 0; $i < 20; $i++) {
+            $shippingFee = $faker->randomElement([15000, 20000, 25000, 30000]);
+            $createdAt = $faker->dateTimeBetween('-1 month', 'now');
+            
+            $order = Order::create([
+                'user_id' => $userId,
+                'approved_by' => $faker->randomElement($adminUserIds, null),
+                'voucher_id' => $faker->boolean(30) ? $faker->randomElement($voucherIds) : null,
+                'status' => 0,
+                'shipping_fee' => $shippingFee,
+                'total_amount' => 0,
+                'name' => $faker->name,
+                'phone' => '0' . $faker->numberBetween(300000000, 999999999),
+                'shipping_address' => $faker->address,
+                'address_type' => $faker->randomElement(self::ADDRESS_TYPE),
+                'payment_method' => $faker->randomElement(self::PAYMENT_METHODS),
+                'payment_status' => 0,
+                'created_at' => $createdAt,
+            ]);
+            $totalAmount = $this->createOrderDetails($faker, $order, $productIds);
+            $order->update(['total_amount' => $totalAmount + $shippingFee]);
+        }
+    }
+
+    private function createOrders($faker, $userIds, $productIds, $voucherIds, $adminUserIds) {
+        for ($i = 0; $i < 100; $i++) {
+
             $userId = $faker->randomElement($userIds);
             $shippingFee = $faker->randomElement([15000, 20000, 25000, 30000]);
-            $paymentMethod = $faker->randomElement(['Mã QR', 'Thẻ tín dụng / thẻ ghi nợ', 'Ví điện tử', 'Thanh toán khi nhận hàng']);
-            $status = $faker->randomElement([0, 1, 2, 3, 4]); // 0: chờ xác nhận, 1: đã xác nhận, 2: đang giao, 3: hoàn thành, 4: đã hủy
-
+            $paymentMethod = $faker->randomElement(self::PAYMENT_METHODS);
+            $status = $faker->randomElement(self::STATUS);
             $createdAt = $faker->dateTimeBetween('-3 months', 'now');
+            $completedAt = $faker->dateTimeBetween('-3 months', 'now');
+            $approvedBy = !empty($adminUserIds) ? $faker->randomElement($adminUserIds) : null;
             $shippedAt = null;
             $completedAt = null;
             $cancelledAt = null;
             $cancelReason = null;
-            $approvedBy = null;
-            
-            if ($status >= 1) {
-                $approvedBy = !empty($adminUserIds) ? $faker->randomElement($adminUserIds) : null;
-            }
             
             if ($status >= 2) {
                 $shippedAt = Carbon::instance($createdAt)->addHours($faker->numberBetween(1, 48));
@@ -69,10 +138,10 @@ class OrderSeeder extends Seeder
                 'name' => $faker->name,
                 'phone' => '0' . $faker->numberBetween(300000000, 999999999),
                 'shipping_address' => $faker->address,
-                'address_type' => $faker->randomElement(['Nhà riêng', 'Văn phòng']),
+                'address_type' => $faker->randomElement(self::ADDRESS_TYPE),
                 'payment_method' => $paymentMethod,
-                'payment_info' => $paymentMethod === 'Mã QR' ? 'QR_' . $faker->numberBetween(100000, 999999) : null,
-                'payment_status' => $status >= 3 ? 1 : ($status == 4 ? 0 : $faker->randomElement([0, 1])),
+                'payment_info' => $faker->sentence,
+                'payment_status' => $status >= 1 ? 1 : $faker->randomElement([0, 1]),
                 'shipped_at' => $shippedAt,
                 'completed_at' => $completedAt,
                 'cancelled_at' => $cancelledAt,
@@ -80,27 +149,23 @@ class OrderSeeder extends Seeder
                 'created_at' => $createdAt,
                 'updated_at' => $createdAt,
             ]);
-
-            $numberOfProducts = $faker->numberBetween(2, 5);
-            $selectedProducts = $faker->randomElements($productIds, $numberOfProducts);
-            $totalAmount = 0;
-
-            foreach ($selectedProducts as $productId) {
-                $quantity = $faker->numberBetween(1, 3);
-                $price = $faker->numberBetween(50000, 500000);
-                $totalAmount += $quantity * $price;
-
-                OrderDetail::create([
-                    'order_id' => $order->id,
-                    'product_id' => $productId,
-                    'quantity' => $quantity,
-                    'price' => $price,
-                    'created_at' => $createdAt,
-                    'updated_at' => $createdAt,
-                ]);
-            }
-
+            $totalAmount = $this->createOrderDetails($faker, $order, $productIds);
             $order->update(['total_amount' => $totalAmount + $shippingFee]);
         }
+    }
+
+    public function run(): void
+    {
+        $faker = Faker::create('vi_VN');
+        $userIds = User::whereNull('role_id')->pluck('id')->toArray();
+        $productIds = Product::pluck('id')->toArray();
+        $voucherIds = Voucher::pluck('id')->toArray();
+        $adminUserIds = User::whereHas('role', function($query) {
+            $query->where('name', 'admin');
+        })->pluck('id')->toArray();
+
+        $this->createOrders($faker, $userIds, $productIds, $voucherIds, $adminUserIds);
+        $this->createCompletedOrders($faker, $userIds, $productIds, $voucherIds, $adminUserIds);
+        $this->createUnpaidOrders($faker, $productIds, $voucherIds, $adminUserIds);
     }
 } 

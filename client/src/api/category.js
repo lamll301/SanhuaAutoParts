@@ -14,7 +14,7 @@ const categoryApi = {
         return apiClient.get(`/categories/${id}`)
     },
     getBySlug(slug) {
-        return apiClient.get(`/categories/by-slug/${slug}`)
+        return apiClient.get(`/categories/slug/${slug}`)
     },
     create(data) {
         return apiClient.post('/categories', data)
@@ -33,6 +33,12 @@ const categoryApi = {
     },
     handleFormActions(data) {
         return apiClient.post('/categories/handle-form-actions', data)
+    },
+    getByType(type) {
+        return apiClient.get(`/categories/type/${type}`)
+    },
+    getCategoryProduct() {
+        return apiClient.get('/categories/product')
     }
 }
 

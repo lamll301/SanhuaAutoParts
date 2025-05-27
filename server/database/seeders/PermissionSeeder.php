@@ -41,5 +41,8 @@ class PermissionSeeder extends Seeder
                 ]);
             }
         }
+        Permission::create([
+            'name' => 'statistical.view',
+        ]);
     }
 }

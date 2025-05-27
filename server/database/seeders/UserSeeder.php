@@ -42,7 +42,7 @@ class UserSeeder extends Seeder
                 'email' => strtolower($email),
                 'phone' => $faker->randomElement($prefixes) . $faker->numberBetween(1000000, 9999999),
                 'date_of_birth' => $faker->dateTimeBetween('-40 years', '-18 years')->format('Y-m-d'),
-                'role_id' => $faker->randomElement($roleIds),
+                'role_id' => null,
                 'avatar_id' => $avatar->id,
             ]);
         }
@@ -51,5 +51,17 @@ class UserSeeder extends Seeder
             'password' => bcrypt('admin'),
             'role_id' => Role::where('name', 'admin')->first()->id,
         ]);
+
+        for ($i = 0; $i < 3; $i++) {
+            User::create([
+                'username' => 'nv' . $i,
+                'password' => bcrypt('nv' . $i),
+                'name' => $faker->lastName . ' ' . $faker->firstName,
+                'email' => strtolower('nv' . $i . '@gmail.com'),
+                'phone' => $faker->randomElement($prefixes) . $faker->numberBetween(1000000, 9999999),
+                'date_of_birth' => $faker->dateTimeBetween('-40 years', '-18 years')->format('Y-m-d'),
+                'role_id' => $faker->randomElement($roleIds),
+            ]);
+        }
     }
 }

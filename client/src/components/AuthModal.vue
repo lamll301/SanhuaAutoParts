@@ -13,6 +13,10 @@
                                 </div>
                                 <div class="auth-form__form">
                                     <div class="auth-form__group">
+                                        <input type="email" class="order-form-input" placeholder="Email" v-model="email">
+                                        <span class="auth-form__msg" v-if="errors.email">{{ errors.email }}</span>
+                                    </div>
+                                    <div class="auth-form__group">
                                         <input type="text" class="order-form-input" placeholder="Tên đăng nhập" v-model="username">
                                         <span class="auth-form__msg" v-if="errors.username">{{ errors.username }}</span>
                                     </div>
@@ -116,9 +120,11 @@ export default {
             activeForm: 'register',
             username: '',
             password: '',
+            email: '',
             errors: {
                 username: '',
-                password: ''
+                password: '',
+                email: ''
             }
         };
     },
@@ -134,13 +140,18 @@ export default {
         },
         password() {
             this.errors.password = '';
+        },
+        email() {
+            this.errors.email = '';
         }
     },
     methods: {
         resetForm() {
             this.username = '';
             this.password = '';
+            this.email = '';
             this.errors = {
+                email: '',
                 username: '',
                 password: ''
             }
@@ -153,8 +164,13 @@ export default {
             const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/;
             let isValid = true;
             this.errors = {
+                email: '',
                 username: '',
                 password: ''
+            }
+            if (!this.email && this.activeForm === 'register') {
+                this.errors.email = 'Email không được để trống';
+                isValid = false;
             }
             if (!this.username) {
                 this.errors.username = 'Tên đăng nhập không được để trống';
@@ -179,11 +195,15 @@ export default {
                 return;
             }
             try {
-                const res = await authApi.register(this.username, this.password);
+                const res = await authApi.register(this.email, this.username, this.password);
                 const token = res.data.token;
                 this.authStore.setToken(token);
+                const resMe = await authApi.me();
+                const user = resMe.data;
+                if (user) {
+                    this.authStore.setUser(user);
+                }
                 this.$emit('fetchIfAuth');
-                
                 this.$swal.fire('Đăng ký thành công', 'Tài khoản của bạn đã được tạo!', 'success', {
                     confirmButtonText: 'Đóng',
                     willClose: () => {
@@ -203,14 +223,21 @@ export default {
                 const res = await authApi.login(this.username, this.password);
                 const token = res.data.token;
                 this.authStore.setToken(token);
+                const resMe = await authApi.me();
+                const user = resMe.data;
+                if (user) {
+                    this.authStore.setUser(user);
+                }
                 this.$emit('fetchIfAuth');
-                
-                this.$swal.fire('Đăng nhập thành công', 'Chào mừng bạn quay trở lại!', 'success', {
+                await this.$swal.fire('Đăng nhập thành công', 'Chào mừng bạn quay trở lại!', 'success', {
                     confirmButtonText: 'Đóng',
                     willClose: () => {
                         this.$refs.closeButton.click();
                     }
                 });
+                if (user.role_id) {
+                    this.$router.push('/admin')
+                }
             } catch (e) {
                 console.error(e);
                 this.errors.password = e.message;

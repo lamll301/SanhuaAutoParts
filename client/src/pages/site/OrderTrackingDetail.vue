@@ -30,7 +30,11 @@
                     <div class="settings-order-tracking-top order-tracking-detail-top-2">
                         <div v-if="order.status !== 4" class="order-tracking-detail-stepper">
                             <div class="order-tracking-detail-step">
-                                <div class="order-tracking-detail-step-icon order-tracking-detail-step-icon--completed">
+                                <div class="order-tracking-detail-step-icon"
+                                :class="{
+                                    'order-tracking-detail-step-icon--completed': !isLoading,
+                                }"
+                                >
                                     <i class="fa-regular fa-file-lines"></i>
                                 </div>
                                 <p class="order-tracking-detail-step-text">
@@ -39,8 +43,9 @@
                                 <span class="order-tracking-detail-step-text-sub">{{ formatDate(order.created_at) }}</span>
                             </div>
                             <div class="order-tracking-detail-step">
-                                <div class="order-tracking-detail-step-icon order-tracking-detail-step-icon--active"
+                                <div class="order-tracking-detail-step-icon"
                                 :class="{
+                                    'order-tracking-detail-step-icon--active': !isLoading,
                                     'order-tracking-detail-step-icon--completed': order.status >= 1
                                 }"    
                                 >
@@ -138,33 +143,39 @@
                                 </span>
                             </div>
                             <div class="settings-order-tracking-bottom-right">
-                                <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
-                                    v-if="order.payment_status === 0 && order.status !== 4" 
-                                    @click="payOrder(order.id)"
-                                >
-                                    Thanh toán
-                                </button>
-                                <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
-                                    v-if="order.status < 1"
-                                    @click="cancelOrder(order.id)"
-                                >
-                                    Hủy Đơn Hàng
-                                </button>
-                                <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
-                                    v-if="order.status === 3 && !areAllReviewed" @click="reviewOrder(order)"
-                                >
-                                    Đánh giá
-                                </button>
-                                <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
-                                    v-if="order.status === 3"
-                                >
-                                    Yêu cầu Trả hàng/Hoàn tiền
-                                </button>
-                                <button class="button settings-order-tracking-btn settings-order-tracking-btn-2"
-                                    @click="reorder(order.details)"
-                                >
-                                    Mua lại
-                                </button>
+                                <template v-if="isLoading">
+                                    <SkeletonLoading class="settings-order-tracking-btn-1" width="150px" height="40px" />
+                                    <SkeletonLoading class="settings-order-tracking-btn-2" width="150px" height="40px" />
+                                </template>
+                                <template v-else>
+                                    <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
+                                        v-if="order.payment_status === 0 && order.status !== 4" 
+                                        @click="payOrder(order.id)"
+                                    >
+                                        Thanh toán
+                                    </button>
+                                    <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
+                                        v-if="order.status < 1"
+                                        @click="cancelOrder(order.id)"
+                                    >
+                                        Hủy Đơn Hàng
+                                    </button>
+                                    <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
+                                        v-if="order.status === 3 && !areAllReviewed" @click="reviewOrder(order)"
+                                    >
+                                        Đánh giá
+                                    </button>
+                                    <button class="button settings-order-tracking-btn settings-order-tracking-btn-1"
+                                        v-if="order.status === 3"
+                                    >
+                                        Yêu cầu Trả hàng/Hoàn tiền
+                                    </button>
+                                    <button class="button settings-order-tracking-btn settings-order-tracking-btn-2"
+                                        @click="reorder(order.details)"
+                                    >
+                                        Mua lại
+                                    </button>
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -265,8 +276,12 @@ import { orderApi, paymentApi } from '@/api';
 import { formatDate, formatPrice, getImageUrl } from '@/utils/helpers';
 import { useOrderStore } from '@/stores/order';
 import { useReviewStore } from '@/stores/review';
+import SkeletonLoading from '@/components/SkeletonLoading.vue';
 
 export default {
+    components: {
+        SkeletonLoading
+    },
     setup() {
         const orderStore = useOrderStore();
         const reviewStore = useReviewStore();
@@ -403,7 +418,7 @@ export default {
                     if (momo.resultCode === 0) {
                         window.location.href = momo.payUrl;
                     } else {
-                        this.$swal.fire('Lỗi', momo.message, 'error');
+                        this.$swal.fire('Lỗi!', momo.message, 'error');
                     }
                 } else if (wallet === 'vnpay') {
                     const res = await paymentApi.createVNPayPayment(id);
@@ -411,7 +426,7 @@ export default {
                     if (vnpay.message === "success") {
                         window.location.href = vnpay.data;
                     } else {
-                        this.$swal.fire('Lỗi', vnpay.message, 'error');
+                        this.$swal.fire('Lỗi!', vnpay.message, 'error');
                     }
                 } else if (wallet === 'zalo') {
                     const res = await paymentApi.createZaloPayPayment(id);
@@ -458,9 +473,11 @@ export default {
             try {
                 const res = await paymentApi.createCODPayment(id);
                 if (res.data.message === "success") {
-                    window.location.href = '/theo-doi-don-hang/' + id;
+                    this.$swal.fire('Thành công', 'Thanh toán tiền mặt (COD) đã được tạo.', 'success');
+                    this.order.payment_status = res.data.data.payment_status;
+                    this.order.payment_info = res.data.data.payment_info;
                 } else {
-                    this.$swal.fire('Lỗi', 'Đã xảy ra lỗi khi tạo thanh toán COD', 'error');
+                    this.$swal.fire('Lỗi!', 'Đã xảy ra lỗi khi tạo thanh toán COD', 'error');
                 }
             } catch (error) {
                 console.error(error);
@@ -478,7 +495,7 @@ export default {
                         confirmButtonText: 'Tôi đã thanh toán',
                     })
                 } else {
-                    this.$swal.fire('Lỗi', qrCode.desc, 'error');
+                    this.$swal.fire('Lỗi!', qrCode.desc, 'error');
                 }
             } catch (error) {
                 console.error(error);

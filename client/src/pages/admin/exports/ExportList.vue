@@ -220,7 +220,7 @@ export default {
 
             const { action, isFilterAction } = actionData;
             if (isFilterAction) {
-                this.$router.push({ query: { action } });
+                this.$router.push({ query: { ...this.$route.query, action } });
                 return;
             }
             if (this.selectedIds.length === 0) {

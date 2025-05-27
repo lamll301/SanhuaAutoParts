@@ -60,7 +60,7 @@
                 <template v-if="isLoading">
                     <div style="margin-bottom: 60px;">
                         <div class="loading-dots">Đang tải dữ liệu</div>
-                        <vue3-lottie :animationData="animationData" width="300px" height="300px"/>
+                        <vue3-lottie :animationData="animationData" width="280px" height="280px"/>
                     </div>
                 </template>
                 <template v-else>
@@ -400,7 +400,8 @@ export default {
             try {
                 const res = await paymentApi.createCODPayment(id);
                 if (res.data.message === "success") {
-                    window.location.href = '/theo-doi-don-hang/' + id;
+                    this.$swal.fire('Thành công', 'Thanh toán tiền mặt (COD) đã được tạo.', 'success');
+                    this.$router.push(`/theo-doi-don-hang/${id}`);
                 } else {
                     this.$swal.fire('Lỗi', 'Đã xảy ra lỗi khi tạo thanh toán COD', 'error');
                 }
@@ -544,7 +545,7 @@ export default {
 }
 
 .settings-order-tracking-empty-img {
-    width: 220px;
+    width: 200px;
     margin: 0 auto;
     display: block;
     margin-bottom: 60px;

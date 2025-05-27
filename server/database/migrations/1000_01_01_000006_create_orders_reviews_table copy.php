@@ -30,6 +30,7 @@ return new class extends Migration
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
             $table->string('cancel_reason')->nullable();
+            $table->string('last_delivery_failure_reason')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -63,6 +64,14 @@ return new class extends Migration
             $table->unique(['user_id', 'voucher_id']);
             $table->timestamps();
         });
+
+        Schema::create('order_detail_inventory', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('order_detail_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('inventory_id')->constrained();
+            $table->unsignedInteger('quantity');
+            $table->timestamps();
+        });
     }
 
     public function down(): void
@@ -71,5 +80,6 @@ return new class extends Migration
         Schema::dropIfExists('order_details');
         Schema::dropIfExists('orders');
         Schema::dropIfExists('voucher_usages');
+        Schema::dropIfExists('order_detail_inventory');
     }
 };

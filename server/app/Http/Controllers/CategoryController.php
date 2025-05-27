@@ -9,6 +9,20 @@ class CategoryController extends Controller
 {
     private const SEARCH_FIELDS = ['name', 'type'];
 
+    public function getByType(string $type) {
+        $categories = Category::where('type', $type)->get();
+        return response()->json($categories);
+    }
+
+    public function getCategoryProduct() {
+        $brand = Category::where('type', 'brand')->get();
+        $part = Category::where('type', 'part')->get();
+        return response()->json([
+            'brand' => $brand,
+            'part' => $part
+        ]);
+    }
+
     public function getBySlug(string $slug) {
         $category = Category::where('slug', $slug)->first();
         if (!$category) {

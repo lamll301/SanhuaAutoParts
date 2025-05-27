@@ -7,8 +7,8 @@ use App\Http\Middleware\AuthenticateWithJWT;
 use App\Http\Middleware\Authorization;
 
 Route::prefix('articles')->group(function () {
-    Route::get('/by-slug/{slug}', [ArticleController::class, 'getBySlug']);
-    Route::get('/by-category/{categorySlug}', [ArticleController::class, 'getByCategory']);
+    Route::get('/slug/{slug}', [ArticleController::class, 'getBySlug']);
+    Route::get('/category/{categorySlug}', [ArticleController::class, 'getByCategory']);
     Route::get('/published', [ArticleController::class, 'getPublished'])->middleware(SortMiddleware::class);
     Route::patch('/{id}/approve', [ArticleController::class, 'approve'])->middleware([
         AuthenticateWithJWT::class, Authorization::class . ':articles.approve'

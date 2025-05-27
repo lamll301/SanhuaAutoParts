@@ -7,7 +7,9 @@ use App\Http\Middleware\AuthenticateWithJWT;
 use App\Http\Middleware\Authorization;
 
 Route::prefix('categories')->group(function () {
-    Route::get('/by-slug/{slug}', [CategoryController::class, 'getBySlug']);
+    Route::get('/slug/{slug}', [CategoryController::class, 'getBySlug']);
+    Route::get('/type/{type}', [CategoryController::class, 'getByType']);
+    Route::get('/product', [CategoryController::class, 'getCategoryProduct']);
     Route::patch('/{id}/restore', [CategoryController::class, 'restore'])->middleware([
         AuthenticateWithJWT::class, Authorization::class . ':categories.manage'
     ]);

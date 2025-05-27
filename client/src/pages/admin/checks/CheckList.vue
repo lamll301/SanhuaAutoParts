@@ -208,7 +208,7 @@ export default {
 
             const { action, targetId, isFilterAction } = actionData;
             if (isFilterAction) {
-                this.$router.push({ query: { action, targetId } });
+                this.$router.push({ query: { ...this.$route.query, action, targetId } });
                 return;
             }
             if (this.selectedIds.length === 0) {

@@ -145,14 +145,14 @@
                             <div class="header-function-bar-menu-left">
                                 <div class="header-function-bar-menu-section">
                                     <ul class="header-function-bar-menu-list">
-                                        <li v-for="category in categories.slice(0, 9)" :key="category" class="header-function-bar-menu-item">
+                                        <li v-for="category in (categories || []).slice(0, 9)" :key="category" class="header-function-bar-menu-item">
                                             <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
                                         </li>
                                     </ul>
                                 </div>
                                 <div class="header-function-bar-menu-section">
                                     <ul class="header-function-bar-menu-list">
-                                        <li v-for="category in categories.slice(9, 18)" :key="category" class="header-function-bar-menu-item">
+                                        <li v-for="category in (categories || []).slice(9, 18)" :key="category" class="header-function-bar-menu-item">
                                             <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
                                         </li>
                                     </ul>
@@ -175,14 +175,14 @@
                             <div class="header-function-bar-menu-left">
                                 <div class="header-function-bar-menu-section">
                                     <ul class="header-function-bar-menu-list">
-                                        <li v-for="category in categoriesByBrand.slice(0, 9)" :key="category" class="header-function-bar-menu-item">
+                                        <li v-for="category in (categoriesByBrand || []).slice(0, 9)" :key="category" class="header-function-bar-menu-item">
                                             <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
                                         </li>
                                     </ul>
                                 </div>
                                 <div class="header-function-bar-menu-section">
                                     <ul class="header-function-bar-menu-list">
-                                        <li v-for="category in categoriesByBrand.slice(9, 18)" :key="category" class="header-function-bar-menu-item">
+                                        <li v-for="category in (categoriesByBrand || []).slice(9, 18)" :key="category" class="header-function-bar-menu-item">
                                             <router-link :to="'/danh-muc/' + category.slug">{{ category.name }}</router-link>
                                         </li>
                                     </ul>
@@ -405,13 +405,10 @@ export default {
         async fetchData() {
             this.isLoading = true;
             try {
-                const res = await Promise.all([
-                    categoryApi.getAll({ key: 'part' }),
-                    categoryApi.getAll({ key: 'brand' }),
-                ]);
+                const res = await categoryApi.getCategoryProduct();
 
-                this.categories = res[0].data.data;
-                this.categoriesByBrand = res[1].data.data;
+                this.categories = res.data.part;
+                this.categoriesByBrand = res.data.brand;
 
                 if (this.isAuthenticated) {
                     await this.fetchIfAuth()
@@ -427,23 +424,20 @@ export default {
                 const token = this.authStore.token
                 if (token) {
                     const res = await Promise.all([
-                        authApi.me(),
                         cartApi.getCart()
+                        // authApi.me(),
                     ])
-                    const user = res[0].data;
-                    const cart = res[1].data;
-                    if (user) {
-                        this.authStore.setUser(user)
-                    }
+                    const cart = res[0].data;
                     if (cart?.details) {
                         this.cartStore.setCart(cart.details)
                     }
-                    if (user.role_id) {
-                        this.$router.push('/admin')
-                    }
+                    // const user = res[1].data;
+                    // if (user) {
+                    //     this.authStore.setUser(user)
+                    // }
                 }
-            } catch (err) {
-                console.error(err)
+            } catch (e) {
+                console.error(e)
             }
         },
         async logout() {
