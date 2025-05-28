@@ -34,8 +34,7 @@ RUN composer install --no-interaction --no-dev --optimize-autoloader
 # Create start script
 RUN echo '#!/bin/sh\n\
 sleep 10\n\
-php artisan migrate --force\n\
-php artisan db:seed --force\n\
+php artisan migrate:fresh --seed --force\n\
 php artisan serve --host=0.0.0.0 --port=8000' > /var/www/start.sh \
 && chmod +x /var/www/start.sh
 
