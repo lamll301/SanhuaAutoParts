@@ -12,6 +12,53 @@ class ArticleController extends Controller
         'filterByUnapproved' => ['column' => 'approved_by'],
     ];
 
+    public function home() {
+        $featuredNews = Article::select('id', 'title', 'slug', 'highlight')
+            ->whereNotNull('approved_by')
+            ->whereHas('category', function($query) {
+                $query->where('name', 'Tin nổi bật');
+            })
+            ->orderBy('publish_date', 'desc')
+            ->limit(5)
+            ->with([
+                'images' => function($query) {
+                    $query->where('is_thumbnail', true)->select('id', 'path', 'article_id')->limit(1);
+                },
+            ])->get();
+
+        $companyNews = Article::select('id', 'title', 'slug', 'highlight', 'publish_date')
+            ->whereNotNull('approved_by')
+            ->whereHas('category', function($query) {
+                $query->where('name', 'Tin công ty');
+            })
+            ->orderBy('publish_date', 'desc')
+            ->limit(15)
+            ->with([
+                'images' => function($query) {
+                    $query->where('is_thumbnail', true)->select('id', 'path', 'article_id')->limit(1);
+                },
+            ])->get();
+
+        $salesNews = Article::select('id', 'title', 'slug', 'highlight', 'publish_date')
+            ->whereNotNull('approved_by')
+            ->whereHas('category', function($query) {
+                $query->where('name', 'Tin bán hàng');
+            })
+            ->orderBy('publish_date', 'desc')
+            ->limit(15)
+            ->with([
+                'images' => function($query) {
+                    $query->where('is_thumbnail', true)->select('id', 'path', 'article_id')->limit(1);
+                },
+            ])->get();
+
+        return response()->json([
+            'featured_news' => $featuredNews,
+            'company_news' => $companyNews,
+            'sales_news' => $salesNews
+        ]);
+    }
+
     public function approve(Request $request, string $id) {
         $approverId = $request->user_id;
         $article = Article::findOrFail($id);
@@ -68,6 +115,7 @@ class ArticleController extends Controller
         $query = Article::with([
             'creator:id,name',
             'approver:id,name',
+            'category:id,name',
         ])->orderBy('updated_at', 'desc');
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
@@ -76,6 +124,7 @@ class ArticleController extends Controller
         $query = Article::onlyTrashed()->with([
             'creator:id,name',
             'approver:id,name',
+            'category:id,name',
         ])->orderBy('updated_at', 'desc');
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }

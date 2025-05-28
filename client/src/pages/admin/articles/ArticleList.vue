@@ -39,6 +39,7 @@
                         <th scope="col">Highlight
                             <SortComponent field="highlight" :sort="sort"/>
                         </th>
+                        <th scope="col">Danh mục</th>
                         <th scope="col">Ngày xuất bản
                             <SortComponent field="publish_date" :sort="sort"/>
                         </th>
@@ -62,6 +63,7 @@
                         <td>{{ item.title }}</td>
                         <td>{{ item?.creator?.name }}</td>
                         <td>{{ item.highlight }}</td>
+                        <td>{{ item?.category?.name }}</td>
                         <td>{{ item.publish_date }}</td>
                         <td>{{ item?.approver?.name }}</td>
                         <template v-if="!isTrashRoute">

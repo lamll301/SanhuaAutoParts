@@ -42,6 +42,9 @@ const articleApi = {
     },
     approve(id) {
         return apiClient.patch(`/articles/${id}/approve`)
+    },
+    home() {
+        return apiClient.get('/articles/home')
     }
 }
 

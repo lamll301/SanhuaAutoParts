@@ -411,21 +411,17 @@ export default {
             this.isLoading = true;
             try {
                 const req = [
-                    articleApi.getByCategory('tin-noi-bat'),
-                    articleApi.getByCategory('tin-cong-ty'),
-                    articleApi.getByCategory('tin-ban-hang'),
-                    productApi.getByCategory('', { _sort: 'true', column: 'created_at', type: 'desc' }),
-                    productApi.getByCategory('', { sort_by: 'on_sale' }),
-                    productApi.getByCategory('', { _sort: 'true', column: 'price', type: 'desc' }),
+                    articleApi.home(),
+                    productApi.home()
                 ]
                 const res = await Promise.all(req);
-                this.sliders = res[0].data;
-                this.companyArticles = res[1].data;
-                this.saleArticles = res[2].data;
-                this.newestProducts = res[3].data.data;
-                this.onSaleProducts = res[4].data.data;
-                this.highClassProducts = res[5].data.data;
-                this.bestSellersProducts = res[4].data.data;
+                this.sliders = res[0].data.featured_news;
+                this.companyArticles = res[0].data.company_news;
+                this.saleArticles = res[0].data.sales_news;
+                this.newestProducts = res[1].data.newest;
+                this.onSaleProducts = res[1].data.onSale;
+                this.highClassProducts = res[1].data.highClass;
+                this.bestSellersProducts = res[1].data.bestSeller;
                 this.activeTab = 'best-sellers';
                 this.saveDataToStore();
             } catch (e) {

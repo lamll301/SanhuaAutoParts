@@ -279,7 +279,7 @@
                 </table>
                 <div class="admin-content__table-footer"></div>
             </div>
-            <AdminPagination :totalPages="totalPages" :currentPage="currentPage" v-if="selectedReport === 'revenueByPeriod' || selectedReport === 'order'"/>
+            <AdminPagination :totalPages="totalPages" :currentPage="currentPage" v-if="selectedReport === 'revenueByPeriod' || selectedReport === 'order' || selectedReport === 'expiredProducts'"/>
         </div>
     </div>
 </template>
@@ -395,6 +395,11 @@ export default {
                             this.fetchOrderStatisticsData(query);
                             break;
                         }
+                        case 'expiredProducts': {
+                            const query = { ...to.query };
+                            this.fetchExpiredProductsData(query);
+                            break;
+                        }
                     }
                 }
             },
@@ -505,14 +510,14 @@ export default {
                 this.customers = res.data.data;
                 let data = [];
                 if (this.selectedFilter === 'filterByOrdersCount') {
-                    data = this.customer.map(item => item.total_orders);
+                    data = this.customers.map(item => item.total_orders);
                 } else if (this.selectedFilter === 'filterByTotalQuantity') {
-                    data = this.customer.map(item => item.total_quantity);
+                    data = this.customers.map(item => item.total_quantity);
                 } else {
-                    data = this.customer.map(item => item.total_revenue);
+                    data = this.customers.map(item => item.total_revenue);
                 }
-                const truncatedLabels = this.customer.map(item => this.truncateText(item.name));
-                const fullNames = this.customer.map(item => item.name);
+                const truncatedLabels = this.customers.map(item => this.truncateText(item.name));
+                const fullNames = this.customers.map(item => item.name);
                 this.barData = {
                     labels: truncatedLabels,
                     datasets: [{
@@ -573,14 +578,17 @@ export default {
         async fetchExpiredProductsData(query = {}) {
             try {
                 const res = await this.$swal.withLoading(statisticalApi.getProductExpiredStatistics(query));
-                this.expiredProducts = res.data.data;
-                const truncatedLabels = this.expiredProducts.map(item => this.truncateText(item.name));
-                const fullNames = this.expiredProducts.map(item => item.name);
+                this.expiredProducts = res.data.list;
+                this.totalPages = Math.ceil(res.data.pagination.total / res.data.pagination.per_page);
+                this.currentPage = res.data.pagination.current_page;
+                const chartData = res.data.data;
+                const truncatedLabels = chartData.map(item => this.truncateText(item.name));
+                const fullNames = chartData.map(item => item.name);
                 this.barData = {
                     labels: truncatedLabels,
                     datasets: [{
                         label: 'Sản phẩm hết hạn (30 ngày tới)',
-                        data: this.expiredProducts.map(item => item.quantity),
+                        data: chartData.map(item => item.quantity),
                         backgroundColor: ['#2196F3', '#4CAF50', '#FFC107'],
                         fullNames: fullNames
                     }]
@@ -694,6 +702,7 @@ export default {
             this.isShowOrderTable = false;
             this.isShowProductTable = false;
             this.isShowCustomerTable = false;
+            this.isShowExpiredProductsTable = false;
         },
         resetChart() {
             this.isShowLineChart = false;

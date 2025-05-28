@@ -36,6 +36,9 @@ const productApi = {
     },
     handleFormActions(data) {
         return apiClient.post('/products/handle-form-actions', data)
+    },
+    home() {
+        return apiClient.get('/products/home')
     }
 }
 

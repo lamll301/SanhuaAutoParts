@@ -7,6 +7,7 @@ use App\Http\Middleware\AuthenticateWithJWT;
 use App\Http\Middleware\Authorization;
 
 Route::prefix('articles')->group(function () {
+    Route::get('/home', [ArticleController::class, 'home']);
     Route::get('/slug/{slug}', [ArticleController::class, 'getBySlug']);
     Route::get('/category/{categorySlug}', [ArticleController::class, 'getByCategory']);
     Route::get('/published', [ArticleController::class, 'getPublished'])->middleware(SortMiddleware::class);

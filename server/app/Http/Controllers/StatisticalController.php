@@ -188,7 +188,7 @@ class StatisticalController extends Controller
     public function productExpiredStatistics(Request $request) {
         $sortBy = $request->get('sort_by', 'expiry_date');  // expiry_date, quantity
         $thirtyDaysFromNow = Carbon::now()->addDays(30);
-        $expiringProducts = Inventory::join('products', 'inventories.product_id', '=', 'products.id')
+        $query = Inventory::join('products', 'inventories.product_id', '=', 'products.id')
             ->leftJoin('suppliers', 'products.supplier_id', '=', 'suppliers.id')
             ->leftJoin('images', function($join) {
                 $join->on('images.product_id', '=', 'products.id')
@@ -218,14 +218,24 @@ class StatisticalController extends Controller
                 'inventories.id'
             );
         if ($sortBy === 'quantity') {
-            $expiringProducts->orderBy('inventories.quantity', 'desc');
+            $query->orderBy('inventories.quantity', 'desc');
         } else {
-            $expiringProducts->orderBy('inventories.expiry_date');
+            $query->orderBy('inventories.expiry_date');
         }
-        $expiringProducts = $expiringProducts->get();
+        $fullQuery = clone $query;
+        $listQuery = clone $query;
+
+        $paginated = $listQuery->paginate(config('app.per_page'));
+        $fullData = $fullQuery->get();
 
         return response()->json([
-            'data' => $expiringProducts
+            'list' => $paginated->items(),
+            'pagination' => [
+                'current_page' => $paginated->currentPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+            ],
+            'data' => $fullData
         ]);
     }
 

@@ -7,6 +7,7 @@ use App\Http\Middleware\AuthenticateWithJWT;
 use App\Http\Middleware\Authorization;
 
 Route::prefix('products')->group(function () {
+    Route::get('/home', [ProductController::class, 'home']);
     Route::get('/slug/{slug}', [ProductController::class, 'getBySlug']);
     Route::get('/category/{slug?}', [ProductController::class, 'getByCategorySlug'])->middleware(SortMiddleware::class);
     // admin routes

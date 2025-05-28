@@ -18,12 +18,20 @@ class ArticleSeeder extends Seeder
         $content = '';
         $j = 0;
 
+        $viSectionTitles = [
+            'Thông tin chi tiết sản phẩm',
+            'Đặc điểm nổi bật',
+            'Ứng dụng và lợi ích',
+            'Chất lượng và bảo hành',
+            'Dịch vụ khách hàng'
+        ];
+
         for ($section = 0; $section < 3; $section++) {
-            $content .= '<div><b>' . $faker->sentence(10) . '</b></div>';
+            $content .= '<div><b>' . $faker->randomElement($viSectionTitles) . '</b></div>';
 
             $numSentences = rand(3, 6);
             for ($i = 0; $i < $numSentences; $i++) {
-                $content .= '<p>' . $faker->sentence(rand(8, 15)) . '</p>';
+                $content .= '<p>' . $faker->realText(rand(100, 200)) . '</p>';
             }
             $randomImages = collect($files)->shuffle()->take(2);
             foreach ($randomImages as $image) {
@@ -44,17 +52,17 @@ class ArticleSeeder extends Seeder
 
         $categories = [
             [
-                'name' => 'Tin Nổi Bật',
+                'name' => 'Tin nổi bật',
                 'type' => 'article',
                 'description' => 'Các tin tức nổi bật và quan trọng về Sanhua Auto Parts',
             ],
             [
-                'name' => 'Tin Công Ty',
+                'name' => 'Tin công ty',
                 'type' => 'article',
                 'description' => 'Thông tin về hoạt động và phát triển của công ty Sanhua Auto Parts',
             ],
             [
-                'name' => 'Tin Bán Hàng',
+                'name' => 'Tin bán hàng',
                 'type' => 'article',
                 'description' => 'Thông tin về sản phẩm, khuyến mãi và hoạt động bán hàng',
             ],
@@ -71,13 +79,33 @@ class ArticleSeeder extends Seeder
             })->values()->all();
 
         for ($i = 0; $i < 50; $i++) {
-            $title = $faker->sentence(6);
+            $viTitles = [
+                'Sanhua giới thiệu dòng sản phẩm mới',
+                'Chương trình khuyến mãi đặc biệt',
+                'Thông báo mở rộng hệ thống đại lý',
+                'Hướng dẫn bảo dưỡng phụ tùng ô tô',
+                'Tin tức thị trường phụ tùng ô tô',
+                'Sự kiện ra mắt sản phẩm',
+                'Chính sách bảo hành mới'
+            ];
+            
+            $viHighlights = [
+                'Nâng cao chất lượng sản phẩm, đảm bảo sự hài lòng của khách hàng',
+                'Cam kết chất lượng hàng đầu trong ngành phụ tùng ô tô',
+                'Mở rộng mạng lưới phân phối trên toàn quốc',
+                'Áp dụng công nghệ mới trong sản xuất phụ tùng',
+                'Chương trình ưu đãi đặc biệt dành cho đại lý'
+            ];
+
+            $randomTitle = $faker->randomElement($viTitles);
+            $uniqueIdentifier = now()->timestamp . '-' . $i;
+            $title = $randomTitle . ' ' . $uniqueIdentifier;
             $slug = Str::slug($title);
             
             $article = Article::create([
                 'title' => $title,  
                 'slug' => $slug,
-                'highlight' => $faker->sentence,
+                'highlight' => $faker->randomElement($viHighlights),
                 'author' => $faker->randomElement($userIds),
                 'approved_by' => $faker->randomElement($userIds),
                 'publish_date' => $faker->dateTimeBetween('-6 months', '+1 week')->format('Y-m-d'),
