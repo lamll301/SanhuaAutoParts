@@ -28,8 +28,12 @@ COPY . .
 # Install dependencies
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
-# Generate key
-RUN php artisan key:generate
+# Create start script
+RUN echo '#!/bin/sh\n\
+php artisan migrate --force\n\
+php artisan db:seed --force\n\
+php artisan serve --host=0.0.0.0 --port=8000' > /var/www/start.sh \
+&& chmod +x /var/www/start.sh
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
@@ -37,5 +41,5 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 # Expose port 8000
 EXPOSE 8000
 
-# Start PHP built-in server
-CMD php artisan serve --host=0.0.0.0 --port=8000
+# Start using the script
+CMD ["/var/www/start.sh"]
