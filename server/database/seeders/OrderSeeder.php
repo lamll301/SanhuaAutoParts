@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Inventory;
 use Illuminate\Database\Seeder;
 use App\Models\Order;
 use App\Models\OrderDetail;
@@ -10,12 +11,37 @@ use App\Models\Product;
 use App\Models\Voucher;
 use Faker\Factory as Faker;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class OrderSeeder extends Seeder
 {
     private const PAYMENT_METHODS = ['Mã QR', 'Thẻ tín dụng / thẻ ghi nợ', 'Ví điện tử', 'Thanh toán khi nhận hàng'];
     private const STATUS = [0, 1, 2, 3, 4];
     private const ADDRESS_TYPE = ['Nhà riêng', 'Văn phòng'];
+
+    private function createOrderDetailInventory($orderDetail, $faker)
+    {
+        $inventories = Inventory::where('product_id', $orderDetail->product_id)
+            ->where('quantity', '>', 0)
+            ->get();
+
+        if ($inventories->isEmpty()) {
+            return;
+        }
+        $remainingQuantity = $orderDetail->quantity;
+        foreach ($inventories as $inventory) {
+            if ($remainingQuantity <= 0) break;
+            $quantityToTake = min($remainingQuantity, $inventory->quantity);
+            DB::table('order_detail_inventory')->insert([
+                'order_detail_id' => $orderDetail->id,
+                'inventory_id' => $inventory->id,
+                'quantity' => $quantityToTake,
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]);
+            $remainingQuantity -= $quantityToTake;
+        }
+    }
 
     private function createOrderDetails($faker, $order, $productIds): int {
         $numberOfProducts = $faker->numberBetween(2, 5);
@@ -25,12 +51,13 @@ class OrderSeeder extends Seeder
             $quantity = $faker->numberBetween(1, 3);
             $price = $faker->numberBetween(50000, 500000);
             $totalAmount += $quantity * $price;
-            OrderDetail::create([
+            $orderDetail = OrderDetail::create([
                 'order_id' => $order->id,
                 'product_id' => $productId,
                 'quantity' => $quantity,
                 'price' => $price,
             ]);
+            $this->createOrderDetailInventory($orderDetail, $faker);
         }
         return $totalAmount;
     }
