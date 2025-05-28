@@ -7,6 +7,9 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libpq-dev \
+    postgresql \
+    postgresql-client \
     zip \
     unzip
 
@@ -14,7 +17,7 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-install pdo_pgsql pgsql pdo_mysql mbstring exif pcntl bcmath gd
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -30,6 +33,7 @@ RUN composer install --no-interaction --no-dev --optimize-autoloader
 
 # Create start script
 RUN echo '#!/bin/sh\n\
+sleep 10\n\
 php artisan migrate --force\n\
 php artisan db:seed --force\n\
 php artisan serve --host=0.0.0.0 --port=8000' > /var/www/start.sh \
