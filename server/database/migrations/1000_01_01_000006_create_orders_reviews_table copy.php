@@ -30,6 +30,7 @@ return new class extends Migration
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
             $table->string('cancel_reason')->nullable();
+            $table->boolean('is_refunded')->default(false); // Thêm cột is_refunded
             $table->timestamps();
             $table->softDeletes();
         });
@@ -51,7 +52,6 @@ return new class extends Migration
             $table->integer('rating')->unsigned()->check('rating >= 1 AND rating <= 5');
             $table->text('comment')->nullable();
             $table->timestamps();
-            // đảm bảo user chỉ đánh giá 1 sản phẩm trong 1 đơn hàng 1 lần
             $table->unique(['user_id', 'product_id', 'order_id'], 'unique_user_product_order_review');
         });
 

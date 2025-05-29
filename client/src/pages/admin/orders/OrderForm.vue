@@ -200,8 +200,15 @@
                                 <textarea class="fs-16 form-control" rows="3" placeholder="Nhập lý do hủy đơn" readonly v-model="order.cancel_reason"></textarea>
                             </div>
                         </div>
+                        <div v-if="order.payment_status === 1 && order.status === 4" class="mb-20">
+                            <h3 class="admin-content__form-text">Hoàn tiền</h3>
+                            <div class="valid-elm input-group">
+                                <input type="text" class="fs-16 form-control" readonly :value="order.is_refunded ? 'Đã hoàn tiền' : 'Chưa hoàn tiền'">
+                            </div>
+                        </div>
                         <div class="mb-20 admin-content__form-btn">
-                            <button v-if="!order.approved_by" class="fs-16 btn btn-primary" @click="onUpdateStatus(order.id, 'approved')">Duyệt</button>
+                            <button v-if="!order.approved_by && order.status !== 4" class="fs-16 btn btn-primary" @click="onUpdateStatus(order.id, 'approved')">Duyệt</button>
+                            <button v-if="order.status === 4 && order.payment_status === 1 && !order.is_refunded && order.payment_method !== 'Thanh toán khi nhận hàng'" class="fs-16 btn btn-warning" @click="onUpdateStatus(order.id, 'refunded')">Hoàn tiền</button>
                             <button v-if="order.status === 1" class="fs-16 btn btn-primary" @click="onUpdateStatus(order.id, 'shipped')">Giao hàng</button>
                             <button v-if="order.status === 2" class="fs-16 btn btn-success" @click="onUpdateStatus(order.id, 'completed')">Hoàn tất</button>
                             <button v-if="order.payment_status === 0" class="fs-16 btn btn-success" @click="onUpdateStatus(order.id, 'paid')">Đã thanh toán</button>
@@ -330,7 +337,7 @@ export default {
             if (!this.validate(status)) return;
             try {
                 const res = await orderApi.changeOrderStatus(id, status, this.order.payment_info);
-                await this.$swal.fire('Thành công', 'Trạng thái đơn hàng đã được cập nhật', 'success');
+                await this.$swal.fire('Thành công', status === 'refunded' ? 'Hoàn tiền thành công' : 'Trạng thái đơn hàng đã được cập nhật', 'success');
                 this.order = res.data;
             } catch (error) {
                 console.error(error);

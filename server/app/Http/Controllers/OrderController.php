@@ -9,6 +9,7 @@ use App\Models\Review;
 use App\Models\Voucher;
 use App\Models\VoucherUsage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -18,8 +19,12 @@ class OrderController extends Controller
         'filterByPaymentStatus' => ['column' => 'payment_status'],
         'filterByStatus' => ['column' => 'status'],
         'filterByUnapproved' => ['column' => 'approved_by'],
+        'filterByRefunded' => ['column' => 'is_refunded'],
     ];
     
+    private const PAYMENT_STATUS_PAID = 1;
+    private const STATUS_CANCELLED = 4;
+
     private function isVoucherValid(Voucher $voucher, $userId): bool {
         if (!$voucher->isValid()) {
             return false;
@@ -99,7 +104,6 @@ class OrderController extends Controller
                 $query->where('is_thumbnail', true)->select('id', 'path', 'product_id')->limit(1);
             },
         ])->where('id', $id)->where('user_id', $userId)->firstOrFail();
-        // gán biến isReviewed cho từng detail
         $reviewedProducts = Review::where('order_id', $id)
             ->where('user_id', $userId)
             ->pluck('product_id')
@@ -107,7 +111,6 @@ class OrderController extends Controller
         foreach ($order->details as $detail) {
             $detail->setAttribute('isReviewed', in_array($detail->product_id, $reviewedProducts));
         }
-        // gán thông tin thành phố, quận, phường
         $orderArray = $order->toArray();
         $orderArray['city'] = $order->getCity();
         $orderArray['district'] = $order->getDistrict();
@@ -146,6 +149,19 @@ class OrderController extends Controller
             default:
                 break;
         }
+        if ($action === 'filterByRefunded' && $request->has('targetId')) {
+            $refundedValue = $request->input('targetId');
+            Log::info('Filtering with filterByRefunded: ' . $refundedValue);
+            if ($refundedValue === '1') {
+                $query->where('is_refunded', true);
+                Log::info('Applied filter: is_refunded = true');
+            } elseif ($refundedValue === '0') {
+                $query->where('is_refunded', false)
+                      ->where('payment_status', self::PAYMENT_STATUS_PAID)
+                      ->where('status', self::STATUS_CANCELLED);
+                Log::info('Applied filter: is_refunded = false, payment_status = 1, status = 4');
+            }
+        }
         $perPage = config('app.per_page');
         $orders = $query->paginate($perPage);
         $response = [
@@ -177,6 +193,7 @@ class OrderController extends Controller
                 }
             }
         }
+
         return response()->json($response);
     }
 
@@ -184,7 +201,11 @@ class OrderController extends Controller
         $userId = $request->user_id;
         $order = Order::where('id', $id)->where('user_id', $userId)->firstOrFail();
         if ($order->status === Order::STATUS_PENDING) {
-            $order->update(['status' => Order::STATUS_CANCELLED, 'cancel_reason' => $request->cancelReason, 'cancelled_at' => now()]);
+            $order->update([
+                'status' => Order::STATUS_CANCELLED,
+                'cancel_reason' => $request->cancelReason,
+                'cancelled_at' => now(),
+            ]);
             $order->load([
                 'details' => function ($query) {
                     $query->select('id', 'order_id', 'product_id', 'quantity', 'price');
@@ -222,8 +243,14 @@ class OrderController extends Controller
                 $order->status = Order::STATUS_COMPLETED;
                 $order->completed_at = now();
                 break;
+            case 'refunded':
+                if ($order->status !== Order::STATUS_CANCELLED || $order->payment_status !== Order::PAYMENT_STATUS_PAID || $order->is_refunded) {
+                    return response()->json(['message' => 'Order must be cancelled, paid, and not yet refunded'], 400);
+                }
+                $order->is_refunded = true;
+                break;
             default:
-                return response()->json(['message' => 'invalid'], 400);
+                return response()->json(['message' => 'Invalid status'], 400);
         }
         $order->save();
         return response()->json($order);
@@ -235,6 +262,24 @@ class OrderController extends Controller
             'approver:id,name',
             'voucher:id,code,value',
         ]);
+        $query = $this->search($query, $request->query('key'), self::SEARCH_FIELDS);
+        $action = $request->input('action');
+        Log::info('Action received: ' . $action); // Log để debug
+        if ($action === 'filterByRefunded' && $request->has('targetId')) {
+            $refundedValue = $request->input('targetId');
+            Log::info('Filtering with filterByRefunded: ' . $refundedValue);
+            if ($refundedValue === '1') {
+                $query->where('is_refunded', true);
+                Log::info('Applied filter: is_refunded = true');
+            } elseif ($refundedValue === '0') {
+                $query->where('is_refunded', false)
+                      ->where('payment_status', self::PAYMENT_STATUS_PAID)
+                      ->where('status', self::STATUS_CANCELLED);
+                Log::info('Applied filter: is_refunded = false, payment_status = 1, status = 4');
+            }
+        }
+        $orders = $query->get();
+        Log::info('Total orders returned: ' . count($orders));
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
 
@@ -244,6 +289,23 @@ class OrderController extends Controller
             'voucher:id,code,value',
             'approver:id,name',
         ]);
+        $action = $request->input('action');
+        Log::info('Action received: ' . $action); // Log để debug
+        if ($action === 'filterByRefunded' && $request->has('targetId')) {
+            $refundedValue = $request->input('targetId');
+            Log::info('Filtering with filterByRefunded: ' . $refundedValue);
+            if ($refundedValue === '1') {
+                $query->where('is_refunded', true);
+                Log::info('Applied filter: is_refunded = true');
+            } elseif ($refundedValue === '0') {
+                $query->where('is_refunded', false)
+                      ->where('payment_status', self::PAYMENT_STATUS_PAID)
+                      ->where('status', self::STATUS_CANCELLED);
+                Log::info('Applied filter: is_refunded = false, payment_status = 1, status = 4');
+            }
+        }
+        $orders = $query->get();
+        Log::info('Total trashed orders returned: ' . count($orders));
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS, self::FILTER_FIELDS);
     }
 
@@ -263,19 +325,19 @@ class OrderController extends Controller
     public function destroy(string $id) {
         $order = Order::findOrFail($id);
         $order->delete();
-        return response()->json(['message' => 'success'], 200);
+        return response()->json(['message' => 'Success'], 200);
     }
 
     public function restore(string $id) {
         $order = Order::onlyTrashed()->findOrFail($id);
         $order->restore();
-        return response()->json(['message' => 'success'], 200);
+        return response()->json(['message' => 'Success'], 200);
     }
 
     public function forceDelete(string $id) {
         $order = Order::onlyTrashed()->findOrFail($id);
         $order->forceDelete();
-        return response()->json(['message' => 'success'], 204);
+        return response()->json(['message' => 'Success'], 204);
     }
 
     public function handleFormActions(Request $request) {
@@ -284,15 +346,15 @@ class OrderController extends Controller
         switch ($action) {
             case 'delete':
                 Order::destroy($ids);
-                return response()->json(['message' => 'success'], 200);
+                return response()->json(['message' => 'Success'], 200);
             case 'restore':
                 Order::onlyTrashed()->whereIn('id', $ids)->restore();
-                return response()->json(['message' => 'success'], 200);
+                return response()->json(['message' => 'Success'], 200);
             case 'forceDelete':
                 Order::onlyTrashed()->whereIn('id', $ids)->forceDelete();
-                return response()->json(['message' => 'success'], 204);
+                return response()->json(['message' => 'Success'], 204);
             default:
-                return response()->json(['message' => 'Action is invalid'], 400);
+                return response()->json(['message' => 'Invalid action'], 400);
         }
     }
 }
