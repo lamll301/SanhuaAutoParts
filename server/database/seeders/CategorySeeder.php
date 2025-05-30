@@ -96,5 +96,10 @@ class CategorySeeder extends Seeder
             Image::insert($images);
         }
         
+        Category::create([
+            'name' => 'Cao cấp',
+            'type' => 'high-class',
+            'slug' => 'cao-cap',
+        ]);
     }
 }

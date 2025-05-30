@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Inventory;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderDetail;
@@ -223,17 +224,36 @@ class OrderController extends Controller
         }
     }
 
+    public function approve(string $id, Request $request) {
+        $approverId = $request->user_id;
+        $orderDetailInventory = $request->orderDetailInventory;
+        $order = Order::findOrFail($id);
+        foreach ($orderDetailInventory as $detail) {
+            $inventory = Inventory::findOrFail($detail['inventory_id']);
+            DB::table('order_detail_inventory')->insert([
+                'order_detail_id' => $detail['order_detail_id'],
+                'inventory_id' => $detail['inventory_id'],
+                'quantity' => $detail['quantity'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            $inventory->decrement('quantity', $detail['quantity']);
+        }
+        $order->update(['approved_by' => $approverId]);
+        return response()->json($order->load([
+            'user:id,name',
+            'approver:id,name',
+            'voucher:id,code,value',
+        ]));
+    }
+
     public function changeOrderStatus(Request $request, string $id) {
-        $userId = $request->user_id;
         $order = Order::findOrFail($id);
         $status = $request->status;
         switch ($status) {
             case 'paid':
                 $order->payment_status = Order::PAYMENT_STATUS_PAID;
                 $order->payment_info = $request->payment_info;
-                break;
-            case 'approved':
-                $order->approved_by = $userId;
                 break;
             case 'shipped':
                 $order->status = Order::STATUS_SHIPPED;

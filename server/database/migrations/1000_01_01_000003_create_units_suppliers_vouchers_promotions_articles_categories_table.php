@@ -57,7 +57,8 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('type')->nullable();
+            // $table->string('type')->nullable();
+            $table->enum('type', ['part', 'brand', 'article', 'high-class'])->index();
             $table->string('slug')->unique();
             $table->string('description')->nullable();
             $table->timestamps();

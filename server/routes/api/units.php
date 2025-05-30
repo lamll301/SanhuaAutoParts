@@ -26,12 +26,12 @@ Route::prefix('units')->group(function () {
         AuthenticateWithJWT::class, Authorization::class . ':units.manage'
     ]);
     Route::get('/trashed', [UnitController::class, 'trashed'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':units.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/{id}', [UnitController::class, 'show'])->middleware([
-        AuthenticateWithJWT::class, Authorization::class . ':units.view'
+        AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/', [UnitController::class, 'index'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':units.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
 });

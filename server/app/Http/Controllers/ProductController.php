@@ -20,6 +20,65 @@ class ProductController extends Controller
         'filterByStatus' => ['column' => 'status'],
     ];
 
+    public function home() {
+        $newest = Product::select('id', 'name', 'slug', 'price')
+            ->with([
+                'images' => function($query) {
+                    $query->where('is_thumbnail', true)->select('id', 'path', 'product_id');
+                },
+            ])
+            ->where('status', Product::STATUS_ACTIVE)
+            ->orderBy('created_at', 'desc')
+            ->take(15)
+            ->get();
+
+        $onSale = Product::select('products.id', 'products.name', 'products.slug', 'products.price')
+            ->with([
+                'images' => function($query) {
+                    $query->where('is_thumbnail', true)->select('id', 'path', 'product_id');
+                },
+                'promotion:id,discount_percent'
+            ])
+            ->where('products.status', Product::STATUS_ACTIVE)
+            ->whereNull('products.deleted_at')
+            ->whereColumn('products.price', '!=', 'products.original_price')
+            ->join('promotions', 'products.promotion_id', '=', 'promotions.id')
+            ->orderBy('promotions.discount_percent', 'desc')
+            ->take(15)
+            ->get();
+
+        $highClass = Product::select('id', 'name', 'slug', 'price')
+            ->with([
+                'images' => function($query) {
+                    $query->where('is_thumbnail', true)->select('id', 'path', 'product_id');
+                },
+            ])
+            ->whereHas('categories', function($query) {
+                $query->where('name', 'Cao cấp');
+            })
+            ->where('status', Product::STATUS_ACTIVE)
+            ->take(15)
+            ->get();
+
+        $bestSeller = Product::select('id', 'name', 'slug', 'price', 'sold')
+            ->with([
+                'images' => function($query) {
+                    $query->where('is_thumbnail', true)->select('id', 'path', 'product_id');
+                },
+            ])
+            ->where('status', Product::STATUS_ACTIVE)
+            ->orderBy('sold', 'desc')
+            ->take(15)
+            ->get();
+
+        return response()->json([
+            'newest' => $newest,
+            'onSale' => $onSale,
+            'highClass' => $highClass,
+            'bestSeller' => $bestSeller
+        ]);
+    }
+
     public function getBySlug(string $slug) {
         $product = Product::with([
             'images:id,path,product_id',

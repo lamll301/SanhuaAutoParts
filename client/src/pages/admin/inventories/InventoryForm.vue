@@ -21,31 +21,17 @@
                                 <input type="text" class="fs-16 form-control" disabled v-model="inventory.id">
                             </div>
                         </div>
-                        <div class="admin-content__form-divided">
-                            <div class="mb-20">
-                                <h3 class="admin-content__form-text">Sản phẩm</h3>
-                                <div class="input-group valid-elm">
-                                    <select class="valid-elm form-select" v-model="inventory.product_id"
-                                    v-bind:class="{'is-invalid': errors.product_id}" @change="validate()">
-                                        <option disabled value="" selected>Chọn sản phẩm</option>
-                                        <option v-for="product in products" :key="product.id" :value="product.id">
-                                            {{ product.name }}
-                                        </option>
-                                    </select>
-                                    <div class="invalid-feedback" v-if="errors.product_id">{{ errors.product_id }}</div>
-                                </div>
-                            </div>
-                            <div class="mb-20">
-                                <h3 class="admin-content__form-text">Phiếu nhập</h3>
-                                <div class="input-group">
-                                    <select class="valid-elm form-select" v-model="inventory.import_id">
-                                        <option disabled value="" selected>Chọn phiếu nhập</option>
-                                        <option :value="null">Không có phiếu nhập</option>
-                                        <option v-for="receipt in imports" :key="receipt.id" :value="receipt.id">
-                                            {{ receipt?.supplier?.name }} - {{ receipt.date }}
-                                        </option>
-                                    </select>
-                                </div>
+                        <div class="mb-20">
+                            <h3 class="admin-content__form-text">Sản phẩm</h3>
+                            <div class="input-group valid-elm">
+                                <select class="valid-elm form-select" v-model="inventory.product_id"
+                                v-bind:class="{'is-invalid': errors.product_id}" @change="validate()">
+                                    <option disabled value="" selected>Chọn sản phẩm</option>
+                                    <option v-for="product in products" :key="product.id" :value="product.id">
+                                        {{ product.name }}
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback" v-if="errors.product_id">{{ errors.product_id }}</div>
                             </div>
                         </div>
                         <div class="mb-20">
@@ -77,6 +63,13 @@
                                 <input type="number" class="fs-16 form-control" placeholder="Nhập số lượng" v-model="inventory.quantity"
                                 v-bind:class="{'is-invalid': errors.quantity}" @blur="validate()">
                                 <div class="invalid-feedback" v-if="errors.quantity">{{ errors.quantity }}</div>
+                            </div>
+                        </div>
+                        <div class="mb-20">
+                            <h3 class="admin-content__form-text">Giá</h3>
+                            <div class="valid-elm input-group">
+                                <input type="number" class="fs-16 form-control" placeholder="Nhập giá nhập" v-model="inventory.price"
+                                v-bind:class="{'is-invalid': errors.price}" @blur="validate()">
                             </div>
                         </div>
                         <div class="admin-content__form-divided">
@@ -123,7 +116,7 @@ export default {
                 product_id: '', import_id: ''
             },
             errors: {
-                quantity: '', batch_number: '', manufacture_date: '', expiry_date: '', product_id: ''
+                quantity: '', batch_number: '', manufacture_date: '', expiry_date: '', product_id: '', price: ''
             },
         }
     },
@@ -206,9 +199,8 @@ export default {
         validate() {
             let isValid = true;
             this.errors = {
-                quantity: '', batch_number: '', manufacture_date: '', expiry_date: '', product_id: ''
+                quantity: '', batch_number: '', manufacture_date: '', expiry_date: '', product_id: '', price: ''
             };
-
             if (this.inventory.quantity === null || this.inventory.quantity === undefined || this.inventory.quantity === '') {
                 this.errors.quantity = 'Số lượng không được để trống.';
                 isValid = false;
@@ -219,12 +211,10 @@ export default {
                 this.errors.quantity = 'Số lượng phải là số nguyên.';
                 isValid = false;
             }
-
             if (!this.inventory.batch_number || this.inventory.batch_number.trim() === '') {
                 this.errors.batch_number = 'Số lô không được để trống.';
                 isValid = false;
             }
-
             if (!this.inventory.manufacture_date) {
                 this.errors.manufacture_date = 'Ngày sản xuất không được để trống.';
                 isValid = false;
@@ -237,9 +227,12 @@ export default {
                 this.errors.expiry_date = 'Ngày hết hạn phải sau ngày sản xuất.';
                 isValid = false;
             }
-
             if (!this.inventory.product_id) {
                 this.errors.product_id = 'Sản phẩm không được để trống.';
+                isValid = false;
+            }
+            if (!this.inventory.price) {
+                this.errors.price = 'Giá nhập không được để trống.';
                 isValid = false;
             }
 

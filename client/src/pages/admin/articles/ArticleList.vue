@@ -23,7 +23,15 @@
                         <template v-else>
                             <option value="delete">Xóa</option>
                             <option value="filterByUnapproved">Lọc tin chưa duyệt</option>
+                            <option value="setCategory">Đặt danh mục</option>
+                            <option value="filterByCategory">Lọc theo danh mục</option>
                         </template>
+                    </select>
+                    <select ref="selectedCategory" class="form-select admin-content__select-attribute admin-content__select-category">
+                        <option value="" selected>-- Chọn danh mục --</option>
+                        <option v-for="category in categories" :key="category.id" :value="category.id">
+                            {{ category.name }}
+                        </option>
                     </select>
                     <button class="fs-16 btn btn-primary" id="btnCheckboxSubmit" @click="handleFormActions()">Thực hiện</button>
                 </div>
@@ -39,6 +47,7 @@
                         <th scope="col">Highlight
                             <SortComponent field="highlight" :sort="sort"/>
                         </th>
+                        <th scope="col">Danh mục</th>
                         <th scope="col">Ngày xuất bản
                             <SortComponent field="publish_date" :sort="sort"/>
                         </th>
@@ -62,8 +71,9 @@
                         <td>{{ item.title }}</td>
                         <td>{{ item?.creator?.name }}</td>
                         <td>{{ item.highlight }}</td>
+                        <td>{{ item?.category?.name }}</td>
                         <td>{{ item.publish_date }}</td>
-                        <td>{{ item?.approver?.name }}</td>
+                        <td>{{ item.approver ? item.approver?.name : 'Chưa duyệt' }}</td>
                         <template v-if="!isTrashRoute">
                             <td>{{ formatDate(item.created_at) }}</td>
                             <td>{{ formatDate(item.updated_at) }}</td>
@@ -114,7 +124,7 @@ import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
 import { formatDate } from '@/utils/helpers';
-import { articleApi } from '@/api';
+import { articleApi, categoryApi } from '@/api';
 
 export default {
     components: {
@@ -126,6 +136,7 @@ export default {
             sort: {}, totalPages: 0, currentPage: 1,
             selectedIds: [],
             articles: [],
+            categories: [],
         }
     },
     computed: {
@@ -152,6 +163,7 @@ export default {
                 if (!this.isTrashRoute) {
                     req.push(
                         articleApi.getTrashed(),
+                        categoryApi.getAll({ key: 'article'}),
                     );
                 }
                 
@@ -164,6 +176,7 @@ export default {
     
                 if (!this.isTrashRoute) {
                     this.deletedCount = res[1].data?.pagination?.total || 0;
+                    this.categories = res[2].data?.data || [];
                 }
             } catch (error) {
                 console.error(error);
@@ -207,7 +220,7 @@ export default {
             if (!actionData) return;
             const { action, targetId, isFilterAction } = actionData;
             if (isFilterAction) {
-                this.$router.push({ query: { action, targetId } });
+                this.$router.push({ query: { ...this.$route.query, action, targetId } });
                 return;
             }
             if (this.selectedIds.length === 0) {
@@ -238,6 +251,10 @@ export default {
             switch (action) {
                 case 'filterByUnapproved':
                     targetId = null;
+                    break;
+                case 'setCategory':
+                case 'filterByCategory':
+                    targetId = this.$refs.selectedCategory.value;
                     break;
             }
             return {

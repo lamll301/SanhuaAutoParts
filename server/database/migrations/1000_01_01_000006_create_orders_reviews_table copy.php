@@ -30,8 +30,8 @@ return new class extends Migration
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
             $table->string('cancel_reason')->nullable();
-            $table->boolean('is_refunded')->default(false); // Từ feature/order
-            $table->string('last_delivery_failure_reason')->nullable(); // Từ main
+            $table->boolean('is_refunded')->default(false);
+            $table->string('last_delivery_failure_reason')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

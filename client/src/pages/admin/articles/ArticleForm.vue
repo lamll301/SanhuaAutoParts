@@ -52,6 +52,17 @@
                                 <input type="date" class="fs-16 form-control" v-model="article.publish_date">
                             </div>
                         </div>
+                        <div class="mb-20">
+                            <h3 class="admin-content__form-text">Danh mục</h3>
+                            <div class="valid-elm input-group">
+                                <select class="fs-16 form-select" v-model="article.category_id">
+                                    <option value="" selected>-- Chọn danh mục --</option>
+                                    <option v-for="category in categories" :key="category.id" :value="category.id">
+                                        {{ category.name }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="mb-20 admin-content__form-btn">
                             <button v-if="!article.approved_by && article.id" type="button" class="fs-16 btn btn-secondary" @click="approve()">Duyệt</button>
                             <button type="submit" class="fs-16 btn btn-primary">Xác nhận</button>
@@ -66,7 +77,7 @@
 
 <script>
 import RichTextEditor from '@/components/RichTextEditor.vue';
-import { articleApi } from '@/api';
+import { articleApi, categoryApi } from '@/api';
 
 export default {
     components: {
@@ -74,7 +85,7 @@ export default {
     },
     data() {
         return {
-            article: {},
+            article: { category_id: '' },
             errors: {
                 title: '', highlight: ''
             },
@@ -105,9 +116,19 @@ export default {
         },
         async fetchData() {
             try {
+                const req = [
+                    categoryApi.getAll({ key: 'article'}),
+                ];
+
                 if (this.$route.params.id) {
-                    const res = await this.$swal.withLoading(articleApi.getOne(this.$route.params.id));
-                    this.article = res.data;
+                    req.push(
+                        articleApi.getOne(this.$route.params.id)
+                    );
+                }
+                const res = await this.$swal.withLoading(Promise.all(req));
+                this.categories = res[0].data?.data || [];
+                if (this.$route.params.id) {
+                    this.article = res[1].data;
                 }
             } catch (error) {
                 console.error(error);
@@ -186,7 +207,7 @@ export default {
             return isValid;
         },
         resetForm() {
-            this.article = { title: '', highlight: '', publish_date: '', content: '' };
+            this.article = { title: '', highlight: '', publish_date: '', content: '', category_id: '' };
             this.errors = { title: '', highlight: '' };
         },
     }

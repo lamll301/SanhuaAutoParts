@@ -508,7 +508,7 @@ export default {
                 const response = await paymentApi.createCODPayment(this.order.id);
                 const cod = response.data;
                 if (cod.message === "success") {
-                    window.location.href = '/theo-doi-don-hang/' + this.order.id;
+                    this.$router.push(`/theo-doi-don-hang/${this.order.id}`);
                 } else {
                     this.$swal.fire('Lỗi', 'Đã xảy ra lỗi khi tạo thanh toán COD', 'error');
                 }

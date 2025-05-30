@@ -7,8 +7,9 @@ use App\Http\Middleware\AuthenticateWithJWT;
 use App\Http\Middleware\Authorization;
 
 Route::prefix('articles')->group(function () {
-    Route::get('/by-slug/{slug}', [ArticleController::class, 'getBySlug']);
-    Route::get('/by-category/{categorySlug}', [ArticleController::class, 'getByCategory']);
+    Route::get('/home', [ArticleController::class, 'home']);
+    Route::get('/slug/{slug}', [ArticleController::class, 'getBySlug']);
+    Route::get('/category/{categorySlug}', [ArticleController::class, 'getByCategory']);
     Route::get('/published', [ArticleController::class, 'getPublished'])->middleware(SortMiddleware::class);
     Route::patch('/{id}/approve', [ArticleController::class, 'approve'])->middleware([
         AuthenticateWithJWT::class, Authorization::class . ':articles.approve'
@@ -32,12 +33,12 @@ Route::prefix('articles')->group(function () {
         AuthenticateWithJWT::class, Authorization::class . ':articles.manage'
     ]);
     Route::get('/trashed', [ArticleController::class, 'trashed'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':articles.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/{id}', [ArticleController::class, 'show'])->middleware([
-        AuthenticateWithJWT::class, Authorization::class . ':articles.view'
+        AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/', [ArticleController::class, 'index'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':articles.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
 });

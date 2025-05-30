@@ -7,6 +7,7 @@ use App\Models\Export;
 use App\Models\Disposal;
 use App\Models\Check;
 use App\Models\Cancel;
+use App\Models\Inventory;
 use Illuminate\Http\Request;
 
 class WarehouseReceiptController extends Controller
@@ -20,6 +21,7 @@ class WarehouseReceiptController extends Controller
     ];
     private const FILTER_FIELDS = [
         'imports' => [
+            'filterByUnapproved' => ['column' => 'approved_by'],
             'filterBySupplier' => ['column' => 'supplier_id']
         ],
         'exports' => [],
@@ -27,6 +29,25 @@ class WarehouseReceiptController extends Controller
         'checks' => [],
         'cancels' => []
     ];
+
+    public function approveImport(Request $request, string $id) {
+        $approverId = $request->user_id;
+        $import = Import::findOrFail($id);
+        if ($import->approved_by) {
+            return response()->json(['message' => 'Phiếu nhập đã được duyệt'], 400);
+        }
+        $import->approved_by = $approverId;
+        $import->save();
+        $importDetails = $import->details()->get();
+        foreach ($importDetails as $detail) {
+            Inventory::create([
+                'product_id' => $detail->product_id,
+                'quantity' => $detail->quantity,
+                'price' => $detail->price,
+            ]);
+        }
+        return response()->json(['message' => 'success'], 200);
+    }
 
     private function getReceiptType() {
         $path = request()->path();

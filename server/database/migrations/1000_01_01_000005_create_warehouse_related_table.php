@@ -32,16 +32,17 @@ return new class extends Migration
         });
 
         Schema::create('inventories', function (Blueprint $table) {
-            $table->id();
-            $table->string('batch_number');     // so lo
-            $table->unsignedInteger('quantity')->default(0);
-            $table->date('manufacture_date');
-            $table->date('expiry_date');
+            $table->id();   // id của mình
+            $table->string('batch_number')->nullable();     // số lô hàng của nhà cung cấp
+            $table->unsignedInteger('quantity');
+            $table->unsignedInteger('price');  // giá nhập
+            $table->date('manufacture_date')->nullable();
+            $table->date('expiry_date')->nullable();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('import_id')->nullable()->constrained()->nullOnDelete();
+            // $table->foreignId('import_id')->nullable()->constrained()->nullOnDelete();
+            // $table->foreignId('import_detail_id')->unique()->constrained()->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
-            $table->unique(['product_id', 'batch_number']);
         });
 
         Schema::create('locations', function (Blueprint $table) {

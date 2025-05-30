@@ -8,7 +8,7 @@
                 <i class="header-admin__icon fa-solid fa-house"></i>
                 Trang chủ
             </router-link>
-            <!-- <div class="header-admin__label1">QUẢN TRỊ VIÊN</div> -->
+            <div class="header-admin__label1">HỆ THỐNG & NGƯỜI DÙNG</div>
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
@@ -47,31 +47,18 @@
                     <li class="header-admin__dropdown-item"><router-link to="/admin/user">Tất cả người dùng</router-link></li>
                 </ul>
             </div>
+            <div class="header-admin__label1">DANH MỤC CƠ BẢN</div>
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-industry header-admin__dropdown-icon"></i>
-                        Quản lý nhà cung cấp
+                        <i class="fa-solid fa-folder-open header-admin__dropdown-icon"></i>
+                        Quản lý danh mục
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <ul class="header-admin__dropdown-menu">
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/supplier">Tất cả nhà cung cấp</router-link></li>
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/supplier/create">Thêm nhà cung cấp</router-link></li>
-                </ul>
-            </div>
-            
-            <!-- <div class="header-admin__label1">NHÂN VIÊN BÁN HÀNG</div> -->
-            <div class="header-admin__dropdown">
-                <div class="header-admin__dropdown-content">
-                    <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-box header-admin__dropdown-icon"></i>
-                        Quản lý đơn hàng
-                    </div>
-                    <i class="fa-solid fa-chevron-down"></i>
-                </div>
-                <ul class="header-admin__dropdown-menu">
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/order">Tất cả đơn hàng</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/category">Tất cả danh mục</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/category/create">Thêm danh mục</router-link></li>
                 </ul>
             </div>
             <div class="header-admin__dropdown">
@@ -90,14 +77,27 @@
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-folder-open header-admin__dropdown-icon"></i>
-                        Quản lý danh mục
+                        <i class="fa-solid fa-scale-balanced header-admin__dropdown-icon"></i>
+                        Quản lý đơn vị tính
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <ul class="header-admin__dropdown-menu">
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/category">Tất cả danh mục</router-link></li>
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/category/create">Thêm danh mục</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/unit">Tất cả đơn vị tính</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/unit/create">Thêm đơn vị tính</router-link></li>
+                </ul>
+            </div>
+            <div class="header-admin__dropdown">
+                <div class="header-admin__dropdown-content">
+                    <div class="header-admin__dropdown-content-text">
+                        <i class="fa-solid fa-industry header-admin__dropdown-icon"></i>
+                        Quản lý nhà cung cấp
+                    </div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <ul class="header-admin__dropdown-menu">
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/supplier">Tất cả nhà cung cấp</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/supplier/create">Thêm nhà cung cấp</router-link></li>
                 </ul>
             </div>
             <div class="header-admin__dropdown">
@@ -139,21 +139,19 @@
                     <li class="header-admin__dropdown-item"><router-link to="/admin/voucher/create">Thêm voucher</router-link></li>
                 </ul>
             </div>
-            <!-- Nhan vien ban hang -->
-            <!-- <div class="header-admin__label1">NHÂN VIÊN KHO</div> -->
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-map header-admin__dropdown-icon"></i>
-                        Quản lý vị trí kho
+                        <i class="fa-solid fa-box header-admin__dropdown-icon"></i>
+                        Quản lý đơn hàng
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <ul class="header-admin__dropdown-menu">
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/location">Tất cả vị trí kho</router-link></li>
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/location/create">Thêm vị trí kho</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/order">Tất cả đơn hàng</router-link></li>
                 </ul>
             </div>
+            <div class="header-admin__label1">QUẢN LÝ KHO</div>
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
@@ -170,14 +168,14 @@
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">
                     <div class="header-admin__dropdown-content-text">
-                        <i class="fa-solid fa-scale-balanced header-admin__dropdown-icon"></i>
-                        Quản lý đơn vị tính
+                        <i class="fa-solid fa-map header-admin__dropdown-icon"></i>
+                        Quản lý vị trí kho
                     </div>
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <ul class="header-admin__dropdown-menu">
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/unit">Tất cả đơn vị tính</router-link></li>
-                    <li class="header-admin__dropdown-item"><router-link to="/admin/unit/create">Thêm đơn vị tính</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/location">Tất cả vị trí kho</router-link></li>
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/location/create">Thêm vị trí kho</router-link></li>
                 </ul>
             </div>
             <div class="header-admin__dropdown">
@@ -254,7 +252,6 @@
                 </div>
                 <div class="nav-admin__right">
                     <div class="nav-admin__circle">
-                        <!-- admin notify -->
                         <i class="fa-regular fa-bell nav-admin__icon"></i>
                         <div class="nav-admin__notify">
                             <header class="nav-admin__notify-header">
@@ -265,7 +262,7 @@
                             </header>
                             <ul class="nav-admin__notify-list">
                                 <template v-if="notifications.length === 0">
-                                    <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;height: 300px;">
+                                    <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;height: 362px;">
                                         <img src="../assets/images/empty-notify.webp" alt="" class="header__notify--empty-img" style="margin-top: 0;">
                                         <p class="header__notify--empty-msg">
                                             Chưa có thông báo
@@ -312,7 +309,6 @@
                     </div>
                 </div>
             </nav>
-            
             <div class="admin-background"></div>
             <router-view></router-view>
             <div class="footer-admin">
@@ -341,6 +337,9 @@ export default {
             cartStore
         }
     },
+    mounted() {
+        this.checkAdminAccess();
+    },
     data() {
         return {
             isSidebarActive: true,
@@ -354,6 +353,12 @@ export default {
     },
     methods: {
         getImageUrl,
+        checkAdminAccess() {
+            if (!this.user || !this.user.role_id) {
+                this.$router.replace({ name: "AccessDenied" })
+                return;
+            }
+        },
         toggleSidebar() {
             if (this.isSidebarActive) {
                 gsap.to(this.$refs.sidebar, {

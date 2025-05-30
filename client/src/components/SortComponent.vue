@@ -20,10 +20,6 @@ export default {
     },
     methods: {
         sortable() {
-            const page = this.$route.query.page
-            const key = this.$route.query.key
-            const action = this.$route.query.action
-            const filterId = this.$route.query.filterId
             const sortType = this.field === this.sort.column ? this.sort.type : 'default'
             const icons = {
                 default: 'fa-solid fa-sort',
@@ -37,12 +33,18 @@ export default {
             }
             const icon = icons[sortType]
             const type = types[sortType]
-            let link = `?_sort=true&column=${this.field}&type=${type}`
-            if (key) link += `&key=${key}`
-            if (action) link += `&action=${action}`
-            if (filterId) link += `&filterId=${filterId}`
-            if (page) link += `&page=${page}`
-            return { link, icon }
+            
+            const query = {
+                ...this.$route.query,
+                _sort: 'true',
+                column: this.field,
+                type: type
+            }
+            
+            return { 
+                link: { query },
+                icon 
+            }
         }
     }
 }

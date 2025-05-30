@@ -25,7 +25,6 @@
               <option value="filterByStatus">Lọc theo trạng thái</option>
               <option value="filterByPaymentStatus">Lọc theo thanh toán</option>
               <option value="filterByVoucher">Lọc theo voucher</option>
-              <option value="filterByRefunded">Lọc theo hoàn tiền</option>
             </template>
           </select>
           <select class="form-select admin-content__select-attribute admin-content__select-status" ref="selectedStatus">
@@ -45,11 +44,6 @@
             <option v-for="voucher in vouchers" :key="voucher.id" :value="voucher.id">
               {{ voucher.code }}
             </option>
-          </select>
-          <select class="form-select admin-content__select-attribute" style="width: 14%;" ref="selectedRefunded" v-model="selectedRefunded">
-            <option value="" selected>-- Chọn hoàn tiền --</option>
-            <option value="1">Đã hoàn tiền</option>
-            <option value="0">Chưa hoàn tiền</option>
           </select>
           <button class="fs-16 btn btn-primary" id="btnCheckboxSubmit" @click="handleFormActions()">Thực hiện</button>
         </div>
@@ -292,7 +286,6 @@ export default {
         this.$swal.fire("Lỗi!", "Vui lòng chọn ít nhất 1 bản ghi để thực hiện hành động.", "error");
         return;
       }
-
       try {
         await orderApi.handleFormActions({
           action,
@@ -335,13 +328,6 @@ export default {
           targetId = this.$refs.selectedStatus.value;
           if (!targetId) {
             this.$swal.fire("Lỗi!", "Vui lòng chọn trạng thái để thực hiện hành động.", "error");
-            return;
-          }
-          break;
-        case 'filterByRefunded':
-          targetId = this.$refs.selectedRefunded.value;
-          if (!targetId) {
-            this.$swal.fire("Lỗi!", "Vui lòng chọn trạng thái hoàn tiền để thực hiện hành động.", "error");
             return;
           }
           break;

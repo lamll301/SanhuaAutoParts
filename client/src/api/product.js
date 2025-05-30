@@ -14,10 +14,10 @@ const productApi = {
         return apiClient.get(`/products/${id}`)
     },
     getBySlug(slug) {
-        return apiClient.get(`/products/by-slug/${slug}`)
+        return apiClient.get(`/products/slug/${slug}`)
     },
     getByCategory(slug = '', params = {}) {
-        return apiClient.get(`/products/by-category/${slug}`, { params })
+        return apiClient.get(`/products/category/${slug}`, { params })
     },
     create(data) {
         return apiClient.post('/products', data)
@@ -36,6 +36,9 @@ const productApi = {
     },
     handleFormActions(data) {
         return apiClient.post('/products/handle-form-actions', data)
+    },
+    home() {
+        return apiClient.get('/products/home')
     }
 }
 

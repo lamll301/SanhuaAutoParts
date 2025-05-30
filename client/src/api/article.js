@@ -17,10 +17,10 @@ const articleApi = {
         return apiClient.get('/articles/published', { params })
     },
     getByCategory(categorySlug) {
-        return apiClient.get(`/articles/by-category/${categorySlug}`)
+        return apiClient.get(`/articles/category/${categorySlug}`)
     },
     getBySlug(slug) {
-        return apiClient.get(`/articles/by-slug/${slug}`)
+        return apiClient.get(`/articles/slug/${slug}`)
     },
     create(data) {
         return apiClient.post('/articles', data)
@@ -42,6 +42,9 @@ const articleApi = {
     },
     approve(id) {
         return apiClient.patch(`/articles/${id}/approve`)
+    },
+    home() {
+        return apiClient.get('/articles/home')
     }
 }
 

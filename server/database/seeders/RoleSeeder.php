@@ -16,20 +16,18 @@ class RoleSeeder extends Seeder
         Role::create(['name' => 'admin']);
 
         $employeeRoles = Role::whereIn('name', ['nhân viên kho', 'nhân viên bán hàng'])->get();
-        $viewPermissions = Permission::where('name', 'like', '%.view')->pluck('id')->toArray();
+        $viewPermission = Permission::where('name', 'view')->first()->id;
         $rolePermission = [];
 
         foreach ($employeeRoles as $role) {
-            foreach ($viewPermissions as $permissionId) {
-                $rolePermission[] = [
-                    'role_id' => $role->id,
-                    'permission_id' => $permissionId,
-                ];
-            }
+            $rolePermission[] = [
+                'role_id' => $role->id,
+                'permission_id' => $viewPermission,
+            ];
         }
 
         $warehouseRole = Role::where('name', 'nhân viên kho')->first();
-        $warehouseManageModules = ['cancels', 'checks', 'disposals', 'imports', 'exports', 'inventories', 'locations', 'units'];
+        $warehouseManageModules = ['stock.receipts', 'inventories', 'locations', 'units'];
         $warehouseManagePermissions = Permission::whereIn('name', array_map(fn($module) => "$module.manage", $warehouseManageModules))->pluck('id')->toArray();
         
         foreach ($warehouseManagePermissions as $permissionId) {
@@ -42,7 +40,7 @@ class RoleSeeder extends Seeder
         $salesRole = Role::where('name', 'nhân viên bán hàng')->first();
         $salesManageModules = ['products', 'articles', 'categories', 'orders', 'vouchers', 'promotions'];
         $salesManagePermissions = Permission::whereIn('name', array_map(fn($module) => "$module.manage", $salesManageModules))->pluck('id')->toArray();
-        
+        $salesManagePermissions[] = Permission::where('name', 'orders.approve')->first()->id;
         foreach ($salesManagePermissions as $permissionId) {
             $rolePermission[] = [
                 'role_id' => $salesRole->id,

@@ -22,6 +22,7 @@
                         </template>
                         <template v-else>
                             <option value="delete">Xóa</option>
+                            <option value="filterByUnapproved">Lọc phiếu chưa duyệt</option>
                             <option value="setSupplier">Đặt nhà cung cấp</option>
                             <option value="filterBySupplier">Lọc theo nhà cung cấp</option>
                         </template>
@@ -231,7 +232,7 @@ export default {
 
             const { action, targetId, isFilterAction } = actionData;
             if (isFilterAction) {
-                this.$router.push({ query: { action, targetId } });
+                this.$router.push({ query: { ...this.$route.query, action, targetId } });
                 return;
             }
             if (this.selectedIds.length === 0) {
@@ -259,6 +260,9 @@ export default {
                 return;
             }
             switch (action) {
+                case 'filterByUnapproved':
+                    targetId = null;
+                    break;
                 case 'setSupplier':
                 case 'filterBySupplier':
                     targetId = this.$refs.selectedSupplier.value;

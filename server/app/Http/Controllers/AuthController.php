@@ -17,7 +17,14 @@ class AuthController extends Controller
             ], 422);
         }
 
+        if (User::where('email', $request->email)->exists()) {
+            return response()->json([
+                'message' => 'Email đã tồn tại. Vui lòng chọn email khác.'
+            ], 422);
+        }
+
         $user = User::create([
+            'email' => $request->email,
             'username' => $request->username,
             'password' => Hash::make($request->password),
         ]);

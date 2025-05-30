@@ -375,7 +375,12 @@ class PaymentController extends Controller      // chạy ngrok và đổi app_u
             $order->payment_info = "Thanh toan COD";
             $order->save();
             return response()->json([
-                "message" => "success"
+                "message" => "success",
+                "data" => [
+                    "id" => $order->id,
+                    "payment_status" => $order->payment_status,
+                    "payment_info" => $order->payment_info
+                ]
             ]);
         }
         return response()->json([

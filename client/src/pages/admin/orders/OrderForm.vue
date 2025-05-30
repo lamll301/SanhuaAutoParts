@@ -1,5 +1,4 @@
-<template>
-    <div class="admin-page">
+<template>    <div class="admin-page">
         <div class="admin-content">
             <div class="admin-content__heading">
                 <h3>Quản lý sản phẩm</h3>
@@ -207,8 +206,7 @@
                             </div>
                         </div>
                         <div class="mb-20 admin-content__form-btn">
-                            <button v-if="!order.approved_by && order.status !== 4" class="fs-16 btn btn-primary" @click="onUpdateStatus(order.id, 'approved')">Duyệt</button>
-                            <button v-if="order.status === 4 && order.payment_status === 1 && !order.is_refunded && order.payment_method !== 'Thanh toán khi nhận hàng'" class="fs-16 btn btn-warning" @click="onUpdateStatus(order.id, 'refunded')">Hoàn tiền</button>
+                            <button v-if="!order.approved_by" class="fs-16 btn btn-primary" @click="approve()">Duyệt</button>
                             <button v-if="order.status === 1" class="fs-16 btn btn-primary" @click="onUpdateStatus(order.id, 'shipped')">Giao hàng</button>
                             <button v-if="order.status === 2" class="fs-16 btn btn-success" @click="onUpdateStatus(order.id, 'completed')">Hoàn tất</button>
                             <button v-if="order.payment_status === 0" class="fs-16 btn btn-success" @click="onUpdateStatus(order.id, 'paid')">Đã thanh toán</button>
@@ -254,7 +252,7 @@
 
 <script>
 import CheckboxTable from '@/components/CheckboxTable.vue';
-import { orderApi, addressApi } from '@/api';
+import { orderApi, addressApi, inventoryApi } from '@/api';
 import { formatDate, formatPrice, getImageUrl } from '@/utils/helpers';
 import { getAllStatusOptions } from '@/utils/statusMap';
 
@@ -270,6 +268,7 @@ export default {
                     value: 0,
                 },
             },
+            inventories: [],
             details: [],
             cities: [], districts: [], wards: [],
             errors: {
@@ -333,6 +332,309 @@ export default {
             }
             return isValid;
         },
+        async approve() {
+            try {
+                const formHtml = `
+                    <div class="order-approval-form">
+                        <div class="order-items">
+                            ${this.details.map((detail, index) => `
+                                <div class="order-item mb-4">
+                                    <div class="order-item-header">
+                                        <span class="order-item-number">#${detail.id}</span>
+                                        <h5 class="order-item-title">${detail.product.name}</h5>
+                                    </div>
+                                    <div class="order-item-content">
+                                        <div class="product-info">
+                                            <div class="product-image">
+                                                <img src="${this.getImageUrl(detail.product.images[0].path)}" 
+                                                     alt="${detail.product.name}">
+                                            </div>
+                                            <div class="product-details">
+                                                <div class="info-group">
+                                                    <div class="quantity-info">
+                                                        <i class="fas fa-box"></i>
+                                                        <span>Số lượng: </span>
+                                                        <span class="highlight-text">${detail.quantity}</span>
+                                                    </div>
+                                                    <div class="price-info">
+                                                        <i class="fas fa-tag"></i>
+                                                        <span>Đơn giá: </span>
+                                                        <span class="highlight-text">${this.formatPrice(detail.price)} đ</span>
+                                                    </div>
+                                                    <div class="total-info">
+                                                        <i class="fas fa-money-bill"></i>
+                                                        <span>Thành tiền: </span>
+                                                        <span class="highlight-text highlight-text--primary">${this.formatPrice(detail.subtotal)} đ</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="inventory-section">
+                                            <div class="inventory-header">
+                                                <h6 class="mb-0"></h6>
+                                                <button type="button" 
+                                                        class="btn btn-outline-primary btn-lg add-inventory"
+                                                        data-container="inventory-container-${index}">
+                                                    <i class="fas fa-plus me-1"></i> Thêm
+                                                </button>
+                                            </div>
+                                            <div class="inventory-items" id="inventory-container-${index}">
+                                                <div class="inventory-item">
+                                                    <div class="row g-3">
+                                                        <div class="col-7">
+                                                            <select class="form-select form-select-lg inventory-select" 
+                                                                    data-detail-id="${detail.id}">
+                                                                <option value="">-- Chọn hàng tồn --</option>
+                                                                ${this.inventories.filter(i => i.product_id === detail.product_id)
+                                                                    .map(i => `
+                                                                        <option value="${i.id}">
+                                                                            ID: ${i.id} - Lô hàng ${i.batch_number} - SL: ${i.quantity}
+                                                                        </option>
+                                                                    `).join('')}
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="quantity-input">
+                                                                <input type="number" 
+                                                                       class="form-control form-control-lg inventory-quantity" 
+                                                                       placeholder="Số lượng"
+                                                                       min="1"
+                                                                       max="${detail.quantity}">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-2">
+                                                            <button type="button" 
+                                                                    class="btn btn-outline-danger btn-lg remove-inventory"
+                                                                    style="display: none;">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <style>
+                        .add-inventory {
+                            width: 100px !important;
+                            height: 33px !important;
+                        }
+                        .remove-inventory {
+                            height: 100%;
+                            width: 100%;
+                        }
+                        .order-approval-form {
+                            max-height: 80vh;
+                            overflow-y: auto;
+                            padding: 1.5rem;
+                            background: #f8f9fa;
+                            border-radius: 12px;
+                        }
+                        .approval-header h4 {
+                            font-size: 1.5rem;
+                            font-weight: 600;
+                        }
+                        .order-item {
+                            background: white;
+                            border-radius: 12px;
+                            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+                            overflow: hidden;
+                        }
+                        .order-item-header {
+                            background: #4a90e2;
+                            color: white;
+                            padding: 1rem 1.5rem;
+                            display: flex;
+                            align-items: center;
+                        }
+                        .order-item-number {
+                            background: rgba(255,255,255,0.2);
+                            padding: 0.3rem 0.8rem;
+                            border-radius: 20px;
+                            font-weight: 500;
+                            margin-right: 1rem;
+                        }
+                        .order-item-title {
+                            margin: 0;
+                            font-size: 1.4rem;
+                            font-weight: 500;
+                        }
+                        .order-item-content {
+                            padding: 1.5rem;
+                        }
+                        .product-info {
+                            display: flex;
+                            gap: 1.5rem;
+                            padding: 1rem;
+                            background: #fff;
+                            border: 1px solid #e0e0e0;
+                            border-radius: 8px;
+                            margin-bottom: 1.5rem;
+                        }
+                        .product-image {
+                            width: 120px;
+                            height: 120px;
+                            border-radius: 6px;
+                            overflow: hidden;
+                            border: 1px solid #eee;
+                        }
+                        .product-image img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                        }
+                        .product-details {
+                            flex: 1;
+                            display: flex;
+                            align-items: center;
+                        }
+                        .info-group {
+                            width: 100%;
+                        }
+                        .quantity-info,
+                        .price-info,
+                        .total-info {
+                            display: flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                            padding: 0.5rem 0;
+                            color: #666;
+                        }
+                        .quantity-info i,
+                        .price-info i,
+                        .total-info i {
+                            width: 20px;
+                            color: #888;
+                        }
+                        .highlight-text {
+                            font-weight: 600;
+                            color: #333;
+                        }
+                        .highlight-text--primary {
+                            color: #2196f3;
+                        }
+                        .inventory-section {
+                            background: #f8f9fa;
+                            border-radius: 8px;
+                            padding: 1.2rem;
+                        }
+                        .inventory-header {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            margin-bottom: 1rem;
+                        }
+                        .inventory-header h6 {
+                            font-size: 1.1rem;
+                            color: #2c3e50;
+                        }
+                        .inventory-item {
+                            background: white;
+                            padding: 1rem;
+                            border-radius: 8px;
+                            margin-bottom: 1rem;
+                            border: 1px solid #e0e0e0;
+                        }
+                        .inventory-item:last-child {
+                            margin-bottom: 0;
+                        }
+                        .form-select-lg, .form-control-lg {
+                            font-size: 1.4rem;
+                        }
+                        .quantity-input {
+                            position: relative;
+                        }
+                    </style>
+                `;
+                const result = await this.$swal.fire('Duyệt đơn hàng', '', '', {
+                    html: formHtml,
+                    showCancelButton: true,
+                    confirmButtonText: 'Duyệt',
+                    cancelButtonText: 'Hủy',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        const popup = document.querySelector('.swal2-popup');
+                        if (popup) {
+                            popup.style.setProperty('width', '900px', 'important');
+                            popup.style.setProperty('max-width', '95vw', 'important');
+                        }
+
+                        document.querySelectorAll('.add-inventory').forEach(button => {
+                            button.addEventListener('click', () => {
+                                const containerId = button.dataset.container;
+                                const container = document.getElementById(containerId);
+                                const template = container.querySelector('.inventory-item').cloneNode(true);
+                                
+                                template.querySelector('.remove-inventory').style.display = 'block';
+                                template.querySelector('.remove-inventory').addEventListener('click', () => {
+                                    template.remove();
+                                });
+                                
+                                container.appendChild(template);
+                            });
+                        });
+                    },
+                    preConfirm: () => {
+                        const inventoryData = [];
+                        const orderDetailQuantities = {};
+                        const requiredQuantities = {};
+                        this.details.forEach(detail => {
+                            requiredQuantities[detail.id] = detail.quantity;
+                            orderDetailQuantities[detail.id] = 0;
+                        });
+                        document.querySelectorAll('.inventory-item').forEach(item => {
+                            const select = item.querySelector('.inventory-select');
+                            const quantityInput = item.querySelector('.inventory-quantity');
+                            if (select.value && quantityInput.value) {
+                                const orderDetailId = select.dataset.detailId;
+                                const quantity = parseInt(quantityInput.value);
+                                orderDetailQuantities[orderDetailId] = (orderDetailQuantities[orderDetailId] || 0) + quantity;
+                                inventoryData.push({
+                                    order_detail_id: select.dataset.detailId,
+                                    inventory_id: select.value,
+                                    quantity: quantity
+                                });
+                            }
+                        });
+                        const errors = [];
+                        for (const detailId in requiredQuantities) {
+                            const requiredQty = requiredQuantities[detailId];
+                            const selectedQty = orderDetailQuantities[detailId] || 0;
+                            const detail = this.details.find(d => d.id == detailId);
+                            
+                            if (selectedQty === 0) {
+                                errors.push(`Chưa chọn hàng tồn cho sản phẩm: ${detail.product.name}`);
+                            } else if (selectedQty < requiredQty) {
+                                errors.push(`Thiếu ${requiredQty - selectedQty} sản phẩm "${detail.product.name}" (cần ${requiredQty}, đã chọn ${selectedQty})`);
+                            } else if (selectedQty > requiredQty) {
+                                errors.push(`Thừa ${selectedQty - requiredQty} sản phẩm "${detail.product.name}" (cần ${requiredQty}, đã chọn ${selectedQty})`);
+                            }
+                        }
+                        if (errors.length > 0) {
+                            this.$swal.showValidationMessage(errors.join('<br>'));
+                            return false;
+                        }
+                        if (inventoryData.length === 0) {
+                            this.$swal.showValidationMessage('Vui lòng chọn ít nhất một hàng tồn');
+                            return false;
+                        }
+                        return inventoryData;
+                    }
+                });
+
+                if (result.isConfirmed && result.value) {
+                    const res = await orderApi.approve(this.$route.params.id, result.value)
+                    await this.$swal.fire('Thành công', 'Đơn hàng đã được duyệt thành công!', 'success');
+                    this.order = res.data;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        },
         async onUpdateStatus(id, status) {
             if (!this.validate(status)) return;
             try {
@@ -345,9 +647,14 @@ export default {
         },
         async fetchData() {
             try {
-                const res = await this.$swal.withLoading(orderApi.getOne(this.$route.params.id));
-                this.order = res.data;
-                this.details = this.order.details;
+                const req = [
+                    orderApi.getOne(this.$route.params.id),
+                    inventoryApi.getAll()
+                ]
+                const res = await this.$swal.withLoading(Promise.all(req));
+                this.order = res[0].data || {};
+                this.details = this.order.details || [];
+                this.inventories = res[1].data.data || [];
             } catch (error) {
                 console.error(error);
             }

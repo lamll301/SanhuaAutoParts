@@ -29,12 +29,12 @@ Route::prefix('promotions')->group(function () {
         AuthenticateWithJWT::class, Authorization::class . ':promotions.manage'
     ]);
     Route::get('/trashed', [PromotionController::class, 'trashed'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':promotions.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/{id}', [PromotionController::class, 'show'])->middleware([
-        AuthenticateWithJWT::class, Authorization::class . ':promotions.view'
+        AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/', [PromotionController::class, 'index'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':promotions.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
 });

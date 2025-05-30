@@ -41,6 +41,11 @@ const orderApi = {
     cancelOrderByUser(id, cancelReason) {
         return apiClient.patch(`/orders/my-orders/${id}/cancel`, { cancelReason })
     },
+    approve(id, data) {
+        return apiClient.patch(`/orders/${id}/approve`, {
+            orderDetailInventory: data
+        })
+    }
 }
 
 export default orderApi;

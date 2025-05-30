@@ -22,6 +22,7 @@
                         </template>
                         <template v-else>
                             <option value="delete">Xóa</option>
+                            <option value="filterByUnapproved">Lọc voucher chưa duyệt</option>
                         </template>
                     </select>
                     <button class="fs-16 btn btn-primary" id="btnCheckboxSubmit" @click="handleFormActions()">Thực hiện</button>
@@ -74,7 +75,7 @@
                         <td>{{ item.start_date }}</td>
                         <td>{{ item.end_date }}</td>
                         <td>{{ item.creator?.name }}</td>
-                        <td>{{ item.approver?.name }}</td>
+                        <td>{{ item.approver ? item.approver?.name : 'Chưa duyệt' }}</td>
                         <template v-if="!isTrashRoute">
                             <td>{{ formatDate(item.created_at) }}</td>
                             <td>{{ formatDate(item.updated_at) }}</td>
@@ -218,7 +219,7 @@ export default {
             if (!actionData) return;
             const { action, targetId, isFilterAction } = actionData;
             if (isFilterAction) {
-                this.$router.push({ query: { action, targetId } });
+                this.$router.push({ query: { ...this.$route.query, action, targetId } });
                 return;
             }
             if (this.selectedIds.length === 0) {
@@ -247,13 +248,8 @@ export default {
                 return;
             }
             switch (action) {
-                case 'setStatus':
-                case 'filterByStatus':
-                    targetId = this.$refs.selectedStatus.value;
-                    if (!targetId) {
-                        this.$swal.fire("Lỗi!", "Vui lòng chọn trạng thái để thực hiện hành động.", "error");
-                        return;
-                    }
+                case 'filterByUnapproved':
+                    targetId = null;
                     break;
             }
             return {

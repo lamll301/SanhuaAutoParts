@@ -17,23 +17,20 @@ class ArticleSeeder extends Seeder
     {
         $content = '';
         $j = 0;
-
         for ($section = 0; $section < 3; $section++) {
-            $content .= '<div><b>' . $faker->sentence(10) . '</b></div>';
-
+            $content .= '<div><b>' . $faker->sentence . '</b></div>';
             $numSentences = rand(3, 6);
             for ($i = 0; $i < $numSentences; $i++) {
-                $content .= '<p>' . $faker->sentence(rand(8, 15)) . '</p>';
+                $content .= '<p>' . $faker->sentence(rand(8, 15), true) . '</p>';
             }
             $randomImages = collect($files)->shuffle()->take(2);
             foreach ($randomImages as $image) {
                 $filename = $j;
                 $path = basename($image);
-                $content .= '<img alt="' . $filename . '" src="/storage/default/Images/' . $path . '">';
+                $content .= '<img alt="' . $filename . '" src="/storage/default/product/' . $path . '">';
                 $j++;
             }
         }
-
         return $content;
     }
 
@@ -43,40 +40,23 @@ class ArticleSeeder extends Seeder
         $userIds = User::pluck('id')->toArray();
 
         $categories = [
-            [
-                'name' => 'Tin Nổi Bật',
-                'type' => 'article',
-                'description' => 'Các tin tức nổi bật và quan trọng về Sanhua Auto Parts',
-            ],
-            [
-                'name' => 'Tin Công Ty',
-                'type' => 'article',
-                'description' => 'Thông tin về hoạt động và phát triển của công ty Sanhua Auto Parts',
-            ],
-            [
-                'name' => 'Tin Bán Hàng',
-                'type' => 'article',
-                'description' => 'Thông tin về sản phẩm, khuyến mãi và hoạt động bán hàng',
-            ],
+            ['name' => 'Tin nổi bật', 'type' => 'article', 'description' => 'Các tin tức nổi bật và quan trọng về Sanhua Auto Parts'],
+            ['name' => 'Tin công ty', 'type' => 'article', 'description' => 'Thông tin về hoạt động và phát triển của công ty Sanhua Auto Parts'],
+            ['name' => 'Tin bán hàng', 'type' => 'article', 'description' => 'Thông tin về sản phẩm, khuyến mãi và hoạt động bán hàng'],
         ];
         $categoryIds = [];
         foreach ($categories as $category) {
             $createdCategory = Category::create($category);
             $categoryIds[] = $createdCategory->id;
         }
-
-        $files = collect(Storage::disk('public')->allFiles('default/Images'))
+        $files = collect(Storage::disk('public')->allFiles('default/product'))
             ->filter(function ($file) {
                 return preg_match('/\.(jpg|jpeg|png|gif)$/i', $file);
             })->values()->all();
-
-        for ($i = 0; $i < 50; $i++) {
-            $title = $faker->sentence(6);
-            $slug = Str::slug($title);
-            
+        for ($i = 0; $i < 25; $i++) {
             $article = Article::create([
-                'title' => $title,  
-                'slug' => $slug,
+                'title' => $faker->sentence,
+                'slug' => $faker->slug,
                 'highlight' => $faker->sentence,
                 'author' => $faker->randomElement($userIds),
                 'approved_by' => $faker->randomElement($userIds),
@@ -93,7 +73,6 @@ class ArticleSeeder extends Seeder
                 'size' => rand(100000, 800000),
                 'mime_type' => 'image/jpeg',
             ]);
-
             $images = [];
             for ($j = 0; $j < 7; $j++) {
                 $images[] = [

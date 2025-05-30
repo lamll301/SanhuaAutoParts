@@ -7,6 +7,7 @@ use Faker\Factory as Faker;
 use Illuminate\Support\Facades\DB;
 use App\Models\{ Supplier, User, Product, Category };
 use App\Models\{ Import, ImportDetail, Inventory, Location, Export, ExportDetail, Disposal, DisposalDetail, Check, CheckDetail, Cancel, CancelDetail };
+use Carbon\Carbon;
 
 class WarehouseSeeder extends Seeder
 {
@@ -17,7 +18,6 @@ class WarehouseSeeder extends Seeder
         $userIds = User::pluck('id')->toArray();
         $productIds = Product::pluck('id')->toArray();
         $categoryIds = Category::pluck('id')->toArray();
-
         $locations = [];
         for ($i = 0; $i < 20; $i++) {
             $locations[] = Location::create([
@@ -30,7 +30,6 @@ class WarehouseSeeder extends Seeder
                 'category_id' => $faker->randomElement($categoryIds),
             ]);
         }
-
         for ($i = 0; $i < 25; $i++) {
             $import = Import::create([
                 'supplier_id' => $faker->randomElement($supplierIds),
@@ -41,30 +40,26 @@ class WarehouseSeeder extends Seeder
                 'date' => $faker->dateTimeBetween('-3 months', 'now')->format('Y-m-d'),
                 'total_amount' => 0,
             ]);
-            
             $totalAmount = 0;
             for ($j = 0; $j < 5; $j++) {
                 $quantity = $faker->numberBetween(10, 100);
                 $price = $faker->numberBetween(10000, 100000);
                 $amount = $quantity * $price;
                 $totalAmount += $amount;
-                
                 ImportDetail::create([
                     'import_id' => $import->id,
                     'product_id' => $faker->randomElement($productIds),
                     'quantity' => $quantity,
                     'price' => $price,
                 ]);
-                
                 $inventory = Inventory::create([
                     'batch_number' => strtoupper($faker->bothify('??##??##')),
                     'quantity' => $quantity,
                     'manufacture_date' => $faker->dateTimeBetween('-1 year', '-1 month')->format('Y-m-d'),
-                    'expiry_date' => $faker->dateTimeBetween('+1 month', '+2 years')->format('Y-m-d'),
+                    'expiry_date' => rand(0, 1) ? Carbon::create(2025, 6, $faker->numberBetween(1, 30))->format('Y-m-d') : $faker->dateTimeBetween('+1 month', '+2 years')->format('Y-m-d'),
                     'product_id' => $faker->randomElement($productIds),
                     'import_id' => $import->id,
                 ]);
-                
                 $location = $faker->randomElement($locations);
                 DB::table('inventory_location')->insert([
                     'inventory_id' => $inventory->id,
@@ -72,10 +67,8 @@ class WarehouseSeeder extends Seeder
                     'quantity' => $quantity,
                 ]);
             }
-            
             $import->update(['total_amount' => $totalAmount]);
         }
-
         for ($i = 0; $i < 20; $i++) {
             $export = Export::create([
                 'created_by' => $faker->randomElement($userIds),
@@ -86,29 +79,23 @@ class WarehouseSeeder extends Seeder
                 'reason' => $faker->randomElement(['Sử dụng nội bộ', 'Bán hàng', 'Xuất trả nhà cung cấp']),
                 'total_amount' => 0,
             ]);
-            
             $totalAmount = 0;
             $inventories = Inventory::inRandomOrder()->limit(3)->get();
-            
             foreach ($inventories as $inventory) {
                 $quantity = $faker->numberBetween(1, min(20, $inventory->quantity));
                 $price = $faker->numberBetween(10000, 100000);
                 $amount = $quantity * $price;
                 $totalAmount += $amount;
-                
                 ExportDetail::create([
                     'export_id' => $export->id,
                     'inventory_id' => $inventory->id,
                     'quantity' => $quantity,
                     'price' => $price,
                 ]);
-                
                 $inventory->decrement('quantity', $quantity);
-                
                 $location = DB::table('inventory_location')
                     ->where('inventory_id', $inventory->id)
                     ->first();
-                
                 if ($location) {
                     DB::table('inventory_location')
                         ->where('inventory_id', $inventory->id)
@@ -116,7 +103,6 @@ class WarehouseSeeder extends Seeder
                         ->decrement('quantity', $quantity);
                 }
             }
-            
             $export->update(['total_amount' => $totalAmount]);
         }
 

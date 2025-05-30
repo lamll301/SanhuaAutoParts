@@ -66,6 +66,14 @@ php artisan make:request UserRequest
 ```bash
 psql -U postgres -W -h localhost -p 5432 sanhua_dev
 ```
+#### **Các kiểu join phổ biến**
+```bash
+- INNER JOIN: lấy dữ liệu khi có bản ghi khớp từ 2 bảng
+- LEFT/RIGHT JOIN: lấy tất cả bản ghi từ bảng bên trái/phải nếu không khớp bảng phải/trái trả về null
+- FULL OUTER JOIN: lấy tất cả bản ghi từ 2 bảng, khớp thì ghép lại không khớp trả về null
+- CROSS JOIN: kết hợp mỗi bản ghi ở bảng A với mọi bản ghi ở bản B (số lượng kết quả = n * m cách chọn)
+- SELF JOIN: join chính bảng đó với chính nó
+```
 #### **Các lệnh cơ bản trong PostgreSQL**
 ```bash
 \q: thoát
@@ -117,7 +125,6 @@ php artisan make:command NameCommand
 ```php
 // Accessor là cách tùy chỉnh giá trị khi lấy dữ liệu từ model (get)
 // Mutator là cách tùy chỉnh giá trị trước khi lưu vào db (set)
-
 public function get/set...Attribute() {  // khai báo trong model
     // thực hiện chức năng tương ứng
 }
@@ -150,7 +157,6 @@ php artisan make:observer UserObserver --model=User
 #### **Trait**
 ```bash
 // là tái sử dụng code giữa các class mà không cần dùng kế thừa
-
 - Notifiable: cho phép model nhận thông báo (email, sms, thông báo khi có đơn hàng mới, ...)
 - SoftDeletes: xóa mềm
 - HasFactory: fake dữ liệu (thường dùng trong testing hoặc seed db)
@@ -164,10 +170,3 @@ updateExistingPivot(): chỉ cập nhật 1 bản ghi được chỉ định tro
 
 - Laravel chỉ xử lý upload file từ form data khi đó là phương thức POST.
 - Service là tập hợp các lớp có trách nhiệm chính là thực thi logic nghiệp vụ phức tạp. Thường dùng khi muốn tách biệt logic xử lý ra khỏi controller.
-
-
-
-- Computed (properties) là các thuộc tính được tính toán dựa trên dữ liệu có sẵn, chúng được lưu vào bộ nhớ và chỉ được tính toán lại khi các dependencies thay đổi.
-- Watch cho phép theo dõi sự thay đổi của 1 thuộc tính cụ thể và thực hiện các hành động dựa trên sự thay đổi đó.
-  - Tùy chọn: immediate: true -> gọi ngay khi component được tạo.
-- Mounted là lifecycle hooks (móc vòng đời) cho phép thực thi mã tại thời điểm khác nhau trong quá trình tồn tại của component. Nó được gọi ngay sau instance Vue được tạo ra và DOM đã được render hoàn chỉnh (thời điểm an toàn để truy cập và thao tác với DOM vì các phần tử đã tồn tại).

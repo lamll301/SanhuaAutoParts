@@ -35,7 +35,7 @@
                         <div class="mb-20">
                             <h3 class="admin-content__form-text">Người giao</h3>
                             <div class="valid-elm input-group">
-                                <input type="text" class="fs-16 form-control" placeholder="Nhập tên phiếu nhập" v-model="importData.deliverer"
+                                <input type="text" class="fs-16 form-control" placeholder="Nhập tên người giao" v-model="importData.deliverer"
                                 v-bind:class="{'is-invalid': errors.deliverer}" @blur="validate()">
                                 <div class="invalid-feedback" v-if="errors.deliverer">{{ errors.deliverer }}</div>
                             </div>
@@ -71,6 +71,7 @@
                             />
                         </div>
                         <div class="mb-20 admin-content__form-btn">
+                            <button v-if="!importData.approved_by && importData.id" type="button" class="fs-16 btn btn-secondary" @click="approve()">Duyệt</button>
                             <button type="submit" class="fs-16 btn btn-primary">Xác nhận</button>
                         </div>
                     </div>
@@ -116,6 +117,16 @@ export default {
         await this.fetchData();
     },
     methods: {
+        async approve() {
+            try {
+                await importApi.approve(this.$route.params.id);
+                await this.$swal.fire("Duyệt thành công!", "Phiếu nhập đã được duyệt!", "success")
+                this.$router.push({ name: 'admin.imports' });
+            } catch (e) {
+                console.error(e);
+                this.$swal.fire("Lỗi!", e.message, "error")
+            }
+        },
         validate() {
             let isValid = true;
             this.errors = {

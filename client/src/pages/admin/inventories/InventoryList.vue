@@ -47,6 +47,9 @@
                             <SortComponent field="quantity" :sort="sort"/>
                         </th>
                         <th scope="col">Đơn vị tính</th>
+                        <th scope="col">Giá
+                            <SortComponent field="price" :sort="sort"/>
+                        </th>
                         <th scope="col">Ngày sản xuất
                             <SortComponent field="manufacture_date" :sort="sort"/>
                         </th>
@@ -73,6 +76,7 @@
                         <td>{{ item.batch_number }}</td>
                         <td>{{ item.quantity }}</td>
                         <td>{{ item.product?.unit?.name }}</td>
+                        <td>{{ formatPrice(item.price) }}</td>
                         <td>{{ item.manufacture_date }}</td>
                         <td>{{ item.expiry_date }}</td>
                         <template v-if="!isTrashRoute">
@@ -124,7 +128,7 @@
 import AdminPagination from '@/components/AdminPagination.vue';
 import CheckboxTable from '@/components/CheckboxTable.vue';
 import SortComponent from '@/components/SortComponent.vue';
-import { formatDate } from '@/utils/helpers';
+import { formatDate, formatPrice } from '@/utils/helpers';
 import { inventoryApi, productApi } from '@/api';
 
 export default {
@@ -152,7 +156,7 @@ export default {
         },
     },
     methods: {
-        formatDate,
+        formatDate, formatPrice,
         async fetchData() {
             try {
                 const req = [
@@ -222,7 +226,13 @@ export default {
 
             const { action, targetId, isFilterAction } = actionData;
             if (isFilterAction) {
-                this.$router.push({ query: { action, targetId } });
+                this.$router.push({ 
+                    query: { 
+                        ...this.$route.query,
+                        action, 
+                        targetId 
+                    } 
+                });
                 return;
             }
             if (this.selectedIds.length === 0) {

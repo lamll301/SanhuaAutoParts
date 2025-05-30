@@ -4,8 +4,8 @@ const authApi = {
     login(username, password) {
         return apiClient.post('/auth/login', { username, password })
     },
-    register(username, password) {
-        return apiClient.post('/auth/register', { username, password })
+    register(email, username, password) {
+        return apiClient.post('/auth/register', { email, username, password })
     },
     logout() {
         return apiClient.post('/auth/logout')
