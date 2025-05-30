@@ -84,6 +84,9 @@
             <th scope="col">Trạng thái đơn hàng
               <SortComponent field="status" :sort="sort"/>
             </th>
+            <th scope="col">Ngày nhận hàng
+              <SortComponent field="completed_at" :sort="sort"/>
+            </th>
             <template v-if="!isTrashRoute">
               <th scope="col">Ngày tạo
                 <SortComponent field="created_at" :sort="sort"/>
@@ -109,6 +112,7 @@
             <td>{{ item.payment_method === 'Thanh toán khi nhận hàng' ? 'TT khi nhận' : getStatusText('payment', item.payment_status) }}</td>
             <td>{{ item.payment_info }}</td>
             <td>{{ getStatusText('order', item.status) }}</td>
+            <td>{{ item.completed_at ? formatDate(item.completed_at) : 'Chưa nhận hàng' }}</td>
             <template v-if="!isTrashRoute">
               <td>{{ formatDate(item.created_at) }}</td>
               <td>{{ formatDate(item.updated_at) }}</td>
@@ -274,9 +278,13 @@ export default {
 
       const { action, targetId, isFilterAction } = actionData;
       if (isFilterAction) {
-        const query = { action, targetId };
-        console.log('Pushing query to router:', query);
-        this.$router.push({ query });
+        this.$router.push({ 
+          query: { 
+            ...this.$route.query,
+            action, 
+            targetId 
+          } 
+        });
         return;
       }
 
