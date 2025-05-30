@@ -1,4 +1,4 @@
-FROM php:8.2-fpm
+FROM php:8.2-cli
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -31,11 +31,11 @@ COPY . .
 # Install dependencies
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
-# Create start script
+# Create start script với $PORT environment variable
 RUN echo '#!/bin/sh\n\
 sleep 10\n\
 php artisan migrate:fresh --seed --force\n\
-php artisan serve --host=0.0.0.0 --port=8000' > /var/www/start.sh \
+php artisan serve --host=0.0.0.0 --port=${PORT:-8000}' > /var/www/start.sh \
 && chmod +x /var/www/start.sh
 
 # Set permissions
