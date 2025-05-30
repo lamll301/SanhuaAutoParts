@@ -183,6 +183,7 @@ class ArticleController extends Controller
     public function handleFormActions(Request $request) {
         $action = $request->input('action');
         $ids = $request->input('selectedIds', []);
+        $targetId = $request->input('targetId');
         switch ($action) {
             case 'delete':
                 Article::destroy($ids);
@@ -193,6 +194,9 @@ class ArticleController extends Controller
             case 'forceDelete':
                 Article::onlyTrashed()->whereIn('id', $ids)->forceDelete();
                 return response()->json(['message' => 'success'], 204);
+            case 'setCategory':
+                Article::whereIn('id', $ids)->update(['category_id' => $targetId]);
+                return response()->json(['message' => 'success'], 200);
             default:
                 return response()->json(['message' => 'Hành động không hợp lệ'], 400);
         }

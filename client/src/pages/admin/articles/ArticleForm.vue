@@ -47,12 +47,6 @@
                             />
                         </div>
                         <div class="mb-20">
-                            <h3 class="admin-content__form-text">Ngày xuất bản</h3>
-                            <div class="valid-elm input-group">
-                                <input type="date" class="fs-16 form-control" v-model="article.publish_date">
-                            </div>
-                        </div>
-                        <div class="mb-20">
                             <h3 class="admin-content__form-text">Danh mục</h3>
                             <div class="valid-elm input-group">
                                 <select class="fs-16 form-select" v-model="article.category_id">

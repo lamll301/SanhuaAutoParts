@@ -22,6 +22,7 @@
                         </template>
                         <template v-else>
                             <option value="delete">Xóa</option>
+                            <option value="filterByUnapproved">Lọc phiếu chưa duyệt</option>
                         </template>
                     </select>
                     <button class="fs-16 btn btn-primary" id="btnCheckboxSubmit" @click="handleFormActions()">Thực hiện</button>
@@ -234,9 +235,16 @@ export default {
                 this.$swal.fire("Lỗi!", "Vui lòng chọn hành động.", "error");
                 return;
             }
+            let targetId;
+            switch (action) {
+                case 'filterByUnapproved':
+                    targetId = null;
+                    break;
+            }
             return {
                 action,
-                isFilterAction: action.startsWith("filterBy")
+                isFilterAction: action.startsWith("filterBy"),
+                targetId
             };
         },
         handleUpdateIds(ids) {

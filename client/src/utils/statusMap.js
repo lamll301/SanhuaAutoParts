@@ -1,9 +1,8 @@
 
 const STATUS_CONFIG = Object.freeze({
     location: { 
-        0: 'Còn trống', 
-        1: 'Đang chứa hàng', 
-        2: 'Đã đầy' 
+        0: 'Còn chỗ', 
+        1: 'Đã đầy', 
     },
     product: { 
         0: 'Hoạt động', 

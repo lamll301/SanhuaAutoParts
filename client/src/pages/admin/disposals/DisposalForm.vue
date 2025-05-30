@@ -31,14 +31,6 @@
                             </div>
                         </div>
                         <div class="mb-20">
-                            <h3 class="admin-content__form-text">Phương thức thanh lý</h3>
-                            <div class="valid-elm input-group">
-                                <input type="text" class="fs-16 form-control" placeholder="Nhập phương thức thanh lý" v-model="disposalData.method"
-                                v-bind:class="{'is-invalid': errors.method}" @blur="validate()">
-                                <div class="invalid-feedback" v-if="errors.method">{{ errors.method }}</div>
-                            </div>
-                        </div>
-                        <div class="mb-20">
                             <h3 class="admin-content__form-text">Ngày thanh lý</h3>
                             <div class="valid-elm input-group">
                                 <input type="date" class="fs-16 form-control" v-model="disposalData.date"
@@ -54,7 +46,7 @@
                                         optionDisplayText: (inventory) => `${inventory.product?.name} - Lô ${inventory.batch_number}`
                                     },
                                     { text: 'Số lượng', key: 'quantity', type: 'number', min: 1, default: 1 },
-                                    { text: 'Thực thanh lý', key: 'actual_quantity', type: 'number', min: 0, default: 0 },
+                                    { text: 'Phương thức thanh lý', key: 'method', type: 'text' },
                                     { text: 'Đơn giá', key: 'price', type: 'number' }
                                 ]"
                                 :items="disposalData.details"
@@ -63,6 +55,7 @@
                             />
                         </div>
                         <div class="mb-20 admin-content__form-btn">
+                            <button v-if="!disposalData.approved_by && disposalData.id" type="button" class="fs-16 btn btn-secondary" @click="approve()">Duyệt</button>
                             <button type="submit" class="fs-16 btn btn-primary">Xác nhận</button>
                         </div>
                     </div>
@@ -85,14 +78,12 @@ export default {
         return {
             disposalData: {
                 reason: '',
-                method: '',
                 date: new Date().toISOString().split('T')[0],
                 details: []
             },
             inventories: [],
             errors: {
                 reason: '',
-                method: '',
                 date: ''
             },
         }
@@ -110,29 +101,31 @@ export default {
         await this.fetchData();
     },
     methods: {
+        async approve() {
+            try {
+                await disposalApi.approve(this.disposalData.id);
+                await this.$swal.fire("Duyệt thành công!", "Phiếu thanh lý đã được duyệt!", "success")
+                this.$router.push({ name: 'admin.disposals' });
+            }
+            catch (e) {
+                console.error(e);
+                this.$swal.fire("Lỗi!", e.message, "error")
+            }
+        },
         validate() {
             let isValid = true;
             this.errors = {
                 reason: '',
-                method: '',
                 date: ''
             }
-
             if (this.disposalData.reason?.length > 255) {
                 this.errors.reason = 'Lý do thanh lý không được vượt quá 255 ký tự.';
                 isValid = false;
             }
-
-            if (this.disposalData.method?.length > 255) {
-                this.errors.method = 'Phương thức thanh lý không được vượt quá 255 ký tự.';
-                isValid = false;
-            }
-
             if (!this.disposalData.date) {
                 this.errors.date = 'Ngày thanh lý không được để trống.';
                 isValid = false;
             }
-            
             return isValid;
         },
         async fetchData() {
@@ -158,6 +151,7 @@ export default {
         async save() {
             if (!this.validate()) return;
             const data = this.collectData(this.disposalData);
+            console.log(data);
 
             try {
                 if (this.disposalData.id) {
@@ -182,17 +176,15 @@ export default {
                     Number(detail.price) > 0
                 );
             }
-            
             return data;
         },
         addDisposalDetail() {
             const newDetail = {
                 inventory_id: '',
                 quantity: 1,
-                actual_quantity: 0,
-                price: 0
+                price: 0,
+                method: ''
             };
-            
             if (!this.disposalData.details) {
                 this.disposalData.details = [];
             }
@@ -209,13 +201,11 @@ export default {
         resetForm() {
             this.disposalData = {
                 reason: '',
-                method: '',
                 date: new Date().toISOString().split('T')[0],
                 details: []
             };
             this.errors = {
                 reason: '',
-                method: '',
                 date: ''
             };
         },

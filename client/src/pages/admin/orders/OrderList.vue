@@ -22,6 +22,7 @@
                         <template v-else>
                             <option value="delete">Xóa</option>
                             <option value="filterByUnapproved">Lọc đơn chưa duyệt</option>
+                            <option value="filterByRefund">Lọc đơn cần hoàn tiền</option>
                             <option value="filterByStatus">Lọc theo trạng thái</option>
                             <option value="filterByPaymentStatus">Lọc theo thanh toán</option>
                             <option value="filterByVoucher">Lọc theo voucher</option>
@@ -289,6 +290,9 @@ export default {
             switch (action) {
                 case 'filterByUnapproved':
                     targetId = null;
+                    break;
+                case 'filterByRefund':
+                    targetId = true;
                     break;
                 case 'filterByVoucher':
                     targetId = this.$refs.selectedVoucher.value;

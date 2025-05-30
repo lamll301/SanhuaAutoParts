@@ -25,7 +25,7 @@
                             <h3 class="admin-content__form-text">Nhà cung cấp</h3>
                             <div class="input-group">
                                 <select class="valid-elm form-select" v-model="importData.supplier_id">
-                                    <option disabled selected value="null">Chọn nhà cung cấp</option>
+                                    <option disabled selected value="">Chọn nhà cung cấp</option>
                                     <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
                                         {{ supplier.name }}
                                     </option>
@@ -93,7 +93,7 @@ export default {
     data() {
         return {
             importData: {
-                supplier_id: null,
+                supplier_id: '',
                 details: []
             },
             suppliers: [], products: [],

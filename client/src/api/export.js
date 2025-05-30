@@ -30,6 +30,9 @@ const exportApi = {
     },
     handleFormActions(data) {
         return apiClient.post('/exports/handle-form-actions', data)
+    },
+    approve(id) {
+        return apiClient.patch(`/exports/${id}/approve`)
     }
 }
 

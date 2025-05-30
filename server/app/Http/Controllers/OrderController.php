@@ -19,6 +19,7 @@ class OrderController extends Controller
         'filterByPaymentStatus' => ['column' => 'payment_status'],
         'filterByStatus' => ['column' => 'status'],
         'filterByUnapproved' => ['column' => 'approved_by'],
+        'filterByRefund' => ['column' => 'is_refunded'],
     ];
     
     private function isVoucherValid(Voucher $voucher, $userId): bool {

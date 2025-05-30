@@ -10,7 +10,6 @@ use App\Models\Role;
 class UserSeeder extends Seeder
 {
     private const PHONE_PREFIXES = ['032', '033', '034', '035', '036', '037', '038', '039', '070', '079', '077', '076', '078', '083', '084', '085', '081', '082'];
-    
     private const PROVINCES = [
         31 => [
             303 => [11296, 11299, 11302, 11305, 11311, 11320, 11323, 11587, 11599, 11602],
@@ -24,6 +23,7 @@ class UserSeeder extends Seeder
             314 => [11680, 11695, 11698, 11701, 11704, 11710, 11713, 11716, 11722, 11725, 11728, 11734, 11743, 11746],
         ]
     ];
+    
     public function run(): void
     {
         $faker = Faker::create('vi_VN');
@@ -53,6 +53,7 @@ class UserSeeder extends Seeder
             'username' => 'admin',
             'password' => bcrypt('admin'),
             'role_id' => Role::where('name', 'admin')->first()->id,
+            'name' => 'Admin',
         ]);
 
         for ($i = 0; $i < 4; $i++) {

@@ -10,6 +10,19 @@ use App\Http\Middleware\Authorization;
 Route::patch('/imports/{id}/approve', [WarehouseReceiptController::class, 'approveImport'])->middleware([
     AuthenticateWithJWT::class, Authorization::class . ':imports.approve'
 ]);
+Route::patch('/checks/{id}/approve', [WarehouseReceiptController::class, 'approveCheck'])->middleware([
+    AuthenticateWithJWT::class, Authorization::class . ':checks.approve'
+]);
+Route::patch('/exports/{id}/approve', [WarehouseReceiptController::class, 'approveExport'])->middleware([
+    AuthenticateWithJWT::class, Authorization::class . ':exports.approve'
+]);
+Route::patch('/disposals/{id}/approve', [WarehouseReceiptController::class, 'approveDisposal'])->middleware([
+    AuthenticateWithJWT::class, Authorization::class . ':disposals.approve'
+]);
+Route::patch('/cancels/{id}/approve', [WarehouseReceiptController::class, 'approveCancel'])->middleware([
+    AuthenticateWithJWT::class, Authorization::class . ':cancels.approve'
+]);
+
 
 $types = ['imports', 'exports', 'disposals', 'checks', 'cancels'];
 foreach ($types as $type) {

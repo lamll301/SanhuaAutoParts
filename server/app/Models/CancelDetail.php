@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class CancelDetail extends Model
 {
     protected $fillable = [
-        'cancel_id', 'inventory_id', 'quantity', 'price'
+        'cancel_id', 'inventory_id', 'quantity', 'price', 'method'
     ];
 
     public function cancel(): BelongsTo

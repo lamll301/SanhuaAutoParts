@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class DisposalDetail extends Model
 {
     protected $fillable = [
-        'disposal_id', 'inventory_id', 'quantity', 'actual_quantity', 'price'
+        'disposal_id', 'inventory_id', 'quantity', 'price', 'method'
     ];
 
     public function disposal(): BelongsTo

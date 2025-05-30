@@ -12,8 +12,7 @@ class Disposal extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'created_by', 'approved_by', 'date', 'reason',
-        'method', 'total_amount', 'status'
+        'created_by', 'approved_by', 'date', 'reason', 'total_amount'
     ];
 
     protected $casts = [

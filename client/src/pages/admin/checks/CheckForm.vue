@@ -37,8 +37,7 @@
                                         optionDisplayText: (inventory) => `${inventory.product?.name} - Lô ${inventory.batch_number}`
                                     },
                                     { text: 'Chất lượng', key: 'quality', type: 'select', options: qualityOptions },
-                                    { text: 'Số lượng theo sổ sách', key: 'quantity', type: 'number', min: 0, default: 0 },
-                                    { text: 'Số lượng thực tế', key: 'actual_quantity', type: 'number', min: 0, default: 0 },
+                                    { text: 'Số lượng thực tế', key: 'quantity', type: 'number', min: 0, default: 0 },
                                     { text: 'Đơn giá', key: 'price', type: 'number' }
                                 ]"
                                 :items="check.details"
@@ -47,6 +46,7 @@
                             />
                         </div>
                         <div class="mb-20 admin-content__form-btn">
+                            <button v-if="!check.approved_by && check.id" type="button" class="fs-16 btn btn-secondary" @click="approve()">Duyệt</button>
                             <button type="submit" class="fs-16 btn btn-primary">Xác nhận</button>
                         </div>
                     </div>
@@ -95,6 +95,16 @@ export default {
         await this.fetchData();
     },
     methods: {
+        async approve() {
+            try {
+                await checkApi.approve(this.check.id);
+                await this.$swal.fire("Duyệt thành công!", "Phiếu kiểm kê đã được duyệt!", "success")
+                this.$router.push({ name: 'admin.checks' });
+            } catch (e) {
+                console.error(e);
+                this.$swal.fire("Lỗi!", e.message, "error")
+            }
+        },
         validate() {
             let isValid = true;
             this.errors = {
@@ -162,7 +172,6 @@ export default {
                 inventory_id: '',
                 quality: 'Còn tốt 100%',
                 quantity: 0,
-                actual_quantity: 0,
                 price: 0
             };
             

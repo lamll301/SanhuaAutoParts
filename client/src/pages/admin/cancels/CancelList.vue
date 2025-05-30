@@ -22,6 +22,7 @@
                         </template>
                         <template v-else>
                             <option value="delete">Xóa</option>
+                            <option value="filterByUnapproved">Lọc phiếu chưa duyệt</option>
                         </template>
                     </select>
                     <button class="fs-16 btn btn-primary" id="btnCheckboxSubmit" @click="handleFormActions()">Thực hiện</button>
@@ -33,9 +34,6 @@
                         </th>
                         <th scope="col">Lý do
                             <SortComponent field="reason" :sort="sort"/>
-                        </th>
-                        <th scope="col">Phương thức
-                            <SortComponent field="method" :sort="sort"/>
                         </th>
                         <th scope="col">Ngày hủy
                             <SortComponent field="date" :sort="sort"/>
@@ -66,7 +64,6 @@
                     <template #body="{ item }">
                         <th>{{ item.id }}</th>
                         <td>{{ item.reason }}</td>
-                        <td>{{ item.method }}</td>
                         <td>{{ item.date }}</td>
                         <td>{{ formatPrice(item.total_amount) }}</td>
                         <template v-if="!isTrashRoute">
@@ -237,13 +234,20 @@ export default {
         },
         validateAndGetActionData() {
             const action = this.$refs.selectCheckboxAction.value;
+            let targetId;
             if (!action) {
                 this.$swal.fire("Lỗi!", "Vui lòng chọn hành động.", "error");
                 return;
             }
+            switch (action) {
+                case 'filterByUnapproved':
+                    targetId = null;
+                    break;
+            }
             return {
                 action,
-                isFilterAction: action.startsWith("filterBy")
+                isFilterAction: action.startsWith("filterBy"),
+                targetId
             };
         },
         handleUpdateIds(ids) {

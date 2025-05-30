@@ -24,18 +24,75 @@ class WarehouseReceiptController extends Controller
             'filterByUnapproved' => ['column' => 'approved_by'],
             'filterBySupplier' => ['column' => 'supplier_id']
         ],
-        'exports' => [],
-        'disposals' => [],
-        'checks' => [],
-        'cancels' => []
+        'exports' => [
+            'filterByUnapproved' => ['column' => 'approved_by'],
+        ],
+        'disposals' => [
+            'filterByUnapproved' => ['column' => 'approved_by'],
+        ],
+        'checks' => [
+            'filterByUnapproved' => ['column' => 'approved_by'],
+        ],
+        'cancels' => [
+            'filterByUnapproved' => ['column' => 'approved_by'],
+        ]
     ];
-
+    public function approveCheck(Request $request, string $id) {
+        $approverId = $request->user_id;
+        $check = Check::findOrFail($id);
+        $check->approved_by = $approverId;
+        $check->save();
+        $checkDetails = $check->details()->get();
+        foreach ($checkDetails as $detail) {
+            $inventory = Inventory::findOrFail($detail->inventory_id);
+            if ($inventory->quantity !== $detail->quantity) {
+                $inventory->quantity = $detail->quantity;
+                $inventory->save();
+            }
+        }
+        return response()->json(['message' => 'success'], 200);
+    }
+    private function decreaseInventory(iterable $details) {
+        foreach ($details as $detail) {
+            $inventory = Inventory::findOrFail($detail->inventory_id);
+            if ($inventory->quantity >= $detail->quantity) {
+                $inventory->quantity -= $detail->quantity;
+                $inventory->save();
+            } else {
+                return response()->json(['message' => 'Không đủ số lượng tồn kho cho hàng tồn có ID ' . $detail->inventory_id], 400);
+            }
+        }
+    }
+    public function approveExport(Request $request, string $id) {
+        $approverId = $request->user_id;
+        $export = Export::findOrFail($id);
+        $export->approved_by = $approverId;
+        $export->save();
+        $exportDetails = $export->details()->get();
+        $this->decreaseInventory($exportDetails);
+        return response()->json(['message' => 'success'], 200);
+    }
+    public function approveDisposal(Request $request, string $id) {
+        $approverId = $request->user_id;
+        $disposal = Disposal::findOrFail($id);
+        $disposal->approved_by = $approverId;
+        $disposal->save();
+        $disposalDetails = $disposal->details()->get();
+        $this->decreaseInventory($disposalDetails);
+        return response()->json(['message' => 'success'], 200);
+    }
+    public function approveCancel(Request $request, string $id) {
+        $approverId = $request->user_id;
+        $cancel = Cancel::findOrFail($id);
+        $cancel->approved_by = $approverId;
+        $cancel->save();
+        $cancelDetails = $cancel->details()->get();
+        $this->decreaseInventory($cancelDetails);
+        return response()->json(['message' => 'success'], 200);
+    }
     public function approveImport(Request $request, string $id) {
         $approverId = $request->user_id;
         $import = Import::findOrFail($id);
-        if ($import->approved_by) {
-            return response()->json(['message' => 'Phiếu nhập đã được duyệt'], 400);
-        }
         $import->approved_by = $approverId;
         $import->save();
         $importDetails = $import->details()->get();
@@ -48,13 +105,11 @@ class WarehouseReceiptController extends Controller
         }
         return response()->json(['message' => 'success'], 200);
     }
-
     private function getReceiptType() {
         $path = request()->path();
         $segments = explode('/', $path);
         return $segments[1];
     }
-
     public function index(Request $request) {
         $type = $this->getReceiptType();
         switch ($type) {
@@ -94,7 +149,6 @@ class WarehouseReceiptController extends Controller
         }
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS[$type], self::FILTER_FIELDS[$type]);
     }
-
     public function trashed(Request $request) {
         $type = $this->getReceiptType();
         switch ($type) {
@@ -134,7 +188,6 @@ class WarehouseReceiptController extends Controller
         }
         return $this->getListResponse($query, $request, self::SEARCH_FIELDS[$type], self::FILTER_FIELDS[$type]);
     }
-
     public function show(string $id) {
         $type = $this->getReceiptType();
         switch ($type) {
@@ -159,24 +212,24 @@ class WarehouseReceiptController extends Controller
         $record = $query->findOrFail($id);
         return response()->json($record);
     }
-
     public function store(Request $request) {
+        $creatorId = $request->user_id;
         $type = $this->getReceiptType();
         switch ($type) {
             case 'imports':
-                $model = Import::create($request->all());
+                $model = Import::create($request->all() + ['created_by' => $creatorId]);
                 break;
             case 'exports':
-                $model = Export::create($request->all());
+                $model = Export::create($request->all() + ['created_by' => $creatorId]);
                 break;
             case 'disposals':
-                $model = Disposal::create($request->all());
+                $model = Disposal::create($request->all() + ['created_by' => $creatorId]);
                 break;
             case 'cancels':
-                $model = Cancel::create($request->all());
+                $model = Cancel::create($request->all() + ['created_by' => $creatorId]);
                 break;
             case 'checks':
-                $model = Check::create($request->all());
+                $model = Check::create($request->all() + ['created_by' => $creatorId]);
                 break;
             default:
                 return response()->json(['message' => 'Invalid receipt type'], 400);
@@ -188,7 +241,6 @@ class WarehouseReceiptController extends Controller
         }
         return response()->json(['message' => 'success'], 201);
     }
-
     public function update(Request $request, string $id) {
         $type = $this->getReceiptType();
         switch ($type) {
@@ -219,7 +271,6 @@ class WarehouseReceiptController extends Controller
         }
         return response()->json(['message' => 'success'], 200);
     }
-
     public function destroy(string $id) {
         $type = $this->getReceiptType();
         switch ($type) {
@@ -244,7 +295,6 @@ class WarehouseReceiptController extends Controller
         $model->delete();
         return response()->json(['message' => 'success'], 200);
     }
-
     public function restore(string $id) {
         $type = $this->getReceiptType();
         switch ($type) {
@@ -269,7 +319,6 @@ class WarehouseReceiptController extends Controller
         $model->restore();
         return response()->json(['message' => 'success'], 200);
     }
-
     public function forceDelete(string $id) {
         $type = $this->getReceiptType();
         switch ($type) {
@@ -294,7 +343,6 @@ class WarehouseReceiptController extends Controller
         $model->forceDelete();
         return response()->json(['message' => 'success'], 204);
     }
-
     public function handleFormActions(Request $request) {
         $action = $request->input('action');
         $ids = $request->input('selectedIds', []);

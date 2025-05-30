@@ -30,6 +30,9 @@ const disposalApi = {
     },
     handleFormActions(data) {
         return apiClient.post('/disposals/handle-form-actions', data)
+    },
+    approve(id) {
+        return apiClient.patch(`/disposals/${id}/approve`)
     }
 }
 

@@ -32,10 +32,13 @@
                         <div class="mb-20">
                             <h3 class="admin-content__form-text">Phân loại</h3>
                             <div class="valid-elm input-group">
-                                <input type="text" class="fs-16 form-control" placeholder="Nhập loại danh mục" v-model="category.type"
-                                v-bind:class="{'is-invalid': errors.type}" @blur="validate()">
+                                <select class="valid-elm form-select" v-model="category.type" v-bind:class="{'is-invalid': errors.type}" @blur="validate()">
+                                    <option value="" disabled selected>Chọn phân loại</option>
+                                    <option v-for="type in types" :key="type.value" :value="type.value">
+                                        {{ type.label }}
+                                    </option>
+                                </select>
                                 <div class="invalid-feedback" v-if="errors.type">{{ errors.type }}</div>
-
                             </div>
                         </div>
                         <div class="mb-20" style="height: 114px;">
@@ -85,7 +88,16 @@ import ImagePreview from '@/components/ImagePreview.vue';
 export default {
     data() {
         return {
-            category: {},
+            category: {
+                type: '',
+            },
+            types: [
+                { value: 'part', label: 'Phụ tùng' },
+                { value: 'brand', label: 'Thương hiệu' },
+                { value: 'high-class', label: 'Cao cấp' },
+                { value: 'article', label: 'Bài viết' },
+                { value: 'location', label: 'Vị trí' }
+            ],
             errors: { 
                 name: '',
                 type: '',
@@ -124,20 +136,14 @@ export default {
                 this.errors.name = 'Tên danh mục không được vượt quá 255 ký tự';
                 isValid = false;
             }
-            
-            if (!this.category.type || this.category.type.trim() === '') {
-                this.errors.type = 'Vui lòng nhập phân loại';
-                isValid = false;
-            } else if (this.category.type.length > 255) {
-                this.errors.type = 'Phân loại không được vượt quá 255 ký tự';
+            if (!this.category.type) {
+                this.errors.type = 'Vui lòng chọn phân loại';
                 isValid = false;
             }
-            
             if (this.category.description && this.category.description.length > 255) {
                 this.errors.description = 'Mô tả không được vượt quá 255 ký tự';
                 isValid = false;
             }
-            
             return isValid;
         },
         async fetchData() {

@@ -17,7 +17,7 @@
                 </template>
                 <template v-else>
                     <li v-for="slider in sliders" :key="slider.id" class="swiper-slide slider-item">
-                        <img :src="getImageUrl(slider.images[0].path)" alt="" class="slider-image">
+                        <img :src="getImageUrl(slider.images[0]?.path)" alt="" class="slider-image">
                         <div class="slider-info">
                             <h1 class="slider-highlight">
                                 {{ slider.title }}
@@ -63,7 +63,7 @@
                         <li v-for="article in saleArticles" :key="article.id" class="swiper-slide swiper-item brew-product-item show">
                             <router-link :to="`/tin-tuc/${article.slug}`" class="brew-product-link">
                                 <div class="brew-product-img">
-                                    <img :src="getImageUrl(article.images[0].path)" alt="">
+                                    <img :src="getImageUrl(article.images[0]?.path)" alt="">
                                 </div>
                                 <div class="brew-product-info">
                                     <p class="brew-product-desc">
@@ -181,7 +181,7 @@
                     <li v-for="product in bestSellersProducts" :key="product.id" class="swiper-slide swiper-item online-store-item">
                         <router-link :to="`/san-pham/${product.slug}`" class="online-store-link">
                             <div class="online-store-img">
-                                <img :src="getImageUrl(product.images[0].path)" alt="">
+                                <img :src="getImageUrl(product.images[0]?.path)" alt="">
                             </div>
                             <div class="online-store-info">
                                 <p class="online-store-desc">
@@ -213,7 +213,7 @@
                     <li v-for="product in newestProducts" :key="product.id" class="swiper-slide swiper-item online-store-item">
                         <router-link :to="`/san-pham/${product.slug}`" class="online-store-link">
                             <div class="online-store-img">
-                                <img :src="getImageUrl(product.images[0].path)" alt="">
+                                <img :src="getImageUrl(product.images[0]?.path)" alt="">
                             </div>
                             <div class="online-store-info">
                                 <p class="online-store-desc">
@@ -245,7 +245,7 @@
                     <li v-for="product in onSaleProducts" :key="product.id" class="swiper-slide swiper-item online-store-item">
                         <router-link :to="`/san-pham/${product.slug}`" class="online-store-link">
                             <div class="online-store-img">
-                                <img :src="getImageUrl(product.images[0].path)" alt="">
+                                <img :src="getImageUrl(product.images[0]?.path)" alt="">
                             </div>
                             <div class="online-store-info">
                                 <p class="online-store-desc">
@@ -276,7 +276,7 @@
                     <li v-for="product in highClassProducts" :key="product.id" class="swiper-slide swiper-item online-store-item">
                         <router-link :to="`/san-pham/${product.slug}`" class="online-store-link">
                             <div class="online-store-img">
-                                <img :src="getImageUrl(product.images[0].path)" alt="">
+                                <img :src="getImageUrl(product.images[0]?.path)" alt="">
                             </div>
                             <div class="online-store-info">
                                 <p class="online-store-desc">
@@ -331,7 +331,7 @@
                         <li v-for="article in companyArticles" :key="article.id" class="swiper-slide swiper-item brew-product-item show">
                             <router-link :to="`/tin-tuc/${article.slug}`" class="brew-product-link">
                                 <div class="brew-product-img">
-                                    <img :src="getImageUrl(article.images[0].path)" alt="">
+                                    <img :src="getImageUrl(article.images[0]?.path)" alt="">
                                 </div>
                                 <div class="brew-product-info">
                                     <p class="brew-product-desc">

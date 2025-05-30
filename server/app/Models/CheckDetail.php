@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class CheckDetail extends Model
 {
     protected $fillable = [
-        'check_id', 'inventory_id', 'quality', 'quantity', 'actual_quantity', 'price'
+        'check_id', 'inventory_id', 'quality', 'quantity', 'price'
     ];
 
     public function check(): BelongsTo

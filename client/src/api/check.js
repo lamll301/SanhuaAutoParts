@@ -30,6 +30,9 @@ const checkApi = {
     },
     handleFormActions(data) {
         return apiClient.post('/checks/handle-form-actions', data)
+    },
+    approve(id) {
+        return apiClient.patch(`/checks/${id}/approve`)
     }
 }
 

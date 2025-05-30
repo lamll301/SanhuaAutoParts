@@ -58,7 +58,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             // $table->string('type')->nullable();
-            $table->enum('type', ['part', 'brand', 'article', 'high-class'])->index();
+            $table->enum('type', ['part', 'brand', 'high-class', 'article', 'location'])->index();
             $table->string('slug')->unique();
             $table->string('description')->nullable();
             $table->timestamps();

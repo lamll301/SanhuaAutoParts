@@ -30,6 +30,9 @@ const cancelApi = {
     },
     handleFormActions(data) {
         return apiClient.post('/cancels/handle-form-actions', data)
+    },
+    approve(id) {
+        return apiClient.patch(`/cancels/${id}/approve`)
     }
 }
 

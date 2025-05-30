@@ -22,6 +22,7 @@
                         </template>
                         <template v-else>
                             <option value="delete">Xóa</option>
+                            <option value="filterByUnapproved">Lọc phiếu chưa duyệt</option>
                         </template>
                     </select>
                     <button class="fs-16 btn btn-primary" id="btnCheckboxSubmit" @click="handleFormActions()">Thực hiện</button>
@@ -218,9 +219,9 @@ export default {
             const actionData = this.validateAndGetActionData();
             if (!actionData) return;
 
-            const { action, isFilterAction } = actionData;
+            const { action, isFilterAction, targetId } = actionData;
             if (isFilterAction) {
-                this.$router.push({ query: { ...this.$route.query, action } });
+                this.$router.push({ query: { ...this.$route.query, action, targetId } });
                 return;
             }
             if (this.selectedIds.length === 0) {
@@ -231,6 +232,7 @@ export default {
                 await exportApi.handleFormActions({
                     action,
                     selectedIds: this.selectedIds,
+                    targetId
                 })
                 await this.$swal.fire("Thực hiện thành công!", "Hành động của bạn đã được thực hiện thành công!", "success")
                 await this.fetchData()
@@ -241,13 +243,20 @@ export default {
         },
         validateAndGetActionData() {
             const action = this.$refs.selectCheckboxAction.value;
+            let targetId;
             if (!action) {
                 this.$swal.fire("Lỗi!", "Vui lòng chọn hành động.", "error");
                 return;
             }
+            switch (action) {
+                case 'filterByUnapproved':
+                    targetId = null;
+                    break;
+            }
             return {
                 action,
-                isFilterAction: action.startsWith("filterBy")
+                isFilterAction: action.startsWith("filterBy"),
+                targetId
             };
         },
         handleUpdateIds(ids) {

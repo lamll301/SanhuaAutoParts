@@ -31,6 +31,7 @@ return new class extends Migration
             $table->timestamp('cancelled_at')->nullable();
             $table->string('cancel_reason')->nullable();
             $table->string('last_delivery_failure_reason')->nullable();
+            $table->boolean('is_refunded')->default(false);
             $table->timestamps();
             $table->softDeletes();
         });

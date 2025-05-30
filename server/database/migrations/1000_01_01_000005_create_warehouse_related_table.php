@@ -52,7 +52,7 @@ return new class extends Migration
             $table->string('rack', 5)->nullable();     // kệ
             $table->string('shelf', 5)->nullable();     // tầng kệ
             $table->string('bin', 5)->nullable();     // ngăn
-            $table->tinyInteger('status')->default(0)->comment('0: empty, 1: full, 2: locked');
+            $table->tinyInteger('status')->default(0);
             $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();        // hang moi, hang thanh ly, ...
             $table->timestamps();
             $table->softDeletes();

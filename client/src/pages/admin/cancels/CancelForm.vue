@@ -31,14 +31,6 @@
                             </div>
                         </div>
                         <div class="mb-20">
-                            <h3 class="admin-content__form-text">Phương thức hủy</h3>
-                            <div class="valid-elm input-group">
-                                <input type="text" class="fs-16 form-control" placeholder="Nhập phương thức hủy hàng" v-model="cancel.method"
-                                v-bind:class="{'is-invalid': errors.method}" @blur="validate()">
-                                <div class="invalid-feedback" v-if="errors.method">{{ errors.method }}</div>
-                            </div>
-                        </div>
-                        <div class="mb-20">
                             <h3 class="admin-content__form-text">Ngày hủy</h3>
                             <div class="valid-elm input-group">
                                 <input type="date" class="fs-16 form-control" v-model="cancel.date"
@@ -54,6 +46,7 @@
                                         optionDisplayText: (inventory) => `${inventory.product?.name} - Lô ${inventory.batch_number}`
                                     },
                                     { text: 'Số lượng', key: 'quantity', type: 'number', min: 1, default: 1 },
+                                    { text: 'Phương thức hủy', key: 'method', type: 'text' },
                                     { text: 'Đơn giá', key: 'price', type: 'number' }
                                 ]"
                                 :items="cancel.details"
@@ -62,6 +55,7 @@
                             />
                         </div>
                         <div class="mb-20 admin-content__form-btn">
+                            <button v-if="!cancel.approved_by && cancel.id" type="button" class="fs-16 btn btn-secondary" @click="approve()">Duyệt</button>
                             <button type="submit" class="fs-16 btn btn-primary">Xác nhận</button>
                         </div>
                     </div>
@@ -84,14 +78,12 @@ export default {
         return {
             cancel: {
                 reason: '',
-                method: '',
                 date: new Date().toISOString().split('T')[0],
                 details: []
             },
             inventories: [],
             errors: {
                 reason: '',
-                method: '',
                 date: ''
             },
         }
@@ -109,29 +101,30 @@ export default {
         await this.fetchData();
     },
     methods: {
+        async approve() {
+            try {
+                await cancelApi.approve(this.cancel.id);
+                await this.$swal.fire("Duyệt thành công!", "Phiếu hủy hàng đã được duyệt!", "success")
+                this.$router.push({ name: 'admin.cancels' });
+            } catch (e) {
+                console.error(e);
+                this.$swal.fire("Lỗi!", e.message, "error")
+            }
+        },
         validate() {
             let isValid = true;
             this.errors = {
                 reason: '',
-                method: '',
                 date: ''
             }
-
             if (this.cancel.reason?.length > 255) {
                 this.errors.reason = 'Lý do hủy không được vượt quá 255 ký tự.';
                 isValid = false;
             }
-
-            if (this.cancel.method?.length > 255) {
-                this.errors.method = 'Phương thức hủy không được vượt quá 255 ký tự.';
-                isValid = false;
-            }
-
             if (!this.cancel.date) {
                 this.errors.date = 'Ngày hủy không được để trống.';
                 isValid = false;
             }
-            
             return isValid;
         },
         async fetchData() {
@@ -139,15 +132,12 @@ export default {
                 const req = [
                     inventoryApi.getAll(),
                 ];
-
                 if (this.$route.params.id) {
                     req.push(
                         cancelApi.getOne(this.$route.params.id)
                     );
                 }
-
                 const res = await this.$swal.withLoading(Promise.all(req));
-
                 this.inventories = res[0].data.data;
                 if (this.$route.params.id) this.cancel = res[1].data;
             } catch (error) {
@@ -181,14 +171,14 @@ export default {
                     Number(detail.price) > 0
                 );
             }
-            
             return data;
         },
         addCancelDetail() {
             const newDetail = {
                 inventory_id: '',
                 quantity: 1,
-                price: 0
+                price: 0,
+                method: ''
             };
             
             if (!this.cancel.details) {
@@ -207,13 +197,11 @@ export default {
         resetForm() {
             this.cancel = {
                 reason: '',
-                method: '',
                 date: new Date().toISOString().split('T')[0],
                 details: []
             };
             this.errors = {
                 reason: '',
-                method: '',
                 date: ''
             };
         },

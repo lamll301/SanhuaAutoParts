@@ -63,7 +63,6 @@
                                         optionDisplayText: (inventory) => `${inventory.product?.name} - Lô ${inventory.batch_number}`
                                     },
                                     { text: 'Số lượng', key: 'quantity', type: 'number', min: 1, default: 1 },
-                                    { text: 'Thực xuất', key: 'actual_quantity', type: 'number', min: 0, default: 0 },
                                     { text: 'Đơn giá', key: 'price', type: 'number' }
                                 ]"
                                 :items="exportData.details"
@@ -72,6 +71,7 @@
                             />
                         </div>
                         <div class="mb-20 admin-content__form-btn">
+                            <button v-if="!exportData.approved_by && exportData.id" type="button" class="fs-16 btn btn-secondary" @click="approve()">Duyệt</button>
                             <button type="submit" class="fs-16 btn btn-primary">Xác nhận</button>
                         </div>
                     </div>
@@ -121,6 +121,16 @@ export default {
         await this.fetchData();
     },
     methods: {
+        async approve() {
+            try {
+                await exportApi.approve(this.exportData.id);
+                await this.$swal.fire("Duyệt thành công!", "Phiếu xuất đã được duyệt!", "success")
+                this.$router.push({ name: 'admin.exports' });
+            } catch (e) {
+                console.error(e);
+                this.$swal.fire("Lỗi!", e.message, "error")
+            }
+        },
         validate() {
             let isValid = true;
             this.errors = {
@@ -201,7 +211,6 @@ export default {
             const newDetail = {
                 inventory_id: '',
                 quantity: 1,
-                actual_quantity: 0,
                 price: 0
             };
             

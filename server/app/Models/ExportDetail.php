@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ExportDetail extends Model
 {
     protected $fillable = [
-        'export_id', 'inventory_id', 'quantity', 'actual_quantity', 'price'
+        'export_id', 'inventory_id', 'quantity', 'price'
     ];
 
     public function export(): BelongsTo
