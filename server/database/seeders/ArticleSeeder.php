@@ -41,6 +41,7 @@ class ArticleSeeder extends Seeder
                 $j++;
             }
         }
+        $content .= '<p>' . $this->faker->sentence(rand(20, 30), true) . '</p>';
         return $content;
     }
 

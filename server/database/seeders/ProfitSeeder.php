@@ -14,109 +14,80 @@ use Illuminate\Support\Facades\DB;
 
 class ProfitSeeder extends Seeder
 {
+    private $faker;
+    private $customerIds;
+    private $adminIds;
+    private $productIds;
+
+    public function __construct() {
+        $this->faker = Faker::create('vi_VN');
+        $this->customerIds = User::whereNull('role_id')->pluck('id')->toArray();
+        $this->adminIds = User::whereNotNull('role_id')->pluck('id')->toArray();
+        $this->productIds = Product::pluck('id')->toArray();
+    }
     public function run(): void
     {
-        $faker = Faker::create('vi_VN');
-        
-        $customerIds = User::whereNull('role_id')->pluck('id')->toArray();
-        $adminIds = User::whereNotNull('role_id')->pluck('id')->toArray();
-        $productIds = Product::pluck('id')->toArray();
-
-        $this->createInventories($faker, $productIds);
-        $this->createCompletedOrders($faker, $customerIds, $adminIds, $productIds);
+        $this->createCompletedOrders();
     }
-
-    private function createInventories($faker, $productIds)
+    private function createCompletedOrders()
     {
-        foreach ($productIds as $productId) {
-            $product = Product::find($productId);
-            if (!$product) continue;
-
-            for ($i = 0; $i < 3; $i++) {
-                $importPrice = (int)($product->price * $faker->numberBetween(60, 80) / 100);
-                
-                Inventory::create([
-                    'product_id' => $productId,
-                    'batch_number' => 'BATCH' . $productId . '_' . $i,
-                    'quantity' => $faker->numberBetween(100, 200),
-                    'price' => $importPrice,
-                    'manufacture_date' => $faker->dateTimeBetween('-1 year', '-3 months'),
-                    'expiry_date' => $faker->dateTimeBetween('+6 months', '+2 years'),
-                    'created_at' => $faker->dateTimeBetween('-6 months', 'now'),
-                    'updated_at' => now(),
-                ]);
-            }
-        }
-    }
-
-    private function createCompletedOrders($faker, $customerIds, $adminIds, $productIds)
-    {
-        for ($i = 0; $i < 100; $i++) {
-            $createdAt = $faker->dateTimeBetween('-6 months', 'now');
-            $completedAt = Carbon::instance($createdAt)->addDays($faker->numberBetween(1, 5));
-            
+        $startOfYear = Carbon::now()->startOfYear();
+        $endOfYear = Carbon::now()->endOfYear();
+        for ($i = 0; $i < 500; $i++) {
+            $shippingFee = $this->faker->randomElement([15000, 20000, 25000, 30000]);
+            $createdAt = $this->faker->dateTimeBetween($startOfYear, $endOfYear);
+            $shippedAt = Carbon::instance($createdAt)->addHours($this->faker->numberBetween(1, 48));
+            $completedAt = Carbon::instance($shippedAt)->addDays($this->faker->numberBetween(1, 7));
             $order = Order::create([
-                'user_id' => $faker->randomElement($customerIds),
-                'approved_by' => $faker->randomElement($adminIds),
+                'user_id' => $this->faker->randomElement($this->customerIds),
+                'approved_by' => $this->faker->randomElement($this->adminIds),
                 'status' => Order::STATUS_COMPLETED,
-                'shipping_fee' => $faker->randomElement([15000, 20000, 25000, 30000]),
+                'shipping_fee' => $shippingFee,
                 'total_amount' => 0,
-                'name' => $faker->name,
-                'phone' => '0' . $faker->numberBetween(300000000, 999999999),
-                'shipping_address' => $faker->address,
-                'address_type' => $faker->randomElement(['Nhà riêng', 'Văn phòng']),
-                'payment_method' => $faker->randomElement(['Mã QR', 'Thẻ tín dụng / thẻ ghi nợ', 'Ví điện tử', 'Thanh toán khi nhận hàng']),
-                'payment_info' => 'Thanh toán hoàn tất',
+                'name' => $this->faker->name,
+                'phone' => '0' . $this->faker->numberBetween(300000000, 999999999),
+                'shipping_address' => $this->faker->address,
+                'address_type' => $this->faker->randomElement(['Nhà riêng', 'Văn phòng']),
+                'payment_method' => $this->faker->randomElement(['Mã QR', 'Thẻ tín dụng / thẻ ghi nợ', 'Ví điện tử', 'Thanh toán khi nhận hàng']),
+                'payment_info' => 'Mã giao dịch: ' . $this->faker->randomNumber(8),
                 'payment_status' => Order::PAYMENT_STATUS_PAID,
                 'completed_at' => $completedAt,
                 'created_at' => $createdAt,
                 'updated_at' => $createdAt,
             ]);
-
-            $this->createOrderDetails($faker, $order, $productIds);
+            $totalAmount = $this->createOrderDetails($order);
+            $order->update(['total_amount' => $totalAmount + $shippingFee]);
         }
     }
-
-    private function createOrderDetails($faker, $order, $productIds)
+    private function createOrderDetails($order)
     {
-        $itemsCount = $faker->numberBetween(1, 3);
+        $j = $this->faker->numberBetween(1, 3);
         $totalAmount = 0;
-
-        for ($i = 0; $i < $itemsCount; $i++) {
-            $productId = $faker->randomElement($productIds);
+        for ($i = 0; $i < $j; $i++) {
+            $productId = $this->faker->randomElement($this->productIds);
             $product = Product::find($productId);
-            $quantity = $faker->numberBetween(1, 5);
-            $sellingPrice = (int)($product->price * $faker->numberBetween(95, 110) / 100);
-
+            $quantity = $this->faker->numberBetween(1, 5);
+            $price = (int)($product->price * $this->faker->numberBetween(95, 110) / 100);
             $orderDetail = OrderDetail::create([
                 'order_id' => $order->id,
                 'product_id' => $productId,
                 'quantity' => $quantity,
-                'price' => $sellingPrice,
-                'created_at' => $order->created_at,
-                'updated_at' => $order->created_at,
+                'price' => $price,
             ]);
-
             $this->linkInventory($orderDetail, $quantity);
-            $totalAmount += $quantity * $sellingPrice;
+            $totalAmount += $quantity * $price;
         }
-
-        $order->update(['total_amount' => $totalAmount + $order->shipping_fee]);
+        return $totalAmount;
     }
-
     private function linkInventory($orderDetail, $quantity)
     {
         $inventories = Inventory::where('product_id', $orderDetail->product_id)
             ->where('quantity', '>', 0)
             ->get();
-
         $remainingQuantity = $quantity;
-
         foreach ($inventories as $inventory) {
             if ($remainingQuantity <= 0) break;
-
             $quantityToTake = min($remainingQuantity, $inventory->quantity);
-
             DB::table('order_detail_inventory')->insert([
                 'order_detail_id' => $orderDetail->id,
                 'inventory_id' => $inventory->id,
@@ -124,7 +95,6 @@ class ProfitSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-
             $inventory->decrement('quantity', $quantityToTake);
             $remainingQuantity -= $quantityToTake;
         }

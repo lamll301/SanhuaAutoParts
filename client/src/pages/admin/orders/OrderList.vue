@@ -81,6 +81,7 @@
                         <th scope="col">Ngày nhận hàng
                             <SortComponent field="completed_at" :sort="sort"/>
                         </th>
+                        <th scope="col">Người duyệt</th>
                         <template v-if="!isTrashRoute">
                             <th scope="col">Ngày tạo
                                 <SortComponent field="created_at" :sort="sort"/>
@@ -106,6 +107,7 @@
                         <td>{{ item.payment_method === 'Thanh toán khi nhận hàng' ? 'TT khi nhận' : getStatusText('payment', item.payment_status) }}</td>
                         <td>{{ getStatusText('order', item.status) }}</td>
                         <td>{{ item.completed_at ? formatDate(item.completed_at) : 'Chưa nhận hàng' }}</td>
+                        <td>{{ item.approved_by ? item.approver?.name : 'Chưa duyệt' }}</td>
                         <template v-if="!isTrashRoute">
                             <td>{{ formatDate(item.created_at) }}</td>
                             <td>{{ formatDate(item.updated_at) }}</td>

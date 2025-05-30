@@ -83,7 +83,7 @@
                         <td>{{ item.end_date }}</td>
                         <td>{{ getStatusText('promotion', item.status) }}</td>
                         <td>{{ item.creator?.name }}</td>
-                        <td>{{ item.approver?.name }}</td>
+                        <td>{{ item.approved_by ? item.approver?.name : 'Chưa duyệt' }}</td>
                         <template v-if="!isTrashRoute">
                             <td>{{ formatDate(item.created_at) }}</td>
                             <td>{{ formatDate(item.updated_at) }}</td>

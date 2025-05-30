@@ -68,7 +68,7 @@
                         <td>{{ formatPrice(item.total_amount) }}</td>
                         <template v-if="!isTrashRoute">
                             <td>{{ item.creator?.name }}</td>
-                            <td>{{ item.approver?.name }}</td>
+                            <td>{{ item.approved_by ? item.approver?.name : 'Chưa duyệt' }}</td>
                             <td>{{ formatDate(item.created_at) }}</td>
                             <td>{{ formatDate(item.updated_at) }}</td>
                         </template>

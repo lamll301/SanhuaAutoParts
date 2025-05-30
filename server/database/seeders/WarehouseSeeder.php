@@ -47,16 +47,21 @@ class WarehouseSeeder extends Seeder
         }
     }
     private function createInventories(): void {
-        for ($i = 0; $i < 25; $i++) {
-            $inventory = Inventory::create([
-                'product_id' => $this->faker->randomElement($this->productIds),
-                'manufacture_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
-                'expiry_date' => $this->faker->dateTimeBetween('now', '+1 year'),
-                'batch_number' => $this->faker->randomLetter() . $this->faker->numerify('##-##'),
-                'quantity' => $this->faker->numberBetween(100, 1000),
-                'price' => $this->faker->numberBetween(100000, 1000000),
-            ]);
-            $this->inventoryIds[] = $inventory->id;
+        foreach ($this->productIds as $productId) {
+            $product = Product::find($productId);
+            if (!$product) continue;
+            $j = $this->faker->numberBetween(1, 3);
+            for ($i = 0; $i < $j; $i++) {
+                $inventory = Inventory::create([
+                    'product_id' => $productId,
+                    'manufacture_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
+                    'expiry_date' => $this->faker->dateTimeBetween('now', '+1 year'),
+                    'batch_number' => $this->faker->randomLetter() . $this->faker->numerify('##-##'),
+                    'quantity' => $this->faker->numberBetween(100, 1000),
+                    'price' => (int)($product->price * $this->faker->numberBetween(60, 80) / 100),
+                ]);
+                $this->inventoryIds[] = $inventory->id;
+            }
         }
     }
     private function createImports(): void {
@@ -180,11 +185,15 @@ class WarehouseSeeder extends Seeder
             $numLocations = $this->faker->numberBetween(1, 3);
             $splits = $this->splitQuantity($quantity, $numLocations);
             foreach ($splits as $q) {
-                DB::table('inventory_location')->insert([
-                    'inventory_id' => $inventoryId,
-                    'location_id' => $this->faker->randomElement($this->locationIds),
-                    'quantity' => $q,
-                ]);
+                try {
+                    DB::table('inventory_location')->insert([
+                        'inventory_id' => $inventoryId,
+                        'location_id' => $this->faker->randomElement($this->locationIds),
+                        'quantity' => $q,
+                    ]);
+                } catch (\Exception $e) {
+                    continue;
+                }
             }
         }
     }
