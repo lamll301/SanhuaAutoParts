@@ -227,6 +227,14 @@ class OrderController extends Controller
         ]));
     }
 
+    public function refund(string $id) {
+        $order = Order::findOrFail($id);
+        $order->is_refunded = false;
+        $order->refunded_at = now();
+        $order->save();
+        return response()->json($order);
+    }
+
     public function changeOrderStatus(Request $request, string $id) {
         $order = Order::findOrFail($id);
         $status = $request->status;

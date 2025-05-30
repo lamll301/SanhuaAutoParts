@@ -15,6 +15,7 @@ class ArticleSeeder extends Seeder
     private $faker;
     private $usersId;
     private $categoryIds = [];
+    private $path = 'sanhua';
 
     public function __construct()
     {
@@ -22,22 +23,22 @@ class ArticleSeeder extends Seeder
         $this->usersId = User::whereNotNull('role_id')->pluck('id')->toArray();
     }
 
-    private function generateArticleContent(array $imageData): string
+    private function generateArticleContent(array $files): string
     {
         $content = '';
-        $usedImages = [];
+        $j = 0;
         for ($section = 0; $section < 3; $section++) {
             $content .= '<div><b>' . $this->faker->sentence . '</b></div>';
             $numSentences = rand(3, 6);
             for ($i = 0; $i < $numSentences; $i++) {
                 $content .= '<p>' . $this->faker->sentence(rand(8, 15), true) . '</p>';
             }
-            $availableImages = collect($imageData)->where('is_thumbnail', false)->shuffle()->take(2);
-            foreach ($availableImages as $image) {
-                $filename = $image['filename'];
-                $path = basename($image['path']);
-                $content .= '<img alt="' . $filename . '" src="/storage/default/product/' . $path . '">';
-                $usedImages[] = $filename;
+            $randomImages = collect($files)->shuffle()->take(rand(1, 2));
+            foreach ($randomImages as $image) {
+                $filename = $j;
+                $path = basename($image);
+                $content .= '<img alt="' . $filename . '" src="/storage/' . $path . '">';
+                $j++;
             }
         }
         return $content;
@@ -61,43 +62,31 @@ class ArticleSeeder extends Seeder
                 'title' => $this->faker->sentence,
                 'highlight' => $this->faker->sentence,
                 'publish_date' => $this->faker->dateTimeBetween('-6 months', '+1 week')->format('Y-m-d'),
+                'content' => $this->generateArticleContent($files),
                 'category_id' => $this->faker->randomElement($this->categoryIds),
             ]);
-
-            $thumbnailFile = $this->faker->randomElement($files);
-            $thumbnailImage = Image::create([
+            Image::create([
                 'article_id' => $article->id,
-                'filename' => 'thumbnail',
-                'path' => '/storage/default/product/' . basename($thumbnailFile),
+                'filename' => 7,
+                'path' => '/storage/' . $this->faker->randomElement($files),
                 'is_thumbnail' => true,
                 'size' => rand(100000, 800000),
                 'mime_type' => 'image/jpeg',
             ]);
             $images = [];
-            $imageData = [];
             for ($j = 0; $j < 6; $j++) {
-                $selectedFile = $this->faker->randomElement($files);
-                $imageInfo = [
+                $images[] = [
                     'article_id' => $article->id,
                     'filename' => $j,
-                    'path' => '/storage/default/product/' . basename($selectedFile),
+                    'path' => '/storage/' . $this->faker->randomElement($files),
                     'is_thumbnail' => false,
                     'size' => rand(100000, 800000),
                     'mime_type' => 'image/jpeg',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
-                $images[] = $imageInfo;
-                $imageData[] = $imageInfo;
             }
             Image::insert($images);
-            $imageData[] = [
-                'filename' => 'thumbnail',
-                'path' => '/storage/default/product/' . basename($thumbnailFile),
-                'is_thumbnail' => true
-            ];
-            $content = $this->generateArticleContent($imageData);
-            $article->update(['content' => $content]);
         }
         for ($i = 0; $i < 5; $i++) {
             Article::create([
@@ -112,7 +101,7 @@ class ArticleSeeder extends Seeder
 
     public function run(): void
     {
-        $files = collect(Storage::disk('public')->allFiles('default/product'))
+        $files = collect(Storage::disk('public')->allFiles($this->path))
             ->filter(function ($file) {
                 return preg_match('/\.(jpg|jpeg|png|gif)$/i', $file);
             })->values()->all();

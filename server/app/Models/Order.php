@@ -44,6 +44,8 @@ class Order extends Model
         'cancelled_at',
         'cancel_reason',
         'last_delivery_failure_reason',
+        'is_refunded',
+        'refunded_at',
     ];
     
     protected $casts = [

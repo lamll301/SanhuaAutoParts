@@ -45,6 +45,9 @@ const orderApi = {
         return apiClient.patch(`/orders/${id}/approve`, {
             orderDetailInventory: data
         })
+    },
+    refund(id) {
+        return apiClient.patch(`/orders/${id}/refund`)
     }
 }
 

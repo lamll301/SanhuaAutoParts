@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\Supplier;
@@ -12,18 +11,27 @@ use App\Models\Unit;
 use App\Models\Category;
 use App\Models\Image;
 use Faker\Factory as Faker;
-use Illuminate\Support\Str;
 
 class ProductSeeder extends Seeder
 {
+    private $faker;
+    private $path = 'sanhua';
+    private $promotionIds;
+    private $supplierIds;
+    private $unitIds;
+    private $categoryIds;
+
+    public function __construct()
+    {
+        $this->faker = Faker::create('vi_VN');
+        $this->promotionIds = Promotion::pluck('id')->toArray();
+        $this->supplierIds = Supplier::pluck('id')->toArray();
+        $this->unitIds = Unit::pluck('id')->toArray();
+        $this->categoryIds = Category::pluck('id')->toArray();
+    }
+
     public function run(): void
     {
-        $faker = Faker::create('vi_VN');
-        $promotionIds = Promotion::pluck('id')->toArray();
-        $supplierIds = Supplier::pluck('id')->toArray();
-        $unitIds = Unit::pluck('id')->toArray();
-        $categoryIds = Category::pluck('id')->toArray();
-
         $products = [
             'Van EGR Hyundai Tucson 2.0L đời 2018-2022', 'Van EGR Toyota Land Cruiser V8 động cơ diesel 4.5L', 'Van EGR Honda CRV 1.5 Turbo đời 2020-2023', 'Van EGR Ford Ranger Wildtrak 2.0L Bi-Turbo', 'Van EGR Mazda CX-5 2.5L Skyactiv-G Premium',
             'Van PCV Honda Civic 1.5L VTEC Turbo RS', 'Van PCV Toyota Camry 2.5Q hybrid động cơ A25A-FXS', 'Van PCV Mitsubishi Xpander 1.5L MIVEC đời 2020', 'Van PCV Hyundai Santa Fe 2.2L CRDi dầu cao cấp', 'Van PCV Kia Sorento Signature 2.2D máy dầu',
@@ -66,45 +74,46 @@ class ProductSeeder extends Seeder
             'Bọc vô lăng MOMO Quark Performance cho BMW M3 Competition', 'Bọc vô lăng Sparco R375 cho Ford Focus RS', 'Bọc vô lăng Nardi Deep Corn cho Mazda MX-5 Miata', 'Bọc vô lăng OMP Trecento cho Subaru BRZ tS', 'Bọc vô lăng Vertex 330mm cho Toyota GR86',
             'Gương chiếu hậu carbon bên trái cho Audi R8 Performance', 'Gương chiếu hậu carbon bên phải cho BMW M4 Competition', 'Gương chiếu hậu M Performance cho BMW M2 CS', 'Gương chiếu hậu AMG Carbon cho Mercedes AMG GT Black Series', 'Gương chiếu hậu Mugen Power cho Honda Civic Type R'
         ];
-        $files = collect(Storage::disk('public')->allFiles('default/product'))
+        $files = collect(Storage::disk('public')->allFiles($this->path))
             ->filter(function ($file) {
                 return preg_match('/\.(jpg|jpeg|png|gif)$/i', $file);
             })->values()->all();
         
         foreach ($products as $productName) {
             $product = Product::create([
-                'name' => $productName . ' ' . $faker->bothify('##??'),
-                'description' => $faker->paragraphs(2, true),
-                'original_price' => $faker->numberBetween(100000, 5000000),
-                'quantity' => $faker->numberBetween(0, 1000),
-                'sold' => $faker->numberBetween(0, 1000),
-                'dimensions' => $faker->randomElement([
-                    '10x5x5 cm', '20x15x10 cm', '30x20x10 cm', '40x25x15 cm'
+                'name' => $productName . ' ' . $this->faker->bothify('##??'),
+                'description' => $this->faker->paragraphs(2, true),
+                'original_price' => $this->faker->numberBetween(100000, 5000000),
+                'quantity' => $this->faker->numberBetween(0, 1000),
+                'sold' => $this->faker->numberBetween(0, 200),
+                'dimensions' => $this->faker->randomElement([
+                    'Kích thước nhỏ gọn: 10 x 5 x 5 cm', 'Dài 20cm, rộng 15cm, cao 10cm – vừa vặn vị trí lắp đặt', 'Thiết kế tiêu chuẩn: 30 x 20 x 10 cm', 'Kích thước tổng thể: 40 x 25 x 15 cm – phù hợp nhiều dòng xe', 'Dài 30cm – Rộng 20cm – Cao 10cm, dễ lắp đặt'
                 ]),
-                'weight' => $faker->randomElement([
-                    '0.2kg', '0.5kg', '1kg', '2.5kg', '5kg'
+                'weight' => $this->faker->randomElement([
+                    'Chỉ nặng 0.2kg – nhẹ, dễ vận chuyển', 'Trọng lượng: 0.5kg – phù hợp tiêu chuẩn kỹ thuật', 'Nặng 1kg – chắc chắn, bền bỉ', '2.5kg – đảm bảo độ ổn định khi sử dụng', 'Khối lượng 5kg – thích hợp với linh kiện cỡ lớn'
                 ]),
-                'color' => $faker->randomElement([
-                    'Đen', 'Bạc', 'Xám', 'Trắng', 'Đỏ', 'Xanh dương'
+                'color' => $this->faker->randomElement([
+                    'Màu đen sang trọng, chống bám bẩn', 'Bạc ánh kim – nổi bật và tinh tế', 'Xám mờ – phù hợp phong cách mạnh mẽ', 'Trắng tinh khiết – dễ phối với nhiều màu nội thất', 'Đỏ thể thao – nổi bật và cá tính', 'Xanh dương hiện đại – tăng tính thẩm mỹ cho xe'
                 ]),
-                'material' => $faker->randomElement([
-                    'Nhôm', 'Thép không gỉ', 'Cao su', 'Nhựa ABS', 'Sắt hợp kim'
+                'material' => $this->faker->randomElement([
+                    'Chất liệu nhôm cao cấp – nhẹ và bền', 'Thép không gỉ – chống ăn mòn, dùng lâu dài', 'Cao su tổng hợp – độ đàn hồi tốt, chịu nhiệt', 'Nhựa ABS chống va đập – đảm bảo an toàn', 'Sắt hợp kim – chịu lực tốt, không bị biến dạng', 'Hợp kim cao cấp – độ bền vượt trội'
                 ]),
-                'compatibility' => $faker->randomElement([
-                    'Toyota', 'Honda', 'Ford', 'Hyundai', 'Mazda', 'Kia', 'Nissan', 'Suzuki'
+                'compatibility' => $this->faker->randomElement([
+                    'Phù hợp với các dòng Toyota phổ biến', 'Dành riêng cho xe Honda đời mới', 'Lắp đặt chuẩn cho Ford Ranger, EcoSport...', 'Tương thích với Hyundai Accent, Elantra...',
+                    'Dùng tốt cho Mazda 3, CX-5, BT-50...', 'Phù hợp Kia Morning, Sorento, Cerato...', 'Sử dụng cho Nissan Navara, X-Trail...', 'Tương thích với Suzuki Swift, Ciaz, XL7...'
                 ]),
 
-                'promotion_id' => $faker->optional()->randomElement($promotionIds),
-                'unit_id' => $faker->optional()->randomElement($unitIds),
-                'supplier_id' => $faker->optional()->randomElement($supplierIds),
+                'promotion_id' => $this->faker->optional()->randomElement($this->promotionIds),
+                'unit_id' => $this->faker->randomElement($this->unitIds),
+                'supplier_id' => $this->faker->randomElement($this->supplierIds),
             ]);
 
-            $product->categories()->attach($faker->randomElements($categoryIds, min(5, count($categoryIds))));
+            $product->categories()->attach($this->faker->randomElements($this->categoryIds, min(5, count($this->categoryIds))));
 
             Image::create([
                 'product_id' => $product->id,
-                'filename' => 'thumbnail_' . Str::random(5),
-                'path' => '/storage/' . $faker->randomElement($files),
+                'filename' => 0,
+                'path' => '/storage/' . $this->faker->randomElement($files),
                 'is_thumbnail' => true,
                 'size' => rand(100000, 800000),
                 'mime_type' => 'image/jpeg',
@@ -114,8 +123,8 @@ class ProductSeeder extends Seeder
             for ($j = 0; $j < 9; $j++) {
                 $images[] = [
                     'product_id' => $product->id,
-                    'filename' => 'product_image_' . Str::random(5),
-                    'path' => '/storage/' . $faker->randomElement($files),
+                    'filename' => $j,
+                    'path' => '/storage/' . $this->faker->randomElement($files),
                     'is_thumbnail' => false,
                     'size' => rand(100000, 800000),
                     'mime_type' => 'image/jpeg',

@@ -14,6 +14,9 @@ Route::prefix('orders')->group(function () {
     Route::patch('/{id}/approve', [OrderController::class, 'approve'])->middleware([
         AuthenticateWithJWT::class, Authorization::class . ':orders.approve'
     ]);
+    Route::patch('/{id}/refund', [OrderController::class, 'refund'])->middleware([
+        AuthenticateWithJWT::class, Authorization::class . ':orders.approve'
+    ]);
     Route::post('/handle-form-actions', [OrderController::class, 'handleFormActions'])->middleware([
         AuthenticateWithJWT::class, Authorization::class . ':orders.manage'
     ]);

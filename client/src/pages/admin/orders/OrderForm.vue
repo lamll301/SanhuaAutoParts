@@ -12,7 +12,7 @@
                     <div class="admin-content__form-body">
                         <div class="admin-content__form-divided">
                             <div class="mb-20">
-                                <h3 class="admin-content__form-text">Mã sản phẩm</h3>
+                                <h3 class="admin-content__form-text">Mã đơn hàng</h3>
                                 <div class="valid-elm input-group">
                                     <input type="text" class="fs-16 form-control" readonly v-model="order.id">
                                 </div>
@@ -193,6 +193,20 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="admin-content__form-divided">
+                            <div class="mb-20">
+                                <h3 class="admin-content__form-text">Trạng thái hoàn tiền</h3>
+                                <div class="valid-elm input-group">
+                                    <input type="text" class="fs-16 form-control" readonly :value="order.is_refunded ? 'Chưa hoàn tiền' : order.refunded_at ? 'Đã hoàn tiền' : 'Không cần hoàn tiền'">
+                                </div>
+                            </div>
+                            <div class="mb-20">
+                                <h3 class="admin-content__form-text">Thời gian hoàn tiền</h3>
+                                <div class="valid-elm input-group">
+                                    <input type="text" class="fs-16 form-control" readonly :value="formatDate(order.refunded_at)">
+                                </div>
+                            </div>
+                        </div>
                         <div class="mb-20 height-105">
                             <h3 class="admin-content__form-text">Lý do hủy đơn (nếu có)</h3>
                             <div class="valid-elm input-group">
@@ -200,10 +214,11 @@
                             </div>
                         </div>
                         <div class="mb-20 admin-content__form-btn">
-                            <button v-if="!order.approved_by" class="fs-16 btn btn-primary" @click="approve()">Duyệt</button>
-                            <button v-if="order.status === 1" class="fs-16 btn btn-primary" @click="onUpdateStatus(order.id, 'shipped')">Giao hàng</button>
-                            <button v-if="order.status === 2" class="fs-16 btn btn-success" @click="onUpdateStatus(order.id, 'completed')">Hoàn tất</button>
-                            <button v-if="order.payment_status === 0" class="fs-16 btn btn-success" @click="onUpdateStatus(order.id, 'paid')">Đã thanh toán</button>
+                            <button v-if="isShowApproveButton" class="fs-16 btn btn-primary" @click="approve()">Duyệt</button>
+                            <button v-if="isShowShippedButton" class="fs-16 btn btn-primary" @click="onUpdateStatus(order.id, 'shipped')">Giao hàng</button>
+                            <button v-if="isShowCompletedButton" class="fs-16 btn btn-success" @click="onUpdateStatus(order.id, 'completed')">Hoàn tất</button>
+                            <button v-if="isShowPaidButton" class="fs-16 btn btn-success" @click="onUpdateStatus(order.id, 'paid')">Đã thanh toán</button>
+                            <button v-if="isShowRefundButton" class="fs-16 btn btn-success" @click="refund()">Đã hoàn tiền</button>
                         </div>
                     </div>
                     </form>
@@ -271,6 +286,21 @@ export default {
         }
     },
     computed: {
+        isShowApproveButton() {
+            return !this.order.approved_by && this.order.status === 0;
+        },
+        isShowRefundButton() {
+            return this.order.is_refunded && this.order.status === 4 && this.order.payment_status === 1 && this.order.payment_method !== 'Thanh toán khi nhận hàng';
+        },
+        isShowShippedButton() {
+            return this.order.status === 1;
+        },
+        isShowCompletedButton() {
+            return this.order.status === 2;
+        },
+        isShowPaidButton() {
+            return this.order.payment_status === 0 && this.order.status === 0;
+        },
         selectedCity: {
             get() {
                 return this.order.city_id;
@@ -325,6 +355,14 @@ export default {
                 }
             }
             return isValid;
+        },
+        async refund() {
+            try {
+                await orderApi.refund(this.order.id);
+                this.$swal.fire('Đã hoàn tiền', 'Đơn hàng đã cập nhật thông tin hoàn tiền', 'success');
+            } catch (error) {
+                this.$swal.fire('Lỗi', error.response.data.message, 'error');
+            }
         },
         async approve() {
             try {
