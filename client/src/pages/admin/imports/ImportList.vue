@@ -22,6 +22,7 @@
                         </template>
                         <template v-else>
                             <option value="delete">Xóa</option>
+                            <option value="filterByUnapproved">Lọc phiếu chưa duyệt</option>
                             <option value="setSupplier">Đặt nhà cung cấp</option>
                             <option value="filterBySupplier">Lọc theo nhà cung cấp</option>
                         </template>
@@ -259,6 +260,9 @@ export default {
                 return;
             }
             switch (action) {
+                case 'filterByUnapproved':
+                    targetId = null;
+                    break;
                 case 'setSupplier':
                 case 'filterBySupplier':
                     targetId = this.$refs.selectedSupplier.value;

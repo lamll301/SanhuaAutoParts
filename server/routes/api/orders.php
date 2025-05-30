@@ -11,9 +11,16 @@ Route::prefix('orders')->group(function () {
     Route::patch('/my-orders/{id}/cancel', [OrderController::class, 'cancelOrderByUser'])->middleware(AuthenticateWithJWT::class);
     Route::get('/my-orders/{id}', [OrderController::class, 'getOrderByUser'])->middleware(AuthenticateWithJWT::class);
     Route::get('/my-orders', [OrderController::class, 'getOrdersByUser'])->middleware(AuthenticateWithJWT::class);
-    Route::post('/handle-form-actions', [OrderController::class, 'handleFormActions']);
+    Route::patch('/{id}/approve', [OrderController::class, 'approve'])->middleware([
+        AuthenticateWithJWT::class, Authorization::class . ':orders.approve'
+    ]);
+    Route::post('/handle-form-actions', [OrderController::class, 'handleFormActions'])->middleware([
+        AuthenticateWithJWT::class, Authorization::class . ':orders.manage'
+    ]);
     Route::post('/', [OrderController::class, 'store'])->middleware(AuthenticateWithJWT::class);
-    Route::patch('/{id}/status', [OrderController::class, 'changeOrderStatus'])->middleware(AuthenticateWithJWT::class);
+    Route::patch('/{id}/status', [OrderController::class, 'changeOrderStatus'])->middleware([
+        AuthenticateWithJWT::class, Authorization::class . ':orders.approve'
+    ]);
     Route::delete('/{id}', [OrderController::class, 'destroy'])->middleware([
         AuthenticateWithJWT::class, Authorization::class . ':orders.manage'
     ]);
@@ -24,13 +31,13 @@ Route::prefix('orders')->group(function () {
         AuthenticateWithJWT::class, Authorization::class . ':orders.manage'
     ]);
     Route::get('/trashed', [OrderController::class, 'trashed'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':orders.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/{id}', [OrderController::class, 'show'])->middleware([
-        AuthenticateWithJWT::class, Authorization::class . ':orders.view'
+        AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/', [OrderController::class, 'index'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':orders.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
 });
 

@@ -29,12 +29,12 @@ Route::prefix('categories')->group(function () {
         AuthenticateWithJWT::class, Authorization::class . ':categories.manage'
     ]);
     Route::get('/trashed', [CategoryController::class, 'trashed'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':categories.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/{id}', [CategoryController::class, 'show'])->middleware([
-        AuthenticateWithJWT::class, Authorization::class . ':categories.view'
+        AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/', [CategoryController::class, 'index'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':categories.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
 });

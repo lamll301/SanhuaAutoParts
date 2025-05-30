@@ -30,13 +30,13 @@ Route::prefix('users')->group(function () {
         AuthenticateWithJWT::class, Authorization::class . ':users.manage'
     ]);
     Route::get('/trashed', [UserController::class, 'trashed'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':users.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/{id}', [UserController::class, 'show'])->middleware([
-        AuthenticateWithJWT::class, Authorization::class . ':users.view'
+        AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/', [UserController::class, 'index'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':users.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
 });
 

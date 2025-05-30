@@ -26,12 +26,12 @@ Route::prefix('suppliers')->group(function () {
         AuthenticateWithJWT::class, Authorization::class . ':suppliers.manage'
     ]);
     Route::get('/trashed', [SupplierController::class, 'trashed'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':suppliers.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/{id}', [SupplierController::class, 'show'])->middleware([
-        AuthenticateWithJWT::class, Authorization::class . ':suppliers.view'
+        AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/', [SupplierController::class, 'index'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':suppliers.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
 });

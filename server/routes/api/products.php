@@ -27,12 +27,12 @@ Route::prefix('products')->group(function () {
         AuthenticateWithJWT::class, Authorization::class . ':products.manage'
     ]);
     Route::get('/trashed', [ProductController::class, 'trashed'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':products.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/{id}', [ProductController::class, 'show'])->middleware([
-        AuthenticateWithJWT::class, Authorization::class . ':products.view'
+        AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/', [ProductController::class, 'index'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':products.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
 });

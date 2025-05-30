@@ -26,12 +26,12 @@ Route::prefix('inventories')->group(function () {
         AuthenticateWithJWT::class, Authorization::class . ':inventories.manage'
     ]);
     Route::get('/trashed', [InventoryController::class, 'trashed'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':inventories.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/{id}', [InventoryController::class, 'show'])->middleware([
-        AuthenticateWithJWT::class, Authorization::class . ':inventories.view'
+        AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/', [InventoryController::class, 'index'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':inventories.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
 });

@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Voucher;
+use App\Models\VoucherUsage;
 
 class VoucherController extends Controller
 {
     private const SEARCH_FIELDS = ['code'];
-    private const FILTER_FIELDS = [];
+    private const FILTER_FIELDS = [
+        'filterByUnapproved' => ['column' => 'approved_by'],
+    ];
 
     public function approve(Request $request, string $id) {
         $approverId = $request->user_id;
@@ -32,7 +35,12 @@ class VoucherController extends Controller
         }
         return response()->json(['message' => 'Mã giảm giá hợp lệ', 'id' => $voucher->id, 'value' => $voucher->value]);
     }
-
+    public function getVoucherUsage(string $id) {
+        $voucherUsage = VoucherUsage::where('voucher_id', $id)->with([
+            'order:id,name,shipping_fee,total_amount',
+        ])->get();
+        return response()->json($voucherUsage);
+    }
     public function index(Request $request) {
         $query = Voucher::with([
             'creator:id,name',
@@ -52,7 +60,8 @@ class VoucherController extends Controller
         return response()->json($voucher);
     }
     public function store(Request $request) {
-        Voucher::create($request->all());
+        $creatorId = $request->user_id;
+        Voucher::create($request->all() + ['created_by' => $creatorId]);
         return response()->json(['message' => 'success'], 201);
     }
     public function update(Request $request, string $id) {

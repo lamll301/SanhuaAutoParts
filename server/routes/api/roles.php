@@ -26,12 +26,12 @@ Route::prefix('roles')->group(function () {
         AuthenticateWithJWT::class, Authorization::class . ':roles.manage'
     ]);
     Route::get('/trashed', [RoleController::class, 'trashed'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':roles.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/{id}', [RoleController::class, 'show'])->middleware([
-        AuthenticateWithJWT::class, Authorization::class . ':roles.view'
+        AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/', [RoleController::class, 'index'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':roles.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
 });

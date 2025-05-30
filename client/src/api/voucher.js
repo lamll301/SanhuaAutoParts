@@ -37,6 +37,9 @@ const voucherApi = {
     },
     approve(id) {
         return apiClient.patch(`/vouchers/${id}/approve`)
+    },
+    getVoucherUsage(id) {
+        return apiClient.get(`/vouchers/${id}/usage`)
     }
 }
 

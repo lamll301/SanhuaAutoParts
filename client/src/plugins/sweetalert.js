@@ -55,6 +55,9 @@ export const swal = {
             throw error
         }
     },
+    showValidationMessage(message) {
+        return Swal.showValidationMessage(message);
+    }
 }
 
 export default {

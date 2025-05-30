@@ -26,12 +26,12 @@ Route::prefix('locations')->group(function () {
         AuthenticateWithJWT::class, Authorization::class . ':locations.manage'
     ]);
     Route::get('/trashed', [LocationController::class, 'trashed'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':locations.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/{id}', [LocationController::class, 'show'])->middleware([
-        AuthenticateWithJWT::class, Authorization::class . ':locations.view'
+        AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/', [LocationController::class, 'index'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':locations.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
 });

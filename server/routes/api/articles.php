@@ -33,12 +33,12 @@ Route::prefix('articles')->group(function () {
         AuthenticateWithJWT::class, Authorization::class . ':articles.manage'
     ]);
     Route::get('/trashed', [ArticleController::class, 'trashed'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':articles.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/{id}', [ArticleController::class, 'show'])->middleware([
-        AuthenticateWithJWT::class, Authorization::class . ':articles.view'
+        AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/', [ArticleController::class, 'index'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':articles.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
 });

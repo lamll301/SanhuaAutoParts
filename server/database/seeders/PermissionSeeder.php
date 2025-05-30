@@ -10,6 +10,18 @@ class PermissionSeeder extends Seeder
 {
     public function run(): void
     {
+        $permissions = [
+            'view',
+            'articles.approve', 
+            'promotions.approve', 
+            'vouchers.approve', 
+            'imports.approve',
+            'exports.approve',
+            'disposals.approve',
+            'checks.approve',
+            'cancels.approve',
+            'orders.approve',
+        ];
         $modules = [
             'users',
             'products',
@@ -19,30 +31,25 @@ class PermissionSeeder extends Seeder
             'permissions',
             'orders',
             'inventories',
-            'imports',
-            'exports',
             'vouchers',
             'promotions',
             'articles',
             'suppliers',
             'units',
-            'disposals',
-            'checks',
-            'cancels',
             'locations',
+            'stock.receipts'
         ];
 
-        $actions = ['view', 'manage', 'approve'];
-
         foreach ($modules as $module) {
-            foreach ($actions as $action) {
-                Permission::create([
-                    'name' => "$module.$action",
-                ]);
-            }
+            Permission::create([
+                'name' => "$module.manage",
+            ]);
         }
-        Permission::create([
-            'name' => 'statistical.view',
-        ]);
+
+        foreach ($permissions as $permission) {
+            Permission::create([
+                'name' => $permission,
+            ]);
+        }
     }
 }

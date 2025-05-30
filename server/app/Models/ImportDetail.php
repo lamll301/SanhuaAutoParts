@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ImportDetail extends Model
 {
     protected $fillable = [
-        'import_id', 'product_id', 'quantity', 'actual_quantity', 'price'
+        'import_id', 'product_id', 'quantity', 'price'
     ];
 
     public function import(): BelongsTo

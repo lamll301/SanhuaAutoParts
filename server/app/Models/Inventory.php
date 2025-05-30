@@ -13,8 +13,13 @@ class Inventory extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'batch_number', 'quantity', 'manufacture_date', 'expiry_date',
-        'product_id', 'import_id'
+        'batch_number', 
+        'quantity',
+        'price',
+        'manufacture_date', 
+        'expiry_date',
+        'product_id',
+        'import_id'
     ];
 
     protected $casts = [
@@ -25,11 +30,6 @@ class Inventory extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
-    }
-
-    public function import(): BelongsTo
-    {
-        return $this->belongsTo(Import::class);
     }
 
     public function locations(): BelongsToMany

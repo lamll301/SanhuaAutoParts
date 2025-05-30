@@ -23,12 +23,12 @@ Route::prefix('permissions')->group(function () {
         AuthenticateWithJWT::class, Authorization::class . ':permissions.manage'
     ]);
     Route::get('/trashed', [PermissionController::class, 'trashed'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':permissions.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/{id}', [PermissionController::class, 'show'])->middleware([
-        AuthenticateWithJWT::class, Authorization::class . ':permissions.view'
+        AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
     Route::get('/', [PermissionController::class, 'index'])->middleware([
-        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':permissions.view'
+        SortMiddleware::class, AuthenticateWithJWT::class, Authorization::class . ':view'
     ]);
 });

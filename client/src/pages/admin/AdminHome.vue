@@ -279,7 +279,7 @@
                 </table>
                 <div class="admin-content__table-footer"></div>
             </div>
-            <AdminPagination :totalPages="totalPages" :currentPage="currentPage" v-if="selectedReport === 'revenueByPeriod' || selectedReport === 'order' || selectedReport === 'expiredProducts'"/>
+            <AdminPagination :totalPages="totalPages" :currentPage="currentPage" v-if="isShowPagination"/>
         </div>
     </div>
 </template>
@@ -330,7 +330,6 @@ export default {
             doughnutData: {},
             orders: [], bestSellingProducts: [], customers: [], expiredProducts: [],
             sort: {}, totalPages: 0, currentPage: 1,
-            revenue: [],
             isShowLineChart: false, isShowBarChart: false, isShowDoughnutChart: false,
             isShowOrderTable: false, isShowBestSellingProductsTable: false, isShowCustomerTable: false,
             isShowExpiredProductsTable: false,
@@ -385,14 +384,10 @@ export default {
 
                 if (newPage !== oldPage || newSort !== oldSort || newColumn !== oldColumn || newType !== oldType) {
                     switch (this.selectedReport) {
+                        case 'order':
+                        case 'profitByPeriod':
                         case 'revenueByPeriod': {
-                            const query = { ...to.query };
-                            this.fetchRevenueByPeriodData(query);
-                            break;
-                        }
-                        case 'order': {
-                            const query = { ...to.query };
-                            this.fetchOrderStatisticsData(query);
+                            this.fetchCompletedOrdersByPeriodData();
                             break;
                         }
                         case 'expiredProducts': {
@@ -421,6 +416,9 @@ export default {
         },
         isShowFilterExpired() {
             return this.selectedReport === 'expiredProducts';
+        },
+        isShowPagination() {
+            return this.selectedReport === 'revenueByPeriod' || this.selectedReport === 'order' || this.selectedReport === 'expiredProducts' || this.selectedReport === 'profitByPeriod';
         }
     },
     methods: {
@@ -437,39 +435,73 @@ export default {
                 console.error(e);
             }
         },
+        async fetchCompletedOrdersByPeriodData() {
+            try {
+                const res = await this.$swal.withLoading(statisticalApi.getCompletedOrdersByPeriod(this.$route.query));
+                this.orders = res.data.data || [];
+                this.totalPages = Math.ceil(res.data.pagination.total / res.data.pagination.per_page);
+                this.currentPage = res.data.pagination.current_page;
+                this.sort = res.data._sort;
+            } catch (e) {
+                console.error(e);
+            }
+        },
         async fetchRevenueByPeriodData(query = {}) {
             try {
                 const res = await this.$swal.withLoading(statisticalApi.getRevenueByPeriod(query));
-                this.revenue = res.data.data;
-                let labels = [];
-                if (res.data.period === 'day' || res.data.period === 'week') { 
-                    labels = this.revenue.map(item => item.period);
-                } else if (res.data.period === 'month') {
-                    labels = this.revenue.map(item => item.year + '-' + item.month);
-                } else if (res.data.period === 'quarter') {
-                    labels = this.revenue.map(item => item.year + '-' + item.quarter);
-                } else if (res.data.period === 'year') {
-                    labels = this.revenue.map(item => item.year);
-                }
+                const revenue = res.data.data;
+                const period = res.data.period;
+                const dateRange = res.data.date_range;
                 this.lineData = {
-                    labels: labels,
+                    labels: revenue.map(item => item.period),
                     datasets: [{
-                        label: 'Thống kê doanh thu ' + (res.data.period === 'day' ? 'ngày' : res.data.period === 'week' ? 'tuần' : res.data.period === 'month' ? 'tháng' : res.data.period === 'quarter' ? 'quý' : 'năm' ) + ' (' + res.data.date_range + ')',
-                        data: this.revenue.map(item => item.revenue),
+                        label: 'Thống kê doanh thu theo ' + (period === 'day' ? 'ngày' : period === 'week' ? 'tuần' : period === 'month' ? 'tháng' : period === 'quarter' ? 'quý' : 'năm' ) + ' (' + dateRange + ')',
+                        data: revenue.map(item => item.revenue),
                         borderColor: '#4CAF50',
                         tension: 0.1
                     }]
                 };
-                this.orders = res.data.list.data;
-                this.totalPages = Math.ceil(res.data.list.pagination.total / res.data.list.pagination.per_page);
-                this.currentPage = res.data.list.pagination.current_page;
-                this.sort = res.data.list._sort;
                 this.chartKey++;
                 this.resetChart();
                 this.resetTable();
                 this.isShowLineChart = true;
                 this.isShowOrderTable = true;
                 this.currentReport = 'revenueByPeriod';
+                await this.fetchCompletedOrdersByPeriodData();
+            } catch (e) {
+                console.error(e);
+            }
+        },
+        async fetchProfitByPeriodData(query = {}) {
+            try {
+                const res = await this.$swal.withLoading(statisticalApi.getProfitByPeriod(query));
+                const profit = res.data.data;
+                const period = res.data.period;
+                const dateRange = res.data.date_range;
+                this.lineData = {
+                    labels: profit.map(item => item.period),
+                    datasets: [
+                        {
+                            label: 'Thống kê lợi nhuận theo ' + (period === 'day' ? 'ngày' : period === 'week' ? 'tuần' : period === 'month' ? 'tháng' : period === 'quarter' ? 'quý' : 'năm' ) + ' (' + dateRange + ')',
+                            data: profit.map(item => item.profit),
+                            borderColor: '#4CAF50',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Tiền sản phẩm bán được theo ' + (period === 'day' ? 'ngày' : period === 'week' ? 'tuần' : period === 'month' ? 'tháng' : period === 'quarter' ? 'quý' : 'năm' ) + ' (' + dateRange + ')',
+                            data: profit.map(item => item.gross_sales),
+                            borderColor: '#FF9800',
+                            tension: 0.1
+                        }
+                    ]
+                };
+                this.chartKey++;
+                this.resetChart();
+                this.resetTable();
+                this.isShowLineChart = true;
+                this.isShowOrderTable = true;
+                this.currentReport = 'revenueByPeriod';
+                await this.fetchCompletedOrdersByPeriodData();
             } catch (e) {
                 console.error(e);
             }
@@ -561,16 +593,13 @@ export default {
                         backgroundColor: colors
                     }]
                 };
-                this.orders = res.data.list.data;
-                this.totalPages = Math.ceil(res.data.list.pagination.total / res.data.list.pagination.per_page);
-                this.currentPage = res.data.list.pagination.current_page;
-                this.sort = res.data.list._sort;
                 this.chartKey++;
                 this.resetChart();
                 this.resetTable();
                 this.isShowDoughnutChart = true;
                 this.isShowOrderTable = true;
                 this.currentReport = 'order';
+                await this.fetchCompletedOrdersByPeriodData();
             } catch (e) {
                 console.error(e);
             }
@@ -611,79 +640,84 @@ export default {
                 this.$swal.fire('Lỗi!', 'Ngày bắt đầu không được lớn hơn ngày kết thúc.', 'error');
                 return;
             }
+            const periodMap = {
+                filterByDay: 'day',
+                filterByWeek: 'week',
+                filterByMonth: 'month', 
+                filterByQuarter: 'quarter',
+                filterByYear: 'year'
+            }
+            const sortMap = {
+                filterBySold: 'quantity',
+                filterByOrdersCount: 'orders_count',
+                filterByTotalQuantity: 'total_quantity',
+                filterByExpiredQuantity: 'quantity'
+            }
+            const filterTypeMap = {
+                filterByPaymentMethod: 'payment_method',
+                filterByPaymentStatus: 'payment_status',
+            }
+            const baseQuery = {}
+            if (this.startDate && this.endDate) {
+                baseQuery.start_date = this.startDate;
+                baseQuery.end_date = this.endDate;
+            }
             switch (this.selectedReport) {
                 case 'revenueByPeriod': {
-                    let time = 'day';
-                    switch(this.selectedFilter) {
-                        case 'filterByDay': time = 'day'; break;
-                        case 'filterByWeek': time = 'week'; break;
-                        case 'filterByMonth': time = 'month'; break;
-                        case 'filterByQuarter': time = 'quarter'; break;
-                        case 'filterByYear': time = 'year'; break;
-                    }
-                    const query = { period: time };
-                    if (this.startDate && this.endDate) {
-                        query.start_date = this.startDate;
-                        query.end_date = this.endDate;
+                    const query = {
+                        ...baseQuery,
+                        period: periodMap[this.selectedFilter]
                     }
                     this.fetchRevenueByPeriodData(query);
                     this.$router.push({ query });
                     break;
                 }
                 case 'bestSellingProducts': {
-                    let query = {};
-                    if (this.selectedFilter === 'filterBySold') {
-                        query.sort_by = 'quantity';
+                    const query = {
+                        ...baseQuery,
+                        limit: this.limit,
+                        sort_by: sortMap[this.selectedFilter]
                     }
-                    if (this.startDate && this.endDate) {
-                        query.start_date = this.startDate;
-                        query.end_date = this.endDate;
-                    }
-                    query.limit = this.limit;
                     this.fetchBestSellingProductsData(query);
                     this.$router.push({ query });
                     break;
                 }
                 case 'customer': {
-                    let query = {};
-                    if (this.selectedFilter === 'filterByOrdersCount') {
-                        query.sort_by = 'orders_count';
-                    } else if (this.selectedFilter === 'filterByTotalQuantity') {
-                        query.sort_by = 'total_quantity';
+                    const query = {
+                        ...baseQuery,
+                        limit: this.limit,
+                        sort_by: sortMap[this.selectedFilter]
                     }
-                    if (this.startDate && this.endDate) {
-                        query.start_date = this.startDate;
-                        query.end_date = this.endDate;
-                    }
-                    query.limit = this.limit;
                     this.fetchCustomerStatisticsData(query);
                     this.$router.push({ query });
                     break;
                 }
                 case 'order': {
-                    let filter_type = 'status';
-                    switch(this.selectedFilter) {
-                        case 'filterByPaymentMethod': filter_type = 'payment_method'; break;
-                        case 'filterByPaymentStatus': filter_type = 'payment_status'; break;
-                    }
-                    let query = { filter_type };
-                    if (this.startDate && this.endDate) {
-                        query.start_date = this.startDate;
-                        query.end_date = this.endDate;
+                    const query = {
+                        ...baseQuery,
+                        filter_type: filterTypeMap[this.selectedFilter]
                     }
                     this.fetchOrderStatisticsData(query);
                     this.$router.push({ query });
                     break;
                 }
                 case 'expiredProducts': {
-                    let query = {};
-                    if (this.selectedFilter === 'filterByExpiredQuantity') {
-                        query.sort_by = 'quantity';
-                    } else {
-                        query.sort_by = 'expiry_date';
+                    const query = {
+                        ...baseQuery,
+                        sort_by: sortMap[this.selectedFilter]
                     }
                     this.fetchExpiredProductsData(query);
                     this.$router.push({ query });
+                    break;
+                }
+                case 'profitByPeriod': {
+                    const query = {
+                        ...baseQuery,
+                        period: periodMap[this.selectedFilter]
+                    }
+                    this.fetchProfitByPeriodData(query);
+                    this.$router.push({ query });
+                    break;
                 }
             }
         },
@@ -700,7 +734,7 @@ export default {
         },
         resetTable() {
             this.isShowOrderTable = false;
-            this.isShowProductTable = false;
+            this.isShowBestSellingProductsTable = false;
             this.isShowCustomerTable = false;
             this.isShowExpiredProductsTable = false;
         },

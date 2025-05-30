@@ -21,6 +21,9 @@ const statisticalApi = {
     },
     getProductExpiredStatistics(params = {}) {
         return apiClient.get('/statistical/product/expired', { params });
+    },
+    getCompletedOrdersByPeriod(params = {}) {
+        return apiClient.get('/statistical/completed-orders', { params });
     }
 }
 

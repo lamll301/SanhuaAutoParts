@@ -71,6 +71,41 @@
                     </div>
                     </form>
                 </div>
+                <div class="admin-content__table">
+                    <div class="admin-content__header d-flex align-items-center">
+                        <h4>Lịch sử sử dụng voucher</h4>
+                    </div>
+                    <CheckboxTable :items="voucherHistory">
+                        <template #header>
+                            <th scope="col">ID</th>
+                            <th scope="col">ID người dùng</th>
+                            <th scope="col">ID đơn hàng</th>
+                            <th scope="col">Tên người mua</th>
+                            <th scope="col">Tiền sản phẩm</th>
+                            <th scope="col">Tiền vận chuyển</th>
+                            <th scope="col">Tổng tiền</th>
+                            <th scope="col">Ngày sử dụng</th>
+                        </template>
+                        <template #body="{ item }">
+                            <td>{{ item.id }}</td>
+                            <td>{{ item.user_id }}</td>
+                            <td>{{ item.order_id }}</td>
+                            <td>{{ item.order.name }}</td>
+                            <td>{{ formatPrice(item.order.product_total) }}</td>
+                            <td>{{ formatPrice(item.order.shipping_fee) }}</td>
+                            <td>{{ formatPrice(item.order.total_amount) }}</td>
+                            <td>{{ formatDate(item.created_at) }}</td>
+                        </template>
+                        <template #empty>
+                            <tr>
+                                <td colspan="20" class="text-center">
+                                    Bạn chưa có lịch sử sử dụng voucher nào
+                                </td>
+                            </tr>
+                        </template>
+                    </CheckboxTable>
+                    <div class="admin-content__table-footer"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -78,11 +113,17 @@
 
 <script>
 import { voucherApi } from '@/api';
+import CheckboxTable from '@/components/CheckboxTable.vue';
+import { formatPrice, formatDate } from '@/utils/helpers';
 
 export default {
+    components: {
+        CheckboxTable
+    },
     data() {
         return {
             voucher: {}, 
+            voucherHistory: [],
             errors: {
                 value: '',
                 code: '',
@@ -105,6 +146,8 @@ export default {
         await this.fetchData();
     },
     methods: {
+        formatPrice,
+        formatDate,
         async approve() {
             try {
                 await voucherApi.approve(this.$route.params.id);
@@ -161,8 +204,13 @@ export default {
         async fetchData() {
             try {
                 if (this.$route.params.id) {
-                    const res = await this.$swal.withLoading(voucherApi.getOne(this.$route.params.id));
-                    this.voucher = res.data;
+                    const req = [
+                        voucherApi.getOne(this.$route.params.id),
+                        voucherApi.getVoucherUsage(this.$route.params.id),
+                    ]
+                    const res = await this.$swal.withLoading(Promise.all(req));
+                    this.voucher = res[0].data || {};
+                    this.voucherHistory = res[1].data || [];
                 }
             } catch (error) {
                 console.error(error);

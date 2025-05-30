@@ -8,60 +8,145 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Order;
 use App\Models\OrderDetail;
-use App\Models\User;
-use App\Models\Product;
 use App\Models\Review;
-use App\Models\Voucher;
 
 class StatisticalController extends Controller
 {
+    const SEARCH_FIELDS = ['name', 'phone'];
+    public function getCompletedOrdersByPeriod(Request $request) {
+        $startDate = Carbon::parse($request->get('start_date', Carbon::now()->startOfMonth()));
+        $endDate = Carbon::parse($request->get('end_date', Carbon::now()->endOfMonth()));
+        $query = Order::where('status', Order::STATUS_COMPLETED)
+            ->whereBetween('completed_at', [$startDate, $endDate])
+            ->with([
+                'voucher:id,code,value',
+            ]);
+        return $this->getListResponse($query, $request, self::SEARCH_FIELDS, []);
+    }
     public function revenueByPeriod(Request $request) {
         $period = $request->get('period', 'day');
         $startDate = Carbon::parse($request->get('start_date', Carbon::now()->startOfMonth()));
         $endDate = Carbon::parse($request->get('end_date', Carbon::now()->endOfMonth()));
         $query = Order::where('status', Order::STATUS_COMPLETED)
-            ->whereBetween('completed_at', [$startDate, $endDate]);
-        $listQuery = clone $query;
+            ->whereBetween('completed_at', [$startDate, $endDate])
+            ->select([
+                DB::raw('SUM(total_amount) as revenue'),
+                DB::raw('COUNT(*) as orders_count'),
+            ]);
         switch ($period) {
             case 'day':
-                $data = $query->selectRaw('DATE(completed_at) as period, SUM(total_amount) as revenue, COUNT(*) as orders_count')
-                    ->groupBy(DB::raw('DATE(completed_at)'))
-                    ->orderBy('period')
-                    ->get();
+                $query->addSelect(
+                    DB::raw('DATE(completed_at) as period'),
+                )->groupBy(DB::raw('DATE(completed_at)'))
+                ->orderBy('period');
                 break;
             case 'week':
-                $data = $query->selectRaw('TO_CHAR(completed_at, \'IYYY-IW\') as period, SUM(total_amount) as revenue, COUNT(*) as orders_count')
-                    ->groupBy(DB::raw('TO_CHAR(completed_at, \'IYYY-IW\')'))
-                    ->orderBy('period')
-                    ->get();
+                $query->addSelect(
+                    DB::raw('TO_CHAR(completed_at, \'IYYY-IW\') as period'),
+                )->groupBy(DB::raw('TO_CHAR(completed_at, \'IYYY-IW\')'))
+                ->orderBy('period');
                 break;
             case 'month':
-                $data = $query->selectRaw('EXTRACT(YEAR FROM completed_at) as year, EXTRACT(MONTH FROM completed_at) as month, SUM(total_amount) as revenue, COUNT(*) as orders_count')
-                    ->groupBy(DB::raw('EXTRACT(YEAR FROM completed_at)'), DB::raw('EXTRACT(MONTH FROM completed_at)'))
-                    ->orderBy('year')
-                    ->orderBy('month')
-                    ->get();
+                $query->addSelect(
+                    DB::raw('EXTRACT(YEAR FROM completed_at) as year'),
+                    DB::raw('EXTRACT(MONTH FROM completed_at) as month'),
+                    DB::raw('CONCAT(EXTRACT(YEAR FROM completed_at), \'-\', LPAD(EXTRACT(MONTH FROM completed_at)::text, 2, \'0\')) as period')
+                )->groupBy(
+                    DB::raw('EXTRACT(YEAR FROM completed_at)'),
+                    DB::raw('EXTRACT(MONTH FROM completed_at)')
+                )->orderBy('year')
+                ->orderBy('month');
                 break;
             case 'quarter':
-                $data = $query->selectRaw('EXTRACT(YEAR FROM completed_at) as year, EXTRACT(QUARTER FROM completed_at) as quarter, SUM(total_amount) as revenue, COUNT(*) as orders_count')
-                    ->groupBy(DB::raw('EXTRACT(YEAR FROM completed_at)'), DB::raw('EXTRACT(QUARTER FROM completed_at)'))
-                    ->orderBy('year')
-                    ->orderBy('quarter')
-                    ->get();
+                $query->addSelect(
+                    DB::raw('EXTRACT(YEAR FROM completed_at) as year'),
+                    DB::raw('EXTRACT(QUARTER FROM completed_at) as quarter'),
+                    DB::raw('CONCAT(EXTRACT(YEAR FROM completed_at), \'-Q\', EXTRACT(QUARTER FROM completed_at)) as period')
+                )->groupBy(
+                    DB::raw('EXTRACT(YEAR FROM completed_at)'),
+                    DB::raw('EXTRACT(QUARTER FROM completed_at)')
+                )->orderBy('year')
+                ->orderBy('quarter');
                 break;
             case 'year':
-                $data = $query->selectRaw('EXTRACT(YEAR FROM completed_at) as year, SUM(total_amount) as revenue, COUNT(*) as orders_count')
-                    ->groupBy(DB::raw('EXTRACT(YEAR FROM completed_at)'))
-                    ->orderBy('year')
-                    ->get();
+                $query->addSelect(
+                    DB::raw('EXTRACT(YEAR FROM completed_at) as year'),
+                    DB::raw('CONCAT(EXTRACT(YEAR FROM completed_at)) as period')
+                )->groupBy(DB::raw('EXTRACT(YEAR FROM completed_at)'))
+                ->orderBy('year');
                 break;
         }
-        $list = $this->getListResponse($listQuery, $request, [], [])->getData(true);
+        $data = $query->get();
         return response()->json([
             'date_range' => $startDate->format('d/m/Y') . ' - ' . $endDate->format('d/m/Y'),
             'period' => $period,
-            'data' => $data,
-            'list' => $list
+            'data' => $data
+        ]);
+    }
+    
+    public function profitByPeriod(Request $request) {
+        $period = $request->get('period', 'day');
+        $startDate = Carbon::parse($request->get('start_date', Carbon::now()->startOfMonth()));
+        $endDate = Carbon::parse($request->get('end_date', Carbon::now()->endOfMonth()));
+        $query = OrderDetail::join('orders', 'order_details.order_id', '=', 'orders.id')
+            ->join('order_detail_inventory', 'order_details.id', '=', 'order_detail_inventory.order_detail_id')
+            ->join('inventories', 'order_detail_inventory.inventory_id', '=', 'inventories.id')
+            ->where('orders.status', Order::STATUS_COMPLETED)
+            ->whereBetween('orders.completed_at', [$startDate, $endDate])
+            ->select([
+                DB::raw('SUM(order_detail_inventory.quantity) as total_quantity'),      // sản lượng bán ra
+                DB::raw('SUM(order_details.price * order_detail_inventory.quantity) as gross_sales'),   // tổng tiền thu từ bán hàng (chưa tính phí khác) = tổng giá bán * số lượng
+                DB::raw('SUM(inventories.price * order_detail_inventory.quantity) as cost'), // chi phí = giá nhập × số lượng
+                DB::raw('SUM(order_details.price * order_detail_inventory.quantity) - SUM(inventories.price * order_detail_inventory.quantity) as profit'), // lợi nhuận = tổng tiền thu từ bán hàng - chi phí
+            ]);
+        switch ($period) {
+            case 'day':
+                $query->addSelect(DB::raw('DATE(orders.completed_at) as period'))
+                    ->groupBy(DB::raw('DATE(orders.completed_at)'))
+                    ->orderBy('period');
+                break;                
+            case 'week':
+                $query->addSelect(DB::raw('TO_CHAR(orders.completed_at, \'IYYY-IW\') as period'))
+                    ->groupBy(DB::raw('TO_CHAR(orders.completed_at, \'IYYY-IW\')'))
+                    ->orderBy('period');
+                break;                
+            case 'month':
+                $query->addSelect(
+                    DB::raw('EXTRACT(YEAR FROM orders.completed_at) as year'),
+                    DB::raw('EXTRACT(MONTH FROM orders.completed_at) as month'),
+                    DB::raw('CONCAT(EXTRACT(YEAR FROM orders.completed_at), \'-\', LPAD(EXTRACT(MONTH FROM orders.completed_at)::text, 2, \'0\')) as period')
+                )
+                ->groupBy(
+                    DB::raw('EXTRACT(YEAR FROM orders.completed_at)'),
+                    DB::raw('EXTRACT(MONTH FROM orders.completed_at)')
+                )
+                ->orderBy('year')
+                ->orderBy('month');
+                break;
+            case 'quarter':
+                $query->addSelect(
+                    DB::raw('EXTRACT(YEAR FROM orders.completed_at) as year'),
+                    DB::raw('EXTRACT(QUARTER FROM orders.completed_at) as quarter'),
+                    DB::raw('CONCAT(EXTRACT(YEAR FROM orders.completed_at), \'-Q\', EXTRACT(QUARTER FROM orders.completed_at)) as period')
+                )
+                ->groupBy(
+                    DB::raw('EXTRACT(YEAR FROM orders.completed_at)'),
+                    DB::raw('EXTRACT(QUARTER FROM orders.completed_at)')
+                )
+                ->orderBy('year')
+                ->orderBy('quarter');
+                break;
+            case 'year':
+                $query->addSelect(DB::raw('EXTRACT(YEAR FROM orders.completed_at) as period'))
+                    ->groupBy(DB::raw('EXTRACT(YEAR FROM orders.completed_at)'))
+                    ->orderBy('period');
+                break;
+        }
+        $data = $query->get();
+        return response()->json([
+            'date_range' => $startDate->format('d/m/Y') . ' - ' . $endDate->format('d/m/Y'),
+            'period' => $period,
+            'data' => $data
         ]);
     }
 
@@ -120,7 +205,7 @@ class StatisticalController extends Controller
                 DB::raw('SUM(orders.total_amount) as total_revenue'),
                 DB::raw('SUM(order_details.quantity) as total_quantity'),
                 DB::raw('AVG(orders.total_amount) as average_order_value'),
-                DB::raw('MAX(orders.completed_at) as last_order_date'),
+                DB::raw('MAX(orders.completed_at) as last_order_date')
             )
             ->groupBy('users.id');
         switch ($sortBy) {
@@ -146,8 +231,6 @@ class StatisticalController extends Controller
         $endDate = Carbon::parse($request->get('end_date', Carbon::now()->endOfMonth()));
         $type = $request->get('filter_type', 'status');
         $query = Order::whereBetween('created_at', [$startDate, $endDate]);
-        $listQuery = clone $query;
-        
         switch ($type) {
             case 'status':
                 $query = $query->select(
@@ -176,12 +259,10 @@ class StatisticalController extends Controller
                 )->first();
                 break;
         }
-        $list = $this->getListResponse($listQuery, $request, [], [])->getData(true);
         return response()->json([
             'date_range' => $startDate->format('d/m/Y') . ' - ' . $endDate->format('d/m/Y'),
             'type' => $type,
             'data' => $query,
-            'list' => $list
         ]);
     }
 
@@ -239,82 +320,6 @@ class StatisticalController extends Controller
         ]);
     }
 
-    public function profitByPeriod(Request $request) {
-        $period = $request->get('period', 'day');
-        $startDate = Carbon::parse($request->get('start_date', Carbon::now()->startOfMonth()));
-        $endDate = Carbon::parse($request->get('end_date', Carbon::now()->endOfMonth()));
-        $query = OrderDetail::join('orders', 'order_details.order_id', '=', 'orders.id')
-            ->join('products', 'order_details.product_id', '=', 'products.id')
-            ->join('order_detail_inventory', 'order_details.id', '=', 'order_detail_inventory.order_detail_id')
-            ->join('inventories', 'order_detail_inventory.inventory_id', '=', 'inventories.id')
-            ->join('import_details', function($join) {
-                $join->on('inventories.import_id', '=', 'import_details.import_id')
-                    ->on('inventories.product_id', '=', 'import_details.product_id');
-            })
-            ->leftJoin('suppliers', 'products.supplier_id', '=', 'suppliers.id')
-            ->where('orders.status', Order::STATUS_COMPLETED)
-            ->whereBetween('orders.completed_at', [$startDate, $endDate])
-            ->select([
-                'products.id as product_id',
-                'products.name as product_name',
-                'suppliers.name as supplier_name',
-                DB::raw('SUM(order_detail_inventory.quantity) as total_quantity'),
-                DB::raw('SUM(order_details.price * order_detail_inventory.quantity) as revenue'),
-                DB::raw('SUM(import_details.price * order_detail_inventory.quantity) as cost'),
-                DB::raw('COUNT(DISTINCT orders.id) as orders_count'),
-                DB::raw('COUNT(DISTINCT products.id) as products_count'),
-                DB::raw('COUNT(DISTINCT inventories.id) as inventory_batches_count'),
-                DB::raw('AVG(order_details.price) as average_selling_price'),
-                DB::raw('AVG(import_details.price) as average_import_price')
-            ]);
-        switch ($period) {
-            case 'day':
-                $query->addSelect(DB::raw('DATE(orders.completed_at) as period'))
-                    ->groupBy(DB::raw('DATE(orders.completed_at)'))
-                    ->orderBy('period');
-                break;
-                
-            case 'week':
-                $query->addSelect(DB::raw('TO_CHAR(orders.completed_at, \'IYYY-IW\') as period'))
-                    ->groupBy(DB::raw('TO_CHAR(orders.completed_at, \'IYYY-IW\')'))
-                    ->orderBy('period');
-                break;
-                
-            case 'month':
-                $query->addSelect(
-                    DB::raw('EXTRACT(YEAR FROM orders.completed_at) as year'),
-                    DB::raw('EXTRACT(MONTH FROM orders.completed_at) as month'),
-                    DB::raw('CONCAT(EXTRACT(YEAR FROM orders.completed_at), \'-\', LPAD(EXTRACT(MONTH FROM orders.completed_at)::text, 2, \'0\')) as period')
-                )
-                ->groupBy(
-                    DB::raw('EXTRACT(YEAR FROM orders.completed_at)'),
-                    DB::raw('EXTRACT(MONTH FROM orders.completed_at)')
-                )
-                ->orderBy('year')
-                ->orderBy('month');
-                break;
-                
-            case 'quarter':
-                $query->addSelect(
-                    DB::raw('EXTRACT(YEAR FROM orders.completed_at) as year'),
-                    DB::raw('EXTRACT(QUARTER FROM orders.completed_at) as quarter'),
-                    DB::raw('CONCAT(EXTRACT(YEAR FROM orders.completed_at), \'-Q\', EXTRACT(QUARTER FROM orders.completed_at)) as period')
-                )
-                ->groupBy(
-                    DB::raw('EXTRACT(YEAR FROM orders.completed_at)'),
-                    DB::raw('EXTRACT(QUARTER FROM orders.completed_at)')
-                )
-                ->orderBy('year')
-                ->orderBy('quarter');
-                break;
-                
-            case 'year':
-                $query->addSelect(DB::raw('EXTRACT(YEAR FROM orders.completed_at) as period'))
-                    ->groupBy(DB::raw('EXTRACT(YEAR FROM orders.completed_at)'))
-                    ->orderBy('period');
-                break;
-        }
-    }
 
     public function summary(Request $request) {
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth());
