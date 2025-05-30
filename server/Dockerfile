@@ -34,6 +34,7 @@ RUN composer install --no-interaction --no-dev --optimize-autoloader
 # Create start script với $PORT environment variable
 RUN echo '#!/bin/sh\n\
 sleep 10\n\
+php artisan storage:link\n\
 php artisan migrate:fresh --seed --force\n\
 php artisan serve --host=0.0.0.0 --port=${PORT:-8000}' > /var/www/start.sh \
 && chmod +x /var/www/start.sh
