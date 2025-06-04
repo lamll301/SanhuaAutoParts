@@ -199,6 +199,9 @@ export default {
             });
         }
     },
+    beforeUnmount() {
+        this.markAsRead();
+    }
 }
 </script>
 

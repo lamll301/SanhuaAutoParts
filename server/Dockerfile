@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_pgsql pgsql pdo_mysql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-install pdo_pgsql pgsql mbstring exif pcntl bcmath gd
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -57,12 +57,20 @@ user=www-data\n\
 redirect_stderr=true\n\
 stdout_logfile=/var/www/storage/logs/server.log' > /etc/supervisor/conf.d/laravel.conf
 
-# Create start script với supervisor
+# Create init script
 RUN echo '#!/bin/sh\n\
-sleep 10\n\
 php artisan storage:link\n\
 php artisan migrate:fresh --seed --force\n\
+' > /var/www/init.sh \
+&& chmod +x /var/www/init.sh
+
+# Create start script
+RUN echo '#!/bin/sh\n\
 export PORT=${PORT:-8000}\n\
+# Run init script first\n\
+/var/www/init.sh\n\
+# Set environment variable for supervisor\n\
+export ENV_PORT=$PORT\n\
 /usr/bin/supervisord -c /etc/supervisor/supervisord.conf' > /var/www/start.sh \
 && chmod +x /var/www/start.sh
 
@@ -71,5 +79,6 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
 # Expose port 8000
 EXPOSE 8000
+
 # Start using the script
 CMD ["/var/www/start.sh"]

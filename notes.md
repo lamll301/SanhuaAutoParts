@@ -167,6 +167,3 @@ php artisan make:observer UserObserver --model=User
 syncWithoutDetaching(): thêm hoặc cập nhật các bản ghi trong pivot
 updateExistingPivot(): chỉ cập nhật 1 bản ghi được chỉ định trong pivot 
 ```
-
-- Laravel chỉ xử lý upload file từ form data khi đó là phương thức POST.
-- Service là tập hợp các lớp có trách nhiệm chính là thực thi logic nghiệp vụ phức tạp. Thường dùng khi muốn tách biệt logic xử lý ra khỏi controller.

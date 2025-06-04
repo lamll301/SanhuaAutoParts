@@ -10,22 +10,28 @@ services:
       - .:/var/www
     environment:
       - APP_ENV=local
-      - APP_KEY=base64:your-key-here
-      - DB_CONNECTION=mysql
+      - APP_DEBUG=true
+      # Generate this key with: php artisan key:generate --show
+      - APP_KEY=base64:your-key-here  # Change this to a real generated key
+      - DB_CONNECTION=pgsql
       - DB_HOST=db
+      - DB_PORT=5432
       - DB_DATABASE=laravel
-      - DB_USERNAME=root
-      - DB_PASSWORD=root
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+    depends_on:
+      - db
 
   db:
-    image: mysql:8.0
+    image: postgres:15
     ports:
-      - "3306:3306"
+      - "5432:5432"
     environment:
-      - MYSQL_DATABASE=laravel
-      - MYSQL_ROOT_PASSWORD=root
+      - POSTGRES_DB=laravel
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     volumes:
-      - dbdata:/var/lib/mysql
+      - dbdata:/var/lib/postgresql/data
 
 volumes:
   dbdata:

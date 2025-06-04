@@ -66,3 +66,10 @@ Cập nhật file `.env` của backend với URL public do ngrok cung cấp:
 ```bash
 https://abcd-xyz.ngrok-free.app -> http://localhost:8000
 ```
+#### **Docker**
+Khởi động dịch vụ:
+```bash
+docker-compose up --build       // Build lại image rồi khởi động
+docker-compose up       // Khởi động tất cả container theo docker-compose.yml
+```
+

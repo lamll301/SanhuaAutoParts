@@ -104,8 +104,13 @@ class ChatController extends Controller
     public function index(Request $request)
     {
         $query = Conversation::with([
-            'customer:id,name,username,email,phone',
-        ])->orderBy('updated_at', 'desc');
+            'customer:id,name,username,email,phone,role_id',
+        ])
+        ->whereHas('customer', function ($query) {
+            $query->whereNull('role_id');
+        })
+        ->orderBy('updated_at', 'desc');
+        
         return $this->getListResponse($query, $request, [
             'customer.name', 'customer.username', 'customer.email'
         ], []);
