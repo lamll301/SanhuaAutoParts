@@ -226,15 +226,7 @@ class OrderController extends Controller
             'voucher:id,code,value',
         ]));
     }
-
-    public function refund(string $id) {
-        $order = Order::findOrFail($id);
-        $order->is_refunded = false;
-        $order->refunded_at = now();
-        $order->save();
-        return response()->json($order);
-    }
-
+    
     public function changeOrderStatus(Request $request, string $id) {
         $order = Order::findOrFail($id);
         $status = $request->status;
@@ -250,6 +242,10 @@ class OrderController extends Controller
             case 'completed':
                 $order->status = Order::STATUS_COMPLETED;
                 $order->completed_at = now();
+                break;
+            case 'refunded':
+                $order->is_refunded = false;
+                $order->refunded_at = now();
                 break;
             default:
                 return response()->json(['message' => 'invalid'], 400);

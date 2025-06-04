@@ -73,6 +73,8 @@ const admin = [{
         { path: "order", name: "admin.orders", component: () => import("../pages/admin/orders/OrderList.vue"), },
         { path: "order/trash", name: "admin.orders.trash", component: () => import("../pages/admin/orders/OrderList.vue"), },
         { path: "order/view/:id", name: "admin.orders.view", component: () => import("../pages/admin/orders/OrderForm.vue"), },
+        { path: "chat", name: "admin.chats", component: () => import("../pages/admin/chat/ChatList.vue"), },
+        { path: "chat/view/:id", name: "admin.chats.view", component: () => import("../pages/admin/chat/ChatForm.vue"), },
     ]
 }]
 

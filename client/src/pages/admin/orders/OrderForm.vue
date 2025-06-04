@@ -218,7 +218,7 @@
                             <button v-if="isShowShippedButton" class="fs-16 btn btn-primary" @click="onUpdateStatus(order.id, 'shipped')">Giao hàng</button>
                             <button v-if="isShowCompletedButton" class="fs-16 btn btn-success" @click="onUpdateStatus(order.id, 'completed')">Hoàn tất</button>
                             <button v-if="isShowPaidButton" class="fs-16 btn btn-success" @click="onUpdateStatus(order.id, 'paid')">Đã thanh toán</button>
-                            <button v-if="isShowRefundButton" class="fs-16 btn btn-success" @click="refund()">Đã hoàn tiền</button>
+                            <button v-if="isShowRefundButton" class="fs-16 btn btn-success" @click="onUpdateStatus(order.id, 'refunded')">Đã hoàn tiền</button>
                         </div>
                     </div>
                     </form>
@@ -355,14 +355,6 @@ export default {
                 }
             }
             return isValid;
-        },
-        async refund() {
-            try {
-                await orderApi.refund(this.order.id);
-                this.$swal.fire('Đã hoàn tiền', 'Đơn hàng đã cập nhật thông tin hoàn tiền', 'success');
-            } catch (error) {
-                this.$swal.fire('Lỗi', error.response.data.message, 'error');
-            }
         },
         async approve() {
             try {
@@ -671,7 +663,7 @@ export default {
             if (!this.validate(status)) return;
             try {
                 const res = await orderApi.changeOrderStatus(id, status, this.order.payment_info);
-                await this.$swal.fire('Thành công', 'Trạng thái đơn hàng đã được cập nhật', 'success');
+                await this.$swal.fire('Thành công', 'Thông tin đơn hàng đã được cập nhật', 'success');
                 this.order = res.data;
             } catch (error) {
                 console.error(error);

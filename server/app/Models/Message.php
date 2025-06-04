@@ -15,6 +15,11 @@ class Message extends Model
         'is_read'
     ];
 
+    public function image()
+    {
+        return $this->belongsTo(Image::class, 'image_url', 'id');
+    }
+
     public function conversation()
     {
         return $this->belongsTo(Conversation::class);

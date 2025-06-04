@@ -15,6 +15,16 @@ class Conversation extends Model
         'last_message_at'
     ];
 
+    protected $appends = ['unread_count_by_customer', 'unread_count_by_staff'];
+
+    public function getUnreadCountByCustomerAttribute() {
+        return $this->messages()->where('sender_type', 'staff')->where('is_read', false)->count();
+    }
+
+    public function getUnreadCountByStaffAttribute() {
+        return $this->messages()->where('sender_type', 'customer')->where('is_read', false)->count();
+    }
+
     public function messages()
     {
         return $this->hasMany(Message::class);

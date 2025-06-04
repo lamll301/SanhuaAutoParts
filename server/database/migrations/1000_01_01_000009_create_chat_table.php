@@ -27,7 +27,7 @@ return new class extends Migration
             $table->foreignId('conversation_id')->constrained()->onDelete('cascade');
             $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
             $table->enum('sender_type', ['customer', 'staff'])->default('customer');
-            $table->text('content');
+            $table->text('content')->nullable();
             $table->string('image_url')->nullable();
             $table->boolean('is_read')->default(false);
             $table->timestamps();

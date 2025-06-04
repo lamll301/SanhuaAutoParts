@@ -29,8 +29,8 @@ const orderApi = {
     handleFormActions(data) {
         return apiClient.post('/orders/handle-form-actions', data)
     },
-    changeOrderStatus(id, status, paymentInfo = null) {
-        return apiClient.patch(`/orders/${id}/status`, { status, paymentInfo })
+    changeOrderStatus(id, status, payment_info = null) {
+        return apiClient.patch(`/orders/${id}/status`, { status, payment_info })
     },
     getOrdersByUser(params = {}) {
         return apiClient.get('/orders/my-orders', { params })
@@ -46,9 +46,6 @@ const orderApi = {
             orderDetailInventory: data
         })
     },
-    refund(id) {
-        return apiClient.patch(`/orders/${id}/refund`)
-    }
 }
 
 export default orderApi;

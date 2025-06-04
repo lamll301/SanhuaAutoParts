@@ -25,4 +25,9 @@ class Image extends Model
     {
         return $this->hasOne(User::class, 'avatar_id');
     }
+
+    public function message()
+    {
+        return $this->hasOne(Message::class, 'image_url', 'path');
+    }
 }

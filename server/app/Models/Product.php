@@ -21,7 +21,7 @@ class Product extends Model
         'original_price',
         // 'price',
         // 'quantity',
-        // sold
+        'sold',
         'dimensions',
         'weight',
         'color',

@@ -17,12 +17,17 @@ class RoleSeeder extends Seeder
 
         $employeeRoles = Role::whereIn('name', ['nhân viên kho', 'nhân viên bán hàng'])->get();
         $viewPermission = Permission::where('name', 'view')->first()->id;
+        $chatPermission = Permission::where('name', 'chat')->first()->id;
         $rolePermission = [];
 
         foreach ($employeeRoles as $role) {
             $rolePermission[] = [
                 'role_id' => $role->id,
                 'permission_id' => $viewPermission,
+            ];
+            $rolePermission[] = [
+                'role_id' => $role->id,
+                'permission_id' => $chatPermission,
             ];
         }
 

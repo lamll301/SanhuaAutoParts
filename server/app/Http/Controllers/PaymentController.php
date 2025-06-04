@@ -369,24 +369,25 @@ class PaymentController extends Controller      // chạy ngrok và đổi app_u
 
     public function CODPayment(Request $request)
     {
-        $order = Order::find($request->id)->where('user_id', $request->user_id)->where('payment_status', Order::PAYMENT_STATUS_PENDING)->firstOrFail();
-        if ($order) {
-            $order->payment_status = Order::PAYMENT_STATUS_PAID;
-            $order->payment_info = "Thanh toan COD";
-            $order->save();
-            return response()->json([
-                "message" => "success",
-                "data" => [
-                    "id" => $order->id,
-                    "payment_status" => $order->payment_status,
-                    "payment_info" => $order->payment_info
-                ]
-            ]);
-        }
+        $order = Order::where('id', $request->id)
+            ->where('user_id', $request->user_id)
+            ->where('payment_status', Order::PAYMENT_STATUS_PENDING)
+            ->firstOrFail();
+
+        $order->payment_status = Order::PAYMENT_STATUS_PAID;
+        $order->payment_info = "Thanh toán COD";
+        $order->save();
+
         return response()->json([
-            "message" => "failed"
+            "message" => "success",
+            "data" => [
+                "id" => $order->id,
+                "payment_status" => $order->payment_status,
+                "payment_info" => $order->payment_info
+            ]
         ]);
     }
+
 
     public function createQRCodePayment(Request $request)
     {

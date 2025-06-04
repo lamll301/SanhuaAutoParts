@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Inventory;
 use App\Models\Order;
 use App\Models\OrderDetail;
+use App\Models\Product;
 use App\Models\Voucher;
 use App\Models\VoucherUsage;
 use Illuminate\Support\Facades\DB;
@@ -47,7 +48,9 @@ class OrderObserver
                 });
             }
             // xử lý cập nhật lại số lượng
-            $this->updateInventoryAfterOrderCancel($order);
+            if ($order->approved_by !== null) {
+                $this->updateInventoryAfterOrderCancel($order);
+            }
         });
     }
 
@@ -56,6 +59,15 @@ class OrderObserver
         Order::withoutEvents(function () use ($order) {
             $order->status = Order::STATUS_PACKED;
             $order->save();
+        });
+    }
+
+    private function updateSoldQuantity(Order $order): void {
+        DB::transaction(function () use ($order) {
+            $details = $order->details;
+            foreach ($details as $detail) {
+                Product::where('id', $detail->product_id)->increment('sold', $detail->quantity);
+            }
         });
     }
 
@@ -72,6 +84,10 @@ class OrderObserver
 
         if ($order->isDirty('status') && $order->status === Order::STATUS_CANCELLED) {
             $this->handleOrderCancellation($order);
+        }
+
+        if ($order->isDirty('status') && $order->status === Order::STATUS_COMPLETED) {
+            $this->updateSoldQuantity($order);
         }
     }
 

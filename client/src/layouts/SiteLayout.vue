@@ -326,7 +326,7 @@
         </div>
     </footer>
     <AuthModal @fetchIfAuth="fetchIfAuth" />
-    <ChatComponent v-if="isAuthenticated" />
+    <ChatComponent v-if="isAuthenticated && !user.role_id" />
 </template>
 
 <script>

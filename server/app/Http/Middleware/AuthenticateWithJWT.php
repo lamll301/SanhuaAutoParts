@@ -22,7 +22,10 @@ class AuthenticateWithJWT
                     'code' => 1001,
                 ], 401);
             }
-            $request->merge(['user_id' => $user->id]);
+            $request->merge([
+                'user_id' => $user->id,
+                'role_id' => $user->role_id
+            ]);
             return $next($request);
         } catch (TokenExpiredException $e) {
             return response()->json([

@@ -21,7 +21,8 @@ import cancelApi from "./cancel"
 import userApi from "./user"
 import reviewApi from "./review"
 import articleApi from "./article"
-import statisticalApi from "./statistical"
+import statisticalApi from "./statistical"  
+import chatApi from "./chat"
 
 export {
     addressApi,
@@ -47,5 +48,6 @@ export {
     userApi,
     reviewApi,
     articleApi,
-    statisticalApi
+    statisticalApi,
+    chatApi
 }

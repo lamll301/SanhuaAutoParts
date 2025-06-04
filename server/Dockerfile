@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
     postgresql \
     postgresql-client \
     zip \
-    unzip
+    unzip \
+    supervisor
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -31,12 +32,38 @@ COPY . .
 # Install dependencies
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
-# Create start script với $PORT environment variable
+# Create supervisor configuration
+RUN echo '[supervisord]\n\
+nodaemon=true\n\
+\n\
+[program:laravel-worker]\n\
+process_name=%(program_name)s_%(process_num)02d\n\
+command=php /var/www/artisan queue:work --sleep=3 --tries=3 --max-time=3600\n\
+autostart=true\n\
+autorestart=true\n\
+stopasgroup=true\n\
+killasgroup=true\n\
+user=www-data\n\
+numprocs=1\n\
+redirect_stderr=true\n\
+stdout_logfile=/var/www/storage/logs/worker.log\n\
+stopwaitsecs=3600\n\
+\n\
+[program:laravel-server]\n\
+command=php /var/www/artisan serve --host=0.0.0.0 --port=%(ENV_PORT)s\n\
+autostart=true\n\
+autorestart=true\n\
+user=www-data\n\
+redirect_stderr=true\n\
+stdout_logfile=/var/www/storage/logs/server.log' > /etc/supervisor/conf.d/laravel.conf
+
+# Create start script với supervisor
 RUN echo '#!/bin/sh\n\
 sleep 10\n\
 php artisan storage:link\n\
 php artisan migrate:fresh --seed --force\n\
-php artisan serve --host=0.0.0.0 --port=${PORT:-8000}' > /var/www/start.sh \
+export PORT=${PORT:-8000}\n\
+/usr/bin/supervisord -c /etc/supervisor/supervisord.conf' > /var/www/start.sh \
 && chmod +x /var/www/start.sh
 
 # Set permissions

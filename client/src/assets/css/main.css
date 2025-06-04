@@ -3347,8 +3347,9 @@
     overflow-y: auto;
     background: #f8f9fa;
     display: flex;
-    flex-direction: column;
+    /* flex-direction: column; */
     gap: 16px;
+    flex-direction: column-reverse;
 }
 .chat-message {
     max-width: 80%;

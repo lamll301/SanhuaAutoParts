@@ -83,15 +83,15 @@ class OrderSeeder extends Seeder
                 'user_id' => $userId,
                 'approved_by' => $this->faker->randomElement($this->adminUserIds, null),
                 'voucher_id' => $this->faker->boolean(30) ? $this->faker->randomElement($this->voucherIds) : null,
-                'status' => 0,
+                'status' => Order::STATUS_PENDING,
                 'shipping_fee' => $shippingFee,
                 'total_amount' => 0,
                 'name' => $this->faker->name,
                 'phone' => '0' . $this->faker->numberBetween(300000000, 999999999),
                 'shipping_address' => $this->faker->address,
                 'address_type' => $this->faker->randomElement(self::ADDRESS_TYPE),
-                'payment_method' => $this->faker->randomElement(self::PAYMENT_METHODS),
-                'payment_status' => 0,
+                'payment_method' => $this->faker->randomElement([Order::PAYMENT_METHOD_QR, Order::PAYMENT_METHOD_CARD, Order::PAYMENT_METHOD_EWALLET]),
+                'payment_status' => Order::PAYMENT_STATUS_PENDING,
                 'created_at' => $createdAt,
             ]);
             $totalAmount = $this->createOrderDetails($order, $this->productIds);

@@ -47,6 +47,18 @@
                     <li class="header-admin__dropdown-item"><router-link to="/admin/user">Tất cả người dùng</router-link></li>
                 </ul>
             </div>
+            <div class="header-admin__dropdown">
+                <div class="header-admin__dropdown-content">
+                    <div class="header-admin__dropdown-content-text">
+                        <i class="fa-solid fa-message header-admin__dropdown-icon"></i>
+                        Quản lý tin nhắn
+                    </div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <ul class="header-admin__dropdown-menu">
+                    <li class="header-admin__dropdown-item"><router-link to="/admin/chat">Tất cả tin nhắn</router-link></li>
+                </ul>
+            </div>
             <div class="header-admin__label1">DANH MỤC CƠ BẢN</div>
             <div class="header-admin__dropdown">
                 <div class="header-admin__dropdown-content">

@@ -10,6 +10,7 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
+            'chat',
             'view',
             'articles.approve', 
             'promotions.approve', 
