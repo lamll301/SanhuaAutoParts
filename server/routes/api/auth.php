@@ -10,4 +10,7 @@ Route::prefix('auth')->group(function () {
     Route::get('me', [AuthController::class, 'me'])->middleware(AuthenticateWithJWT::class);
     Route::post('logout', [AuthController::class, 'logout'])->middleware(AuthenticateWithJWT::class);
     Route::post('refresh', [AuthController::class, 'refresh']);
+
+    Route::get('{provider}/redirect', [AuthController::class, 'redirectToProvider']);
+    Route::get('{provider}/callback', [AuthController::class, 'handleProviderCallback']);
 });

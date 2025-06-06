@@ -399,6 +399,7 @@ export default {
             this.fetchIfAuth()
         }
         this.fetchData();
+        this.loginWithToken();
     },
     methods: { 
         getImageUrl, formatPrice,
@@ -422,10 +423,8 @@ export default {
             try {
                 const token = this.authStore.token
                 if (token) {
-                    const res = await Promise.all([
-                        cartApi.getCart()
-                    ])
-                    const cart = res[0].data;
+                    const res = await cartApi.getCart();
+                    const cart = res.data;
                     if (cart?.details) {
                         this.cartStore.setCart(cart.details)
                     }
@@ -473,6 +472,21 @@ export default {
         goToCheckout() {
             this.orderStore.setBuyNow({});
             this.$router.push('/don-hang')
+        },
+        loginWithToken() {
+            const token = this.$route.query.token;
+            if (token && !this.isAuthenticated) {
+                this.authStore.setToken(token);
+                authApi.me().then(res => {
+                    const user = res.data;
+                    if (user) {
+                        this.authStore.setUser(user);
+                        this.fetchIfAuth();
+                    }
+                }).catch(e => {
+                    console.error(e);
+                })
+            }
         }
     },
 }

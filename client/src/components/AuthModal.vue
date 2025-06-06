@@ -37,11 +37,11 @@
                                     <p class="auth-form__option-line">_______________________</p>
                                 </span>
                                 <div class="auth-form__socials">
-                                    <a href="" class="auth-form__socials-text">
+                                    <a href="#" class="auth-form__socials-text" @click="redirectToProvider('facebook')">
                                         <i class="fa-brands fa-facebook fa-xl auth-form__socials-icon-fb"></i>
                                         Facebook
                                     </a>
-                                    <a href="" class="auth-form__socials-text">
+                                    <a href="#" class="auth-form__socials-text" @click="redirectToProvider('google')">
                                         <i class="fa-brands fa-google fa-xl"></i>
                                         Google
                                     </a>
@@ -94,11 +94,11 @@
                                     <p class="auth-form__option-line">_______________________</p>
                                 </span>
                                 <div class="auth-form__socials">
-                                    <a href="" class="auth-form__socials-text">
+                                    <a href="#" class="auth-form__socials-text" @click="redirectToProvider('facebook')">
                                         <i class="fa-brands fa-facebook fa-xl auth-form__socials-icon-fb"></i>
                                         Facebook
                                     </a>
-                                    <a href="" class="auth-form__socials-text">
+                                    <a href="#" class="auth-form__socials-text" @click="redirectToProvider('google')">
                                         <i class="fa-brands fa-google fa-xl"></i>
                                         Google
                                     </a>
@@ -262,6 +262,13 @@ export default {
             } finally {
                 this.isLoading = false;
             }
+        },
+        redirectToProvider(provider) {
+            authApi.redirectToProvider(provider).then(res => {
+                window.location.href = res.data.url;
+            }).catch(e => {
+                console.error(e);
+            })
         }
     },
     mounted() {

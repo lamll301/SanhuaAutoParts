@@ -16,6 +16,12 @@ const authApi = {
     refresh() {
         return apiClient.post('/auth/refresh')
     },
+    redirectToProvider(provider) {
+        return apiClient.get(`/auth/${provider}/redirect`)
+    },
+    handleProviderCallback(provider) {
+        return apiClient.get(`/auth/${provider}/callback`)
+    }
 }
 
 export default authApi;
