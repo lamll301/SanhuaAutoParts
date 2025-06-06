@@ -410,37 +410,47 @@ export default {
         async fetchData() {
             this.isLoading = true;
             try {
-                const req = [
-                    articleApi.home(),
-                    productApi.home()
-                ]
-                const res = await Promise.all(req);
-                this.sliders = res[0].data.featured_news;
-                this.companyArticles = res[0].data.company_news;
-                this.saleArticles = res[0].data.sales_news;
-                this.newestProducts = res[1].data.newest;
-                this.onSaleProducts = res[1].data.onSale;
-                this.highClassProducts = res[1].data.highClass;
-                this.bestSellersProducts = res[1].data.bestSeller;
-                this.activeTab = 'best-sellers';
-                this.saveDataToStore();
+                await this.fetchCriticalData();
+                setTimeout(() => {
+                    this.fetchNonCriticalData();
+                }, 100);
             } catch (e) {
                 console.error(e);
             } finally {
                 this.isLoading = false;
             }
         },
+        async fetchCriticalData() {
+            try {
+                const res = await articleApi.home();
+                this.sliders = res.data.featured_news;
+                this.companyArticles = res.data.company_news;
+                this.saleArticles = res.data.sales_news;
+                this.homeStore.setSliders(this.sliders);
+                this.homeStore.setCompanyArticles(this.companyArticles);
+                this.homeStore.setSaleArticles(this.saleArticles);
+            } catch (e) {
+                console.error(e);
+            }
+        },
+        async fetchNonCriticalData() {
+            try {
+                const res = await productApi.home();
+                this.newestProducts = res.data.newest;
+                this.onSaleProducts = res.data.onSale;
+                this.highClassProducts = res.data.highClass;
+                this.bestSellersProducts = res.data.bestSeller;
+                this.activeTab = 'best-sellers';
+                this.homeStore.setNewestProducts(this.newestProducts);
+                this.homeStore.setOnSaleProducts(this.onSaleProducts);
+                this.homeStore.setHighClassProducts(this.highClassProducts);
+                this.homeStore.setBestSellersProducts(this.bestSellersProducts);
+            } catch (e) {
+                console.error(e);
+            }
+        },
         getActiveTab() {
             return this.activeTab;
-        },
-        saveDataToStore() {
-            this.homeStore.setSliders(this.sliders);
-            this.homeStore.setCompanyArticles(this.companyArticles);
-            this.homeStore.setSaleArticles(this.saleArticles);
-            this.homeStore.setNewestProducts(this.newestProducts);
-            this.homeStore.setOnSaleProducts(this.onSaleProducts);
-            this.homeStore.setHighClassProducts(this.highClassProducts);
-            this.homeStore.setBestSellersProducts(this.bestSellersProducts);
         },
         loadDataFromStore() {
             if (this.homeStore.sliders.length > 0 

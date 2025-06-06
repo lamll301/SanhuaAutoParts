@@ -6,10 +6,9 @@ import { useAuthStore } from '@/stores/auth'
 import { authApi } from '@/api';
 import { useCartStore } from '@/stores/cart';
 
-
 const apiClient = axios.create({
     baseURL: process.env.VUE_APP_API_BASE_URL + '/api',
-    timeout: 10000,
+    timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -120,9 +119,6 @@ apiClient.interceptors.response.use(
                     break
                 case 422: {
                     console.error(response.data)
-                    // const errors = response.data.errors || {}
-                    // const firstError = Object.values(errors)[0]?.[0] || 'Vui lòng kiểm tra lại dữ liệu nhập vào.'
-                    // swal.fire('Dữ liệu không hợp lệ', firstError, 'error')
                     return Promise.reject(response.data)
                 }
                 case 429:

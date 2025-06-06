@@ -217,6 +217,9 @@ export default {
             return this.$route.path.includes('/trash');
         },
     },
+    created() {
+        this.loadStaticData();
+    },
     watch: {
         '$route': {
             handler: 'fetchData',
@@ -229,37 +232,42 @@ export default {
         async fetchData() {
             try {
                 const req = [
-                    this.isTrashRoute
-                        ? productApi.getTrashed(this.$route.query)
-                        : productApi.get(this.$route.query)
+                    this.isTrashRoute ? productApi.getTrashed(this.$route.query) : productApi.get(this.$route.query)
                 ];
-
                 if (!this.isTrashRoute) {
                     req.push(
                         productApi.getTrashed(),
-                        categoryApi.getAll(),
-                        supplierApi.getAll(),
-                        promotionApi.getAll(),
-                        unitApi.getAll(),
                     );
                 }
-                
                 const res = await this.$swal.withLoading(Promise.all(req))
-
                 this.products = res[0].data.data;
                 this.totalPages = Math.ceil(res[0].data.pagination.total / res[0].data.pagination.per_page);
                 this.currentPage = res[0].data.pagination.current_page;
                 this.sort = res[0].data._sort;
-    
                 if (!this.isTrashRoute) {
                     this.deletedCount = res[1].data?.pagination?.total || 0;
-                    this.categories = res[2].data?.data || []
-                    this.suppliers = res[3].data?.data || []
-                    this.promotions = res[4].data?.data || []
-                    this.units = res[5].data?.data || []
                 }
-            } catch (error) {
-                console.error(error);
+            } catch (e) {
+                console.error(e);
+            }
+        },
+        async loadStaticData() {
+            if (this.isTrashRoute) return;
+            try {
+                const [categories, suppliers, promotions, units] = await Promise.all([
+                    categoryApi.getAll(),
+                    supplierApi.getAll(), 
+                    promotionApi.getAll(),
+                    unitApi.getAll(),
+                ]);
+
+                this.categories = categories.data?.data || [];
+                this.suppliers = suppliers.data?.data || [];
+                this.promotions = promotions.data?.data || [];
+                this.units = units.data?.data || [];
+                this.staticDataLoaded = true;
+            } catch (e) {
+                console.error(e);
             }
         },
         async onDelete(id) {

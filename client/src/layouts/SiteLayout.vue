@@ -405,14 +405,13 @@ export default {
         async fetchData() {
             this.isLoading = true;
             try {
-                const res = await categoryApi.getCategoryProduct();
-
-                this.categories = res.data.part;
-                this.categoriesByBrand = res.data.brand;
-
+                const req = [categoryApi.getCategoryProduct()];
                 if (this.isAuthenticated) {
-                    await this.fetchIfAuth()
+                    req.push(this.fetchIfAuth())
                 }
+                const res = await Promise.all(req);
+                this.categories = res[0].data.part || [];
+                this.categoriesByBrand = res[0].data.brand || [];
             } catch (err) {
                 console.error(err)
             } finally {
@@ -425,16 +424,11 @@ export default {
                 if (token) {
                     const res = await Promise.all([
                         cartApi.getCart()
-                        // authApi.me(),
                     ])
                     const cart = res[0].data;
                     if (cart?.details) {
                         this.cartStore.setCart(cart.details)
                     }
-                    // const user = res[1].data;
-                    // if (user) {
-                    //     this.authStore.setUser(user)
-                    // }
                 }
             } catch (e) {
                 console.error(e)
@@ -442,18 +436,22 @@ export default {
         },
         async logout() {
             try {
-                await authApi.logout()
                 this.cartStore.setCart([]);
                 this.authStore.removeToken();
                 this.authStore.removeUser();
-                await this.$swal.fire('Đăng xuất thành công', '', 'success', {
+                this.$swal.fire('Đăng xuất thành công', '', 'success', {
                     position: 'top-end',
                     showConfirmButton: false,
                     timer: 1500,
                 });
                 this.$router.push('/');
-            } catch (err) {
-                console.error(err)
+                authApi.logout().catch(e => console.error(e));
+            } catch (e) {
+                console.error(e)
+                this.cartStore.setCart([]);
+                this.authStore.removeToken();
+                this.authStore.removeUser();
+                this.$router.push('/');
             }
         },
         async goToCart() {

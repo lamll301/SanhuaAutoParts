@@ -38,13 +38,11 @@ class ChatController extends Controller
         $userId = $request->user_id;
         $roleId = $request->role_id;
         $senderType = $roleId ? 'staff' : 'customer';
-
         $message = $conversation->messages()->create([
             'sender_id' => $userId,
             'sender_type' => $senderType,
             'content' => $request->content,
         ]);
-        
         $image_url = null;
         if ($request->hasFile('image')) {
             $storagePath = "Chat/{$conversation->id}";
@@ -65,15 +63,12 @@ class ChatController extends Controller
                 'image_url' => $image_url
             ]);
         }
-
+        broadcast(new MessageSent($message))->toOthers();
         $conversation->update([
             'last_message_at' => now(),
             'is_read_by_customer' => $senderType === 'customer',
             'is_read_by_staff' => $senderType === 'staff'
         ]);
-
-        broadcast(new MessageSent($message))->toOthers();
-        
         return response()->json($message);
     }
 

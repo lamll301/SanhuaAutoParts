@@ -11,18 +11,16 @@
                     </div>
                     <form @submit.prevent="save()">
                     <div class="admin-content__form-body">
-                        <div class="admin-content__form-divided">
-                            <div class="mb-20">
-                                <h3 class="admin-content__form-text">Mã người dùng</h3>
-                                <div class="valid-elm input-group">
-                                    <input type="text" class="fs-16 form-control" disabled v-model="user.id">
-                                </div>
+                        <div class="mb-20">
+                            <h3 class="admin-content__form-text">Mã người dùng</h3>
+                            <div class="valid-elm input-group">
+                                <input type="text" class="fs-16 form-control" disabled v-model="user.id">
                             </div>
-                            <div class="mb-20">
-                                <h3 class="admin-content__form-text">Tên tài khoản</h3>
-                                <div class="valid-elm input-group">
-                                    <input type="text" class="fs-16 form-control" v-model="user.username">
-                                </div>
+                        </div>
+                        <div class="mb-20">
+                            <h3 class="admin-content__form-text">Tên tài khoản</h3>
+                            <div class="valid-elm input-group">
+                                <input type="text" class="fs-16 form-control" v-model="user.username">
                             </div>
                         </div>
                         <div class="admin-content__form-divided">
@@ -115,9 +113,6 @@
                                     </option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="mb-20 admin-content__form-btn">
-                            <button type="submit" class="fs-16 btn btn-primary">Xác nhận</button>
                         </div>
                     </div>
                     </form>
@@ -214,15 +209,6 @@ export default {
                 console.error(error);
             }
         },
-        async save() {
-            try {
-                await userApi.update(this.user.id, this.user);
-                await this.$swal.fire("Cập nhật thành công!", "Thông tin về người dùng đã được cập nhật!", "success")
-                this.$router.push('/admin/user');
-            } catch (error) {
-                console.error(error);
-            }
-        }
     }
 }
 </script>

@@ -407,20 +407,23 @@ export default {
             this.$router.push(this.$route.path + '?' + params.toString())
         },
         async logout() {
-            console.log("OK")
             try {
-                await authApi.logout()
                 this.cartStore.setCart([]);
                 this.authStore.removeToken();
                 this.authStore.removeUser();
-                await this.$swal.fire('Đăng xuất thành công', '', 'success', {
+                this.$router.push('/');
+                this.$swal.fire('Đăng xuất thành công', '', 'success', {
                     position: 'top-end',
                     showConfirmButton: false,
                     timer: 1500,
                 });
-                this.$router.push('/');
+                authApi.logout().catch(e => console.error(e));
             } catch (e) {
                 console.error(e)
+                this.cartStore.setCart([]);
+                this.authStore.removeToken();
+                this.authStore.removeUser();
+                this.$router.push('/');
             }
         },
     }

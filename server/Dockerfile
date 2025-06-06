@@ -60,7 +60,15 @@ stdout_logfile=/var/www/storage/logs/server.log' > /etc/supervisor/conf.d/larave
 # Create init script
 RUN echo '#!/bin/sh\n\
 php artisan storage:link\n\
-php artisan migrate:fresh --seed --force\n\
+\n\
+# Check if database is already seeded by checking if users table has data\n\
+if php artisan tinker --execute="echo App\\Models\\User::count();" 2>/dev/null | grep -q "^[1-9]"; then\n\
+    echo "Database already has data, running normal migration..."\n\
+    php artisan migrate --force\n\
+else\n\
+    echo "Database is empty, running fresh migration with seeding..."\n\
+    php artisan migrate:fresh --seed --force\n\
+fi\n\
 ' > /var/www/init.sh \
 && chmod +x /var/www/init.sh
 

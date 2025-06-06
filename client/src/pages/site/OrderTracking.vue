@@ -96,13 +96,13 @@
                                     >
                                         <a class="settings-order-tracking-details">
                                             <div class="settings-order-tracking-left">
-                                                <img :src="getImageUrl(detail.product.images[0].path)" alt="" class="settings-order-tracking-img">
+                                                <img :src="getImageUrl(detail.product?.images[0]?.path)" alt="" class="settings-order-tracking-img">
                                                 <div class="settings-order-tracking-left-content">
                                                     <p class="settings-order-tracking-text settings-order-tracking-name">
-                                                        {{ detail.product.name }}
+                                                        {{ detail.product?.name }}
                                                     </p>
                                                     <p class="settings-order-tracking-text settings-order-tracking-type">
-                                                        {{ detail.product.description }}
+                                                        {{ detail.product?.description }}
                                                     </p>
                                                     <p class="settings-order-tracking-text">x{{ detail.quantity }}</p>
                                                 </div>

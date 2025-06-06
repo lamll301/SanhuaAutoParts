@@ -26,7 +26,10 @@
                                     </div>
                                 </div>
                                 <div class="auth-form__controls-1">
-                                    <button class="button auth-form__controls-btn">ĐĂNG KÝ</button>
+                                    <button class="button auth-form__controls-btn" :disabled="isLoading">
+                                        <span v-if="!isLoading">ĐĂNG KÝ</span>
+                                        <span v-else class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    </button>
                                 </div>
                                 <span class="auth-form__option">
                                     <p class="auth-form__option-line">_______________________</p>
@@ -74,7 +77,10 @@
                                     </div>
                                 </div>
                                 <div class="auth-form__controls-2">
-                                    <button class="button auth-form__controls-btn">ĐĂNG NHẬP</button>
+                                    <button class="button auth-form__controls-btn" :disabled="isLoading">
+                                        <span v-if="!isLoading">ĐĂNG NHẬP</span>
+                                        <span v-else class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    </button>
                                     <div class="auth-form__aside">
                                         <div class="auth-form__help">
                                             <a href="" class="auth-form__help-link">Quên mật khẩu</a>
@@ -117,6 +123,7 @@ export default {
     name: 'AuthModal',
     data() {
         return {
+            isLoading: false,
             activeForm: 'register',
             username: '',
             password: '',
@@ -194,53 +201,66 @@ export default {
             if (!this.validate()) {
                 return;
             }
+            this.isLoading = true;
             try {
                 const res = await authApi.register(this.email, this.username, this.password);
                 const token = res.data.token;
                 this.authStore.setToken(token);
-                const resMe = await authApi.me();
-                const user = resMe.data;
-                if (user) {
-                    this.authStore.setUser(user);
-                }
+                authApi.me().then(res => {
+                    const user = res.data;
+                    if (user) {
+                        this.authStore.setUser(user);
+                    }
+                }).catch(e => {
+                    console.error(e);
+                })
                 this.$emit('fetchIfAuth');
+                this.$refs.closeButton.click();
                 this.$swal.fire('Đăng ký thành công', 'Tài khoản của bạn đã được tạo!', 'success', {
                     confirmButtonText: 'Đóng',
-                    willClose: () => {
-                        this.$refs.closeButton.click();
-                    }
-                });
+                    timer: 2000,
+                    timerProgressBar: true
+                })
             } catch (e) {
                 console.error(e);
                 this.errors.password = e.message;
+            } finally {
+                this.isLoading = false;
             }
         },
         async login() {
             if (!this.validate()) {
                 return;
             }
+            this.isLoading = true;
             try {
                 const res = await authApi.login(this.username, this.password);
                 const token = res.data.token;
                 this.authStore.setToken(token);
-                const resMe = await authApi.me();
-                const user = resMe.data;
-                if (user) {
-                    this.authStore.setUser(user);
-                }
-                this.$emit('fetchIfAuth');
-                await this.$swal.fire('Đăng nhập thành công', 'Chào mừng bạn quay trở lại!', 'success', {
-                    confirmButtonText: 'Đóng',
-                    willClose: () => {
-                        this.$refs.closeButton.click();
+                authApi.me().then(res => {
+                    const user = res.data;
+                    if (user) {
+                        this.authStore.setUser(user);
+                        if (user.role_id) {
+                            this.$router.push('/admin')
+                        }
                     }
-                });
-                if (user.role_id) {
-                    this.$router.push('/admin')
-                }
+                }).catch(e => {
+                    console.error(e);
+                })
+
+                this.$emit('fetchIfAuth');
+                this.$refs.closeButton.click();
+                this.$swal.fire('Đăng nhập thành công', 'Chào mừng bạn quay trở lại!', 'success', {
+                    confirmButtonText: 'Đóng',
+                    timer: 2000,
+                    timerProgressBar: true
+                })
             } catch (e) {
                 console.error(e);
                 this.errors.password = e.message;
+            } finally {
+                this.isLoading = false;
             }
         }
     },
@@ -258,3 +278,20 @@ export default {
     }
 };
 </script>
+
+<style>
+.auth-form__controls-btn {
+    position: relative;
+    min-width: 120px;
+}
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    margin: 0 0.5rem;
+}
+.auth-form__controls-btn:disabled {
+    opacity: 1 !important;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+</style>

@@ -98,29 +98,32 @@ export default {
     name: 'ChatForm',
     data() {
         return {
+            conversationId: this.$route.params.id,
             newMessage: '',
             messages: [], conversation: {},
             selectedFile: null,
             pusher: null,
             channel: null,
+            tmpMessage: [],
         }
     },
     created() {
         this.initializePusher();
-        this.subscribeToChannel(this.$route.params.id);
+        this.subscribeToChannel(this.conversationId);
         this.fetchData();
-        this.markAsRead();
+        this.markAsRead(this.conversationId);
     },
     methods: {
         getImageUrl,
         async fetchData() {
             const req = [
-                chatApi.getOne(this.$route.params.id),
-                chatApi.getMessages(this.$route.params.id),
+                chatApi.getOne(this.conversationId),
+                chatApi.getMessages(this.conversationId),
             ]
             const [res1, res2] = await this.$swal.withLoading(Promise.all(req));
             this.conversation = res1.data;
-            this.messages = res2.data.data;
+            this.messages = res2.data.data.reverse();
+            this.scrollToBottom();
         },
         initializePusher() {
             this.pusher = new Pusher(process.env.VUE_APP_PUSHER_KEY, {
@@ -135,9 +138,19 @@ export default {
             const channelName = `chat.${conversationId}`;
             this.channel = this.pusher.subscribe(channelName);
             this.channel.bind('App\\Events\\MessageSent', (data) => {
-                const existingMessage = this.messages.find(msg => msg.id === data.id);
-                if (!existingMessage) {
-                    this.messages.unshift(data);
+                const message = data;
+                if (message.sender_type === 'staff') {
+                    const f = this.tmpMessage.shift();
+                    if (f) {
+                        const i = this.messages.findIndex(m => m.id === f.id);
+                        if (i !== -1) {
+                            this.messages[i] = message;
+                        } else {
+                            this.messages.push(message);
+                        }
+                    }            
+                } else {
+                    this.messages.push(message);
                 }
                 this.scrollToBottom();
             });
@@ -151,8 +164,9 @@ export default {
             if (this.selectedFile) {
                 formData.append('image', this.selectedFile);
             }
+            this.tempMessage();
             try {
-                await chatApi.sendMessage(this.$route.params.id, formData);
+                await chatApi.sendMessage(this.conversationId, formData);
             } catch (e) {
                 console.error(e);
             } finally {
@@ -162,9 +176,22 @@ export default {
                 this.scrollToBottom();
             }
         },
-        async markAsRead() {
+        tempMessage() {
+            const tempMessage = {
+                id: Date.now(),
+                content: this.newMessage.trim(),
+                sender_type: 'staff',
+            }
+            this.tmpMessage.push(tempMessage);
+            this.messages.push(tempMessage);
+            this.scrollToBottom();
+            this.newMessage = '';
+            this.selectedFile = null;
+        },
+        async markAsRead(id) {
+            if (!id) return;
             try {
-                await chatApi.markAsRead(this.$route.params.id);
+                await chatApi.markAsRead(id);
             } catch (e) {
                 console.error(e);
             }
@@ -200,7 +227,7 @@ export default {
         }
     },
     beforeUnmount() {
-        this.markAsRead();
+        this.markAsRead(this.conversationId);
     }
 }
 </script>
@@ -300,7 +327,7 @@ export default {
     padding: 24px;
     background: white;
     display: flex;
-    flex-direction: column-reverse;
+    flex-direction: column;
 }
 
 .admin-message-group {

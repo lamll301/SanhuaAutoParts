@@ -20,7 +20,7 @@
                     <div v-if="message.image_url" class="chat-message"
                     :class="{'chat-incoming': message.sender_type === 'staff', 
                     'chat-outgoing': message.sender_type === 'customer'}">
-                        <img :src="getImageUrl(message.image?.path)" alt="message.image?.filename">
+                        <img :src="getImageUrl(message.image?.path)" alt="">
                     </div>
                     <div class="chat-message" v-if="message.content"
                         :class="{'chat-incoming': message.sender_type === 'staff', 
@@ -56,6 +56,7 @@ export default {
             messages: [],
             pusher: null, channel: null, selectedFile: null,
             conversation: null,
+            tmpMessage: [],
         }
     },
     created() {
@@ -76,6 +77,7 @@ export default {
             }
         },
         async markAsRead() {
+            if (!this.conversation || !this.conversation.id) return;
             try {
                 await chatApi.markAsRead(this.conversation.id);
                 this.unreadCount = 0;
@@ -96,18 +98,28 @@ export default {
             const channelName = `chat.${conversationId}`;
             this.channel = this.pusher.subscribe(channelName);
             this.channel.bind('App\\Events\\MessageSent', (data) => {
-                const existingMessage = this.messages.find(msg => msg.id === data.id);
-                if (!existingMessage) {
-                    this.messages.unshift(data);
+                const message = data;
+                if (message.sender_type === 'customer') {
+                    const f = this.tmpMessage.shift();
+                    if (f) {
+                        const i = this.messages.findIndex(m => m.id === f.id);
+                        if (i !== -1) {
+                            this.messages[i] = message;
+                        } else {
+                            this.messages.push(message);
+                        }
+                    }            
+                } else {
+                    this.messages.push(message);
                 }
                 this.scrollToBottom();
             });
         },
         async loadMessages() {
-            if (!this.conversation) return;
+            if (!this.conversation.id) return;
             try {
                 const response = await chatApi.getMessages(this.conversation.id);
-                this.messages = response.data.data;
+                this.messages = response.data.data.reverse();
                 this.scrollToBottom();
             } catch (e) {
                 console.error(e);
@@ -122,14 +134,24 @@ export default {
             if (this.selectedFile) {
                 formData.append('image', this.selectedFile);
             }
+            this.tempMessage();
             try {
                 await chatApi.sendMessage(this.conversation.id, formData);
             } catch (e) {
                 console.error(e);
-            } finally {
-                this.newMessage = '';
-                this.selectedFile = null;
             }
+        },
+        tempMessage() {
+            const tempMessage = {
+                id: Date.now(),
+                content: this.newMessage.trim(),
+                sender_type: 'customer',
+            }
+            this.tmpMessage.push(tempMessage);
+            this.messages.push(tempMessage);
+            this.scrollToBottom();
+            this.newMessage = '';
+            this.selectedFile = null;
         },
         scrollToBottom() {
             this.$nextTick(() => {
