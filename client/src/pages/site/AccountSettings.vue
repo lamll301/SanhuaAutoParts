@@ -27,13 +27,17 @@
                             <p class="order-form-title">
                                 Họ và tên
                             </p>
-                            <input type="text" class="order-form-input" v-model="user.name">
+                            <input type="text" class="order-form-input" v-model="user.name"
+                            v-bind:class="{'is-invalid': errors.name}" @blur="validateProfile()">
+                            <div class="invalid-feedback" v-if="errors.name">{{ errors.name }}</div>
                         </div>
                         <div class="order-form-container">
                             <p class="order-form-title">
                                 Ngày sinh
                             </p>
-                            <input type="date" class="order-form-input" v-model="user.date_of_birth">
+                            <input type="date" class="order-form-input" v-model="user.date_of_birth"
+                            v-bind:class="{'is-invalid': errors.date_of_birth}" @blur="validateProfile()">
+                            <div class="invalid-feedback" v-if="errors.date_of_birth">{{ errors.date_of_birth }}</div>
                         </div>
                     </div>
                     <div class="admin-content__form-divided">
@@ -41,13 +45,17 @@
                             <p class="order-form-title">
                                 Số điện thoại
                             </p>
-                            <input type="text" class="order-form-input" v-model="user.phone">
+                            <input type="text" class="order-form-input" v-model="user.phone"
+                            v-bind:class="{'is-invalid': errors.phone}" @blur="validateProfile()">
+                            <div class="invalid-feedback" v-if="errors.phone">{{ errors.phone }}</div>
                         </div>
                         <div class="order-form-container">
                             <p class="order-form-title">
                                 Email
                             </p>
-                            <input type="text" class="order-form-input" v-model="user.email">
+                            <input type="text" class="order-form-input" v-model="user.email"
+                            v-bind:class="{'is-invalid': errors.email}" @blur="validateProfile()">
+                            <div class="invalid-feedback" v-if="errors.email">{{ errors.email }}</div>
                         </div>
                     </div>
                     <div class="admin-content__form-divided-3">
@@ -55,38 +63,49 @@
                             <p class="order-form-title">
                                 Tỉnh / Thành phố
                             </p>
-                            <select v-model="selectedCity" @change="fetchDistricts" class="order-form-select order-form-input">
+                            <select v-model="selectedCity" @change="fetchDistricts" class="order-form-select order-form-input"
+                            v-bind:class="{'is-invalid': errors.city}" @blur="validateProfile()"
+                            >
                                 <option v-for="city in cities" :key="city.code" :value="city.code">
                                     {{ city.name }}
                                 </option>
                             </select>
+                            <div class="invalid-feedback" v-if="errors.city">{{ errors.city }}</div>
                         </div>
                         <div class="order-form-container">
                             <p class="order-form-title">
                                 Quận / Huyện
                             </p>
-                            <select v-model="selectedDistrict" @change="fetchWards" class="order-form-select order-form-input">
+                            <select v-model="selectedDistrict" @change="fetchWards" class="order-form-select order-form-input"
+                            v-bind:class="{'is-invalid': errors.district}" @blur="validateProfile()"
+                            >
                                 <option v-for="district in districts" :key="district.code" :value="district.code">
                                     {{ district.name }}
                                 </option>
                             </select>
+                            <div class="invalid-feedback" v-if="errors.district">{{ errors.district }}</div>
                         </div>
                         <div class="order-form-container">
                             <p class="order-form-title">
                                 Phường / Xã
                             </p>
-                            <select v-model="selectedWard" class="order-form-select order-form-input">
+                            <select v-model="selectedWard" class="order-form-select order-form-input"
+                            v-bind:class="{'is-invalid': errors.ward}" @blur="validateProfile()"
+                            >
                                 <option v-for="ward in wards" :key="ward.code" :value="ward.code">
                                     {{ ward.name }}
                                 </option>
                             </select>
+                            <div class="invalid-feedback" v-if="errors.ward">{{ errors.ward }}</div>
                         </div>
                     </div>
                     <div class="order-form-container">
                         <p class="order-form-title">
                             Địa chỉ cụ thể
                         </p>
-                        <textarea class="order-form-area" rows="3" v-model="user.address"></textarea>
+                        <textarea class="order-form-area" rows="3" v-model="user.address"
+                        v-bind:class="{'is-invalid': errors.address}" @blur="validateProfile()"></textarea>
+                        <div class="invalid-feedback" v-if="errors.address">{{ errors.address }}</div>
                     </div>
                     <div class="settings-my-profile-btn">
                         <button class="settings-btn" @click="save">
@@ -282,6 +301,7 @@ export default {
             return formData;
         },
         async save() {
+            if (!this.validateProfile()) return;
             const data = this.collectData();
             try {
                 const res = await userApi.updateProfile(data);
@@ -292,7 +312,7 @@ export default {
             }
         },
         async savePassword() {
-            if (!this.validate()) return;
+            if (!this.validatePassword()) return;
             try {
                 await userApi.resetPassword(this.oldPassword, this.newPassword);
                 this.oldPassword = '';
@@ -304,7 +324,7 @@ export default {
                 this.errors.old_password = e.message;
             }
         },
-        validate() {
+        validatePassword() {
             let isValid = true;
             this.errors = {
                 old_password: '',
@@ -333,7 +353,64 @@ export default {
                 isValid = false;
             }
             return isValid;
-        }
+        },
+        validateProfile() {
+            let isValid = true;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const phoneRegex = /^0[0-9]{9}$/;
+            this.errors = {
+                name: '',
+                date_of_birth: '',
+                phone: '',
+                email: '',
+                address: '',
+                city: '',
+                district: '',
+                ward: '',
+            }
+            if (!this.user.name) {
+                this.errors.name = 'Họ và tên không được để trống';
+                isValid = false;
+            }
+            if (!this.user.date_of_birth) {
+                this.errors.date_of_birth = 'Ngày sinh không được để trống';
+                isValid = false;
+            } else if (new Date(this.user.date_of_birth) > new Date()) {
+                this.errors.date_of_birth = 'Ngày sinh không hợp lệ';
+                isValid = false;
+            }
+            if (!this.user.phone) {
+                this.errors.phone = 'Số điện thoại không được để trống';
+                isValid = false;
+            } else if (!phoneRegex.test(this.user.phone)) {
+                this.errors.phone = 'Số điện thoại không hợp lệ';
+                isValid = false;
+            }
+            if (!this.user.email) {
+                this.errors.email = 'Email không được để trống';
+                isValid = false;
+            } else if (!emailRegex.test(this.user.email)) {
+                this.errors.email = 'Email không hợp lệ';
+                isValid = false;
+            }
+            if (!this.user.address) {
+                this.errors.address = 'Địa chỉ không được để trống';
+                isValid = false;
+            }
+            if (!this.user.city_id) {
+                this.errors.city = 'Tỉnh / Thành phố không được để trống';
+                isValid = false;
+            }
+            if (!this.user.district_id) {
+                this.errors.district = 'Quận / Huyện không được để trống';
+                isValid = false;
+            }
+            if (!this.user.ward_id) {
+                this.errors.ward = 'Phường / Xã không được để trống';
+                isValid = false;
+            }
+            return isValid;
+        }   
     },
     beforeUnmount() {
         if (this.avatarPreview) {

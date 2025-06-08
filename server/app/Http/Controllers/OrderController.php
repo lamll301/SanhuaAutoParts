@@ -126,7 +126,7 @@ class OrderController extends Controller
             'details.product.images' => function($query) {
                 $query->where('is_thumbnail', true)->select('id', 'path', 'product_id')->limit(1);
             },
-        ])->where('user_id', $userId)->orderBy('created_at', 'desc');
+        ])->where('user_id', $userId)->orderBy('updated_at', 'desc');
         $query = $this->search($query, $request->query('key'), self::SEARCH_FIELDS);
         $action = $request->input('action');
         switch ($action) {

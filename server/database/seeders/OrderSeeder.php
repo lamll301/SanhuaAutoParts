@@ -120,11 +120,10 @@ class OrderSeeder extends Seeder
             if ($status == 4) {
                 $cancelledAt = Carbon::instance($createdAt)->addHours($this->faker->numberBetween(1, 24));
                 $cancelReason = $this->faker->randomElement([
-                    'Khách hàng hủy đơn',
-                    'Hết hàng',
-                    'Địa chỉ giao hàng không chính xác',
-                    'Khách hàng thay đổi ý định',
-                    'Sản phẩm lỗi'
+                    "Thay đổi nhu cầu, không cần sản phẩm nữa", "Tìm được sản phẩm tương tự với giá rẻ hơn", "Thời gian giao hàng quá lâu không đáp ứng được nhu cầu",
+                    "Nhận được thông tin không tốt về sản phẩm từ người quen", "Đổi ý muốn mua sản phẩm khác thay thế", "Không hài lòng với chính sách đổi trả/hoàn tiền của cửa hàng",
+                    "Bị từ chối hỗ trợ vận chuyển/giảm giá khi yêu cầu", "Nhầm lẫn khi đặt hàng (sai màu, sai kích cỡ, sai sản phẩm)", "Không nhận được tư vấn/thông tin kịp thời từ nhân viên",
+                    "Đơn hàng bị trễ hẹn giao nhiều lần gây mất niềm tin"
                 ]);
             }
             $order = Order::create([

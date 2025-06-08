@@ -148,11 +148,10 @@ export default {
                         } else {
                             this.messages.push(message);
                         }
-                    }            
+                    }
                 } else {
                     this.messages.push(message);
                 }
-                this.scrollToBottom();
             });
         },
         async sendMessage() {
@@ -169,11 +168,6 @@ export default {
                 await chatApi.sendMessage(this.conversationId, formData);
             } catch (e) {
                 console.error(e);
-            } finally {
-                this.newMessage = '';
-                this.selectedFile = null;
-                this.autoResize();
-                this.scrollToBottom();
             }
         },
         tempMessage() {

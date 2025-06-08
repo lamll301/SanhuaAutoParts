@@ -87,7 +87,6 @@ class ReviewSeeder extends Seeder
             'Chất lượng kém, không như hình ảnh.',
         ];
 
-        // Tạo review cho các đơn hàng đã hoàn thành
         foreach ($completedOrders as $order) {
             $orderDetails = OrderDetail::where('order_id', $order->id)->get();
 
@@ -172,11 +171,11 @@ class ReviewSeeder extends Seeder
     {
         $rand = $faker->numberBetween(1, 100);
         
-        if ($rand <= 50) return 5;      // 50%
-        if ($rand <= 75) return 4;      // 25%
-        if ($rand <= 90) return 3;      // 15%
-        if ($rand <= 97) return 2;      // 7%
-        return 1;                       // 3%
+        if ($rand <= 50) return 5;
+        if ($rand <= 75) return 4;
+        if ($rand <= 90) return 3;
+        if ($rand <= 97) return 2;
+        return 1;
     }
 
     private function getCommentByRating($faker, $rating, $positiveComments, $goodComments, $neutralComments, $averageComments, $negativeComments)

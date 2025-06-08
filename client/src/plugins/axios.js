@@ -8,7 +8,7 @@ import { useCartStore } from '@/stores/cart';
 
 const apiClient = axios.create({
     baseURL: process.env.VUE_APP_API_BASE_URL + '/api',
-    timeout: 30000,
+    timeout: 50000,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'

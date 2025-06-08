@@ -99,7 +99,7 @@ class ProductController extends Controller
             },
             'unit:id,name',
             'promotion:id,discount_percent'
-        ])->select('id', 'name', 'slug', 'price', 'original_price', 'unit_id', 'supplier_id', 'promotion_id')
+        ])->select('id', 'name', 'slug', 'price', 'original_price', 'unit_id', 'supplier_id', 'promotion_id', 'sold')
         ->whereHas('categories', function($query) use ($product) {
             $query->whereIn('categories.id', $product->categories->pluck('id'));
         })

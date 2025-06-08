@@ -31,7 +31,7 @@ class ArticleSeeder extends Seeder
             $content .= '<div><b>' . $this->faker->sentence . '</b></div>';
             $numSentences = rand(3, 6);
             for ($i = 0; $i < $numSentences; $i++) {
-                $content .= '<p>' . $this->faker->sentence(rand(8, 15), true) . '</p>';
+                $content .= '<p>' . $this->faker->sentence(rand(10, 20), true) . '</p>';
             }
             $randomImages = collect($files)->shuffle()->take(rand(1, 2));
             foreach ($randomImages as $image) {
@@ -41,7 +41,7 @@ class ArticleSeeder extends Seeder
                 $j++;
             }
         }
-        $content .= '<p>' . $this->faker->sentence(rand(20, 30), true) . '</p>';
+        $content .= '<p>' . $this->faker->sentence(rand(50, 100), true) . '</p>';
         return $content;
     }
 
@@ -51,16 +51,25 @@ class ArticleSeeder extends Seeder
             ['name' => 'Tin công ty', 'type' => 'article'],
             ['name' => 'Tin bán hàng', 'type' => 'article'],
         ];
+        $titles = [
+            "Top 10 phụ tùng ô tô cần thay thế định kỳ để đảm bảo an toàn", "Xu hướng phụ tùng ô tô chính hãng năm 2024: Điểm mặt những sản phẩm hot", "Hướng dẫn cách nhận biết phụ tùng ô tô giả - kém chất lượng",
+            "5 dấu hiệu cảnh báo cần thay thế phanh ô tô ngay lập tức", "So sánh ưu nhược điểm giữa phụ tùng OEM và Aftermarket", "Bí quyết chọn lọc dầu động cơ phù hợp cho từng dòng xe",
+            "Công nghệ mới trong sản xuất phụ tùng ô tô: Tương lai của ngành công nghiệp ô tô", "Hướng dẫn tự kiểm tra và bảo dưỡng hệ thống treo tại nhà", "Tổng hợp các mã lỗi động cơ thường gặp và cách khắc phục",
+            "Xu hướng nâng cấp phụ tùng thể thao cho dòng xe phổ thông", "Đánh giá chi tiết bộ lọc gió KN cao cấp cho xe SUV đô thị", "Cảnh báo: 7 phụ tùng ô tô không nên mua hàng giá rẻ",
+            "Hệ thống làm mát động cơ: Cấu tạo và những hư hỏng thường gặp", "Hướng dẫn chọn size lốp xe phù hợp và những điều cần lưu ý", "Công nghệ phanh mới trên các dòng xe 2024 - Điểm khác biệt",
+            "Bộ dụng cụ sửa chữa ô tô cơ bản mọi tài xế nên có trong xe", "Phân tích ưu điểm của bugi Iridium so với bugi thông thường", "Tư vấn chọn phụ tùng thay thế cho xe ô tô đời cũ",
+            "Xu hướng độ xe theo phong cách OEM+ đang thịnh hành hiện nay", "Hệ thống điện ô tô: Những sự cố thường gặp và cách xử lý"
+        ];
         foreach ($categories as $c) {
             $category = Category::create($c);
             $this->categoryIds[] = $category->id;
         }
         
-        for ($i = 0; $i < 25; $i++) {
+        for ($i = 0; $i < 20; $i++) {
             $article = Article::create([
                 'author' => $this->faker->randomElement($this->usersId),
                 'approved_by' => $this->faker->randomElement($this->usersId),
-                'title' => $this->faker->sentence,
+                'title' => $this->faker->randomElement($titles),
                 'highlight' => $this->faker->sentence,
                 'publish_date' => $this->faker->dateTimeBetween('-6 months', '+1 week')->format('Y-m-d'),
                 'content' => $this->generateArticleContent($files),

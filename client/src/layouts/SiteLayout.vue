@@ -436,7 +436,6 @@ export default {
         async logout() {
             try {
                 this.cartStore.setCart([]);
-                this.authStore.removeToken();
                 this.authStore.removeUser();
                 this.$swal.fire('Đăng xuất thành công', '', 'success', {
                     position: 'top-end',
@@ -444,7 +443,9 @@ export default {
                     timer: 1500,
                 });
                 this.$router.push('/');
-                authApi.logout().catch(e => console.error(e));
+                authApi.logout().then(() => {
+                    this.authStore.removeToken();
+                }).catch(e => console.error(e));
             } catch (e) {
                 console.error(e)
                 this.cartStore.setCart([]);
