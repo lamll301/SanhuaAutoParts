@@ -410,7 +410,6 @@ export default {
             try {
                 this.cartStore.setCart([]);
                 this.authStore.removeUser();
-                this.$router.push('/');
                 this.$swal.fire('Đăng xuất thành công', '', 'success', {
                     position: 'top-end',
                     showConfirmButton: false,
@@ -418,6 +417,7 @@ export default {
                 });
                 authApi.logout().then(() => {
                     this.authStore.removeToken();
+                    this.$router.push('/');
                 }).catch(e => console.error(e));
             } catch (e) {
                 console.error(e)

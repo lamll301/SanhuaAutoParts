@@ -15,7 +15,7 @@ use Faker\Factory as Faker;
 class ProductSeeder extends Seeder
 {
     private $faker;
-    private $path = 'sanhua';
+    private $path = 'sanhua/san-pham';
     private $promotionIds;
     private $supplierIds;
     private $unitIds;

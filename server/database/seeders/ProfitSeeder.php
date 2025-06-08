@@ -18,6 +18,18 @@ class ProfitSeeder extends Seeder
     private $customerIds;
     private $adminIds;
     private $productIds;
+    private $names = [
+        "Nguyễn Văn An", "Trần Thị Bích", "Lê Hoàng Cường", "Phạm Thúy Dung", "Hoàng Văn Đạt", "Vũ Minh Đức", "Đặng Thị Hà", "Bùi Ngọc Hải", "Đỗ Quang Huy", "Ngô Thị Hạnh",
+        "Dương Văn Khánh", "Mai Thị Lan", "Lý Văn Long", "Chu Thị Mai", "Trịnh Xuân Nam", "Đinh Thị Nga", "Lâm Văn Phúc", "Võ Thị Quỳnh", "Phan Đình Sơn", "Trương Thị Tâm",
+        "Nguyễn Đức Anh", "Trần Bảo Châu", "Lê Thị Diễm", "Phạm Hồng Đăng", "Hoàng Thị Giang", "Vũ Mạnh Hùng", "Đặng Ngọc Huyền", "Bùi Thế Kiên", "Đỗ Minh Khôi", "Ngô Thanh Loan",
+        "Dương Thị Linh", "Mai Văn Lộc", "Lý Thị Minh", "Chu Bá Nam", "Trịnh Thị Nhung", "Đinh Văn Phát", "Lâm Thị Quế", "Võ Đình Sang", "Phan Thị Thanh", "Trương Bá Thắng",
+        "Nguyễn Thị Uyên", "Trần Công Vinh", "Lê Hải Yến", "Phạm Ngọc Ánh", "Hoàng Vũ Bình", "Vũ Thị Cẩm", "Đặng Hữu Danh", "Bùi Khánh Duy", "Đỗ Thị Hạnh", "Ngô Việt Hùng",
+        "Dương Kim Liên", "Mai Đức Mạnh", "Lý Thanh Nga", "Chu Văn Phú", "Trịnh Hoài Phương", "Đinh Thúy Quỳnh", "Lâm Bảo Sơn", "Võ Minh Tân", "Phan Anh Tuấn", "Trương Thị Vân",
+        "Nguyễn Hữu Ân", "Trần Thị Bảo", "Lê Minh Châu", "Phạm Ngọc Dũng", "Hoàng Thị Diệu", "Vũ Trường Giang", "Đặng Văn Hiếu", "Bùi Thị Hồng", "Đỗ Khánh Ly", "Ngô Văn Nhật",
+        "Dương Thị Phương", "Mai Xuân Quang", "Lý Vĩnh Sang", "Chu Thị Thanh", "Trịnh Đình Trung", "Đinh Ngọc Tú", "Lâm Thị Vinh", "Võ Minh Ân", "Phan Thị Bích", "Trương Văn Cảnh",
+        "Nguyễn Thùy Dương", "Trần Đức Hạnh", "Lê Ngọc Khoa", "Phạm Thanh Loan", "Hoàng Thị Mỹ", "Vũ Hồng Nhung", "Đặng Văn Phước", "Bùi Thị Quế", "Đỗ Minh Sơn", "Ngô Thị Tuyết",
+        "Dương Hải Anh", "Mai Thị Chi", "Lý Văn Đại", "Chu Ngọc Hà", "Trịnh Thị Kim", "Đinh Văn Lâm", "Lâm Thị Ngọc", "Võ Thanh Phong", "Phan Thị Thu", "Trương Vũ Trường"
+    ];
 
     public function __construct() {
         $this->faker = Faker::create('vi_VN');
@@ -44,7 +56,7 @@ class ProfitSeeder extends Seeder
                 'status' => Order::STATUS_COMPLETED,
                 'shipping_fee' => $shippingFee,
                 'total_amount' => 0,
-                'name' => $this->faker->name,
+                'name' => $this->faker->randomElement($this->names),
                 'phone' => '0' . $this->faker->numberBetween(300000000, 999999999),
                 'shipping_address' => $this->faker->address,
                 'address_type' => $this->faker->randomElement(['Nhà riêng', 'Văn phòng']),
