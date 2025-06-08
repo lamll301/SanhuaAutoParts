@@ -192,6 +192,18 @@
                         </div>
                         <div class="product-specifications">
                             <ul class="product-specifications-list">
+                                <li class="product-specifications-item" v-if="product?.supplier?.name">
+                                    <div class="product-specifications-title">
+                                        Nhà cung cấp:
+                                    </div>
+                                    <div class="product-specifications-content">
+                                        <ReadMoreButton> 
+                                            <slot>
+                                               {{ product?.supplier?.name }}
+                                            </slot>
+                                        </ReadMoreButton>
+                                    </div>
+                                </li>
                                 <li class="product-specifications-item" v-if="product.dimensions">
                                     <div class="product-specifications-title">
                                         Kích thước:

@@ -111,68 +111,64 @@
                                 @removeImage="handleRemoveImage"
                             />
                         </div>
-                        <div class="admin-content__form-divided-3">
-                            <div class="mb-20">
-                                <h3 class="admin-content__form-text">Kích thước</h3>
-                                <div class="valid-elm input-group">
-                                    <input type="text" 
-                                        class="fs-16 form-control" 
-                                        placeholder="Nhập mô tả kích thước sản phẩm" 
-                                        v-model="product.dimensions"
-                                        v-bind:class="{'is-invalid': errors.dimensions}" @blur="validate()"
-                                    >
-                                    <div class="invalid-feedback" v-if="errors.dimensions">{{ errors.dimensions }}</div>
-                                </div>
-                            </div>
-                            <div class="mb-20">
-                                <h3 class="admin-content__form-text">Trọng lượng</h3>
-                                <div class="valid-elm input-group">
-                                    <input type="text" 
-                                        class="fs-16 form-control" 
-                                        placeholder="Nhập mô tả trọng lượng sản phẩm" 
-                                        v-model="product.weight"
-                                        v-bind:class="{'is-invalid': errors.weight}" @blur="validate()"
-                                    >
-                                    <div class="invalid-feedback" v-if="errors.weight">{{ errors.weight }}</div>
-                                </div>
-                            </div>
-                            <div class="mb-20">
-                                <h3 class="admin-content__form-text">Màu sắc</h3>
-                                <div class="valid-elm input-group">
-                                    <input type="text" 
-                                        class="fs-16 form-control" 
-                                        placeholder="Nhập mô tả màu sắc sản phẩm" 
-                                        v-model="product.color"
-                                        v-bind:class="{'is-invalid': errors.color}" @blur="validate()"
-                                    >
-                                    <div class="invalid-feedback" v-if="errors.color">{{ errors.color }}</div>
-                                </div>
+                        <div class="mb-20">
+                            <h3 class="admin-content__form-text">Kích thước</h3>
+                            <div class="valid-elm input-group">
+                                <input type="text" 
+                                    class="fs-16 form-control" 
+                                    placeholder="Nhập mô tả kích thước sản phẩm" 
+                                    v-model="product.dimensions"
+                                    v-bind:class="{'is-invalid': errors.dimensions}" @blur="validate()"
+                                >
+                                <div class="invalid-feedback" v-if="errors.dimensions">{{ errors.dimensions }}</div>
                             </div>
                         </div>
-                        <div class="admin-content__form-divided">
-                            <div class="mb-20">
-                                <h3 class="admin-content__form-text">Chất liệu</h3>
-                                <div class="valid-elm input-group">
-                                    <input type="text" 
-                                        class="fs-16 form-control" 
-                                        placeholder="Nhập mô tả chất liệu sản phẩm" 
-                                        v-model="product.material"
-                                        v-bind:class="{'is-invalid': errors.material}" @blur="validate()"
-                                    >
-                                    <div class="invalid-feedback" v-if="errors.material">{{ errors.material }}</div>
-                                </div>
+                        <div class="mb-20">
+                            <h3 class="admin-content__form-text">Trọng lượng</h3>
+                            <div class="valid-elm input-group">
+                                <input type="text" 
+                                    class="fs-16 form-control" 
+                                    placeholder="Nhập mô tả trọng lượng sản phẩm" 
+                                    v-model="product.weight"
+                                    v-bind:class="{'is-invalid': errors.weight}" @blur="validate()"
+                                >
+                                <div class="invalid-feedback" v-if="errors.weight">{{ errors.weight }}</div>
                             </div>
-                            <div class="mb-20">
-                                <h3 class="admin-content__form-text">Tương thích</h3>
-                                <div class="valid-elm input-group">
-                                    <input type="text" 
-                                        class="fs-16 form-control" 
-                                        placeholder="Nhập mô tả tương thích sản phẩm" 
-                                        v-model="product.compatibility"
-                                        v-bind:class="{'is-invalid': errors.compatibility}" @blur="validate()"
-                                    >
-                                    <div class="invalid-feedback" v-if="errors.compatibility">{{ errors.compatibility }}</div>
-                                </div>
+                        </div>
+                        <div class="mb-20">
+                            <h3 class="admin-content__form-text">Màu sắc</h3>
+                            <div class="valid-elm input-group">
+                                <input type="text" 
+                                    class="fs-16 form-control" 
+                                    placeholder="Nhập mô tả màu sắc sản phẩm" 
+                                    v-model="product.color"
+                                    v-bind:class="{'is-invalid': errors.color}" @blur="validate()"
+                                >
+                                <div class="invalid-feedback" v-if="errors.color">{{ errors.color }}</div>
+                            </div>
+                        </div>
+                        <div class="mb-20">
+                            <h3 class="admin-content__form-text">Chất liệu</h3>
+                            <div class="valid-elm input-group">
+                                <input type="text" 
+                                    class="fs-16 form-control" 
+                                    placeholder="Nhập mô tả chất liệu sản phẩm" 
+                                    v-model="product.material"
+                                    v-bind:class="{'is-invalid': errors.material}" @blur="validate()"
+                                >
+                                <div class="invalid-feedback" v-if="errors.material">{{ errors.material }}</div>
+                            </div>
+                        </div>
+                        <div class="mb-20">
+                            <h3 class="admin-content__form-text">Tương thích</h3>
+                            <div class="valid-elm input-group">
+                                <input type="text" 
+                                    class="fs-16 form-control" 
+                                    placeholder="Nhập mô tả tương thích sản phẩm" 
+                                    v-model="product.compatibility"
+                                    v-bind:class="{'is-invalid': errors.compatibility}" @blur="validate()"
+                                >
+                                <div class="invalid-feedback" v-if="errors.compatibility">{{ errors.compatibility }}</div>
                             </div>
                         </div>
                         <div class="mb-20">
@@ -254,24 +250,24 @@ export default {
                 this.errors.original_price = 'Giá gốc sản phẩm phải lớn hơn 0.';
                 isValid = false;
             }
-            if (this.product.dimensions?.length > 64) {
-                this.errors.dimensions = 'Kích thước không được vượt quá 64 ký tự.';
+            if (this.product.dimensions?.length > 255) {
+                this.errors.dimensions = 'Kích thước không được vượt quá 255 ký tự.';
                 isValid = false;
             }
-            if (this.product.material?.length > 64) {
-                this.errors.material = 'Chất liệu không được vượt quá 64 ký tự.';
+            if (this.product.material?.length > 255) {
+                this.errors.material = 'Chất liệu không được vượt quá 255 ký tự.';
                 isValid = false;
             }
-            if (this.product.weight?.length > 32) {
-                this.errors.weight = 'Trọng lượng không được vượt quá 32 ký tự.';
+            if (this.product.weight?.length > 255) {
+                this.errors.weight = 'Trọng lượng không được vượt quá 255 ký tự.';
                 isValid = false;
             }
-            if (this.product.color?.length > 32) {
-                this.errors.color = 'Màu sắc không được vượt quá 32 ký tự.';
+            if (this.product.color?.length > 255) {
+                this.errors.color = 'Màu sắc không được vượt quá 255 ký tự.';
                 isValid = false;
             }
-            if (this.product.compatibility?.length > 128) {
-                this.errors.compatibility = 'Tương thích không được vượt quá 128 ký tự.';
+            if (this.product.compatibility?.length > 255) {
+                this.errors.compatibility = 'Tương thích không được vượt quá 255 ký tự.';
                 isValid = false;
             }
             return isValid;

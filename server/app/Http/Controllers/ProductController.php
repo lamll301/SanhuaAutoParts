@@ -83,6 +83,7 @@ class ProductController extends Controller
         $product = Product::with([
             'images:id,path,product_id',
             'unit:id,name',
+            'supplier:id,name',
             'promotion:id,discount_percent',
             'categories:id,name,slug',
             'categories.images' => function($query) {
