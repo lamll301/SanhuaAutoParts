@@ -540,6 +540,8 @@ export default {
         },
         validate() {
             let isValid = true;
+            const nameRegex = /^[a-zA-ZÀ-ỹ\s]+$/;
+            const phoneRegex = /^0[0-9]{9}$/;
             this.errors = {
                 name: '',
                 phone: '',
@@ -551,9 +553,15 @@ export default {
             if (!this.name || this.name.trim() === '') {
                 this.errors.name = 'Tên không được để trống';
                 isValid = false;
+            } else if (!nameRegex.test(this.name)) {
+                this.errors.name = 'Tên không hợp lệ';
+                isValid = false;
             }
             if (!this.phone || this.phone.trim() === '') {
                 this.errors.phone = 'Số điện thoại không được để trống';
+                isValid = false;
+            } else if (!phoneRegex.test(this.phone)) {
+                this.errors.phone = 'Số điện thoại không hợp lệ';
                 isValid = false;
             }
             if (!this.selectedCity) {

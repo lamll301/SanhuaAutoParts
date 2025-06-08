@@ -127,7 +127,7 @@ class ProductController extends Controller
             }, 
             'unit:id,name',
             'promotion:id,discount_percent'
-        ])->where('status', Product::STATUS_ACTIVE);
+        ])->where('status', Product::STATUS_ACTIVE)->orderBy('updated_at', 'desc');
 
         if ($slug !== null) {
             $query->whereHas('categories', function($q) use ($slug) {

@@ -9,6 +9,7 @@ class ArticleController extends Controller
 {
     private const SEARCH_FIELDS = ['title', 'creator.name'];
     private const FILTER_FIELDS = [
+        'filterByCategory' => ['column' => 'category_id'],
         'filterByUnapproved' => ['column' => 'approved_by'],
     ];
 

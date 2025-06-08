@@ -79,7 +79,7 @@
                                     }}
                                 </p>
                                 <span v-if="order.status > 1" class="order-tracking-detail-step-text-sub">
-                                    {{ order.shipped_at }}
+                                    {{ formatDate(order.shipped_at) }}
                                 </span>
                             </div>
                             <div class="order-tracking-detail-step">
@@ -99,7 +99,7 @@
                                     }}
                                 </p>
                                 <span v-if="order.status > 2" class="order-tracking-detail-step-text-sub">
-                                    {{ order.completed_at }}
+                                    {{ formatDate(order.completed_at) }}
                                 </span>
                             </div>
                             <div class="order-tracking-detail-step">
