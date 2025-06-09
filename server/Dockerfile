@@ -61,12 +61,8 @@ stdout_logfile=/var/www/storage/logs/server.log' > /etc/supervisor/conf.d/larave
 RUN echo '#!/bin/sh\n\
 php artisan storage:link\n\
 \n\
-# php artisan migrate:fresh --seed --force\n\
-if php artisan tinker --execute="echo App\\Models\\User::count();" 2>/dev/null | grep -q "^[1-9]"; then\n\
-    php artisan migrate --force\n\
-else\n\
-    php artisan migrate:fresh --seed --force\n\
-fi\n\
+php artisan migrate:fresh --seed --force\n\
+# php artisan migrate --force\n\
 ' > /var/www/init.sh \
 && chmod +x /var/www/init.sh
 
