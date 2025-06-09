@@ -15,11 +15,9 @@ Cài đặt các dependency:
 ```bash
 composer install
 ```
-Sao chép file `.env.example` thành `.env` và cập nhật thông tin cấu hình:
-```env
-DB_DATABASE=sanhua_dev
-DB_USERNAME=
-DB_PASSWORD=
+Giải mã file `.env`:
+```bash
+gpg .env.gpg
 ```
 Tạo khóa ứng dụng:
 ```bash
@@ -28,6 +26,10 @@ php artisan key:generate
 Chạy migration để tạo bảng trong database:
 ```bash
 php artisan migrate --seed
+```
+Tạo link public đến ảnh:
+```bash
+php artisan storage:link
 ```
 Chạy dự án:
 ```bash
@@ -42,11 +44,9 @@ Cài đặt các dependency:
 ```bash
 npm install
 ```
-Cấu hình file `.env`:
-```env
-VUE_APP_API_BASE_URL=http://localhost:8000
-VUE_APP_CLIENT_ID=
-VUE_APP_API_KEY=
+Giải mã file `.env`:
+```bash
+gpg .env.gpg
 ```
 Chạy dự án:
 ```bash
