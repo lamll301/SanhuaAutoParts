@@ -61,10 +61,7 @@ export default {
     },
     created() {
         this.initializePusher();
-        const user = this.$parent?.user || this.$parent?.authStore?.user;
-        if (user && user.role_id != null) {
-            this.getConversation();
-        }
+        this.getConversation();
     },
     methods: {
         getImageUrl,
