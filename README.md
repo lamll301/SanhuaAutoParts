@@ -1,6 +1,10 @@
 # **SanhuaAutoParts**
 **SanhuaAutoParts** là một nền tảng thương mại điện tử chuyên cung cấp các thiết bị và phụ tùng ô tô dành cho các gara, đại lý phân phối, và người dùng cá nhân có nhu cầu mua sắm linh kiện thay thế. Website hỗ trợ quản lý sản phẩm, phân loại theo hệ thống (động cơ, điều hòa, truyền động,...), tìm kiếm nâng cao, thanh toán online qua nhiều cổng, và quản lý đơn hàng. Dự án được phát triển với mục tiêu mang lại trải nghiệm mua sắm dễ dàng, nhanh chóng và chuyên nghiệp cho khách hàng trong ngành phụ tùng ô tô.
-
+## **Tài khoản đăng nhập thử nghiệm**
+Sau khi chạy seed (`php artisan migrate --seed`), bạn có thể đăng nhập với tài khoản admin như sau:
+- **Tên tài khoản:** admin
+- **Mật khẩu:** admin
+> Đây là tài khoản demo dùng để trải nghiệm toàn bộ chức năng hệ thống
 ## **Cài đặt & Chạy dự án**
 Yêu cầu: 
 - Vue.js 5.0.8
