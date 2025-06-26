@@ -61,7 +61,11 @@ stdout_logfile=/var/www/storage/logs/server.log' > /etc/supervisor/conf.d/larave
 RUN echo '#!/bin/sh\n\
 php artisan storage:link\n\
 \n\
-php artisan migrate:fresh --seed --force\n\
+if ! php artisan migrate:status | grep -q "users"; then\n\
+    php artisan migrate:fresh --seed --force\n\
+else\n\
+    echo "Tables exist. Skipping database reset."\n\
+fi\n\
 ' > /var/www/init.sh \
 && chmod +x /var/www/init.sh
 
