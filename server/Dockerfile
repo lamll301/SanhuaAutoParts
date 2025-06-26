@@ -61,8 +61,12 @@ stdout_logfile=/var/www/storage/logs/server.log' > /etc/supervisor/conf.d/larave
 RUN echo '#!/bin/sh\n\
 php artisan storage:link\n\
 \n\
-# php artisan migrate:fresh --seed --force\n\
-php artisan migrate --force\n\
+if ! php artisan migrate:status | grep -q "users"; then\n\
+    echo "🔁 No tables found — running fresh migration and seeding..."\n\
+    php artisan migrate:fresh --seed --force\n\
+else\n\
+    echo "✅ DB has tables — skipping migrate:fresh."\n\
+fi\n\
 ' > /var/www/init.sh \
 && chmod +x /var/www/init.sh
 
