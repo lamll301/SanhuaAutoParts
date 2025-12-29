@@ -77,12 +77,13 @@ docker-compose up --build       // Build lại image rồi khởi động
 docker-compose up       // Khởi động tất cả container theo docker-compose.yml
 ```
 #### **[Render](https://dashboard.render.com/)**
-Tạo database: bấm **New → Postgres → Điền thông tin → Create Database**
-Trong phần **Environment**, chỉnh các biến sau:
+Tạo database: bấm New → Postgres → Điền thông tin → Create Database
+
+Vào phần Environment → Chỉnh các biến dưới → Bấm Save Changes, Rebuild / Deploy
 | Biến môi trường | Giá trị tương ứng |
 |----------------|------------------|
 | `DB_HOST`      | **Hostname** (lấy trong phần *Info* của Database) |
-| `DB_USERNAME`  | **Username** |
-| `DB_PASSWORD`  | **Password** |
-| `DB_DATABASE`  | **Database name** |
+| `DB_USERNAME`  | **Username** (nt)|
+| `DB_PASSWORD`  | **Password** (nt)|
+| `DB_DATABASE`  | **Database name** (nt)|
 
