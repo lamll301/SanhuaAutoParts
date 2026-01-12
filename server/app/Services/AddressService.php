@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Cache;
 
 class AddressService
 {
-    protected $baseUrl = 'https://provinces.open-api.vn/api';
+    protected $baseUrl = 'https://provinces.open-api.vn/api/v1';
     
     public function getProvince($provinceId)
     {
