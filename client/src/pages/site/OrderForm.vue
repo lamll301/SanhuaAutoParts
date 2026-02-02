@@ -564,18 +564,18 @@ export default {
                 this.errors.phone = 'Số điện thoại không hợp lệ';
                 isValid = false;
             }
-            if (!this.selectedCity) {
-                this.errors.city = 'Tỉnh/Thành phố không được để trống';
-                isValid = false;
-            }
-            if (!this.selectedDistrict) {
-                this.errors.district = 'Quận/Huyện không được để trống';
-                isValid = false;
-            }
-            if (!this.selectedWard) {
-                this.errors.ward = 'Phường/Xã không được để trống';
-                isValid = false;
-            }
+            // if (!this.selectedCity) {
+            //     this.errors.city = 'Tỉnh/Thành phố không được để trống';
+            //     isValid = false;
+            // }
+            // if (!this.selectedDistrict) {
+            //     this.errors.district = 'Quận/Huyện không được để trống';
+            //     isValid = false;
+            // }
+            // if (!this.selectedWard) {
+            //     this.errors.ward = 'Phường/Xã không được để trống';
+            //     isValid = false;
+            // }
             if (!this.address || this.address.trim() === '') {
                 this.errors.address = 'Địa chỉ không được để trống';
                 isValid = false;
